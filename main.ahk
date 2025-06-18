@@ -6,13 +6,15 @@ CoordMode "Pixel", "Client"
 myGui := Gui(, "Fantasy Life Easier")
 myGui.AddGroupBox('xm ym w240 h150 Section', '游戏窗口')
 BuildGuiForGameWindow()
-myGui.AddGroupBox('xs ys+160 w240 h170 Section', '重置石')
+myGui.AddGroupBox('xs ys+160 w240 h50 Section', '重置石')
 BuildGuiForReduxStone()
-myGui.AddGroupBox('xs ys+180 w240 h50 Section', '任意门')
+myGui.AddGroupBox('xs ys+60 w240 h50 Section', '任意门')
 BuildGuiForTeleportationGate()
-myGui.AddGroupBox('xs ys+60 w240 h100 Section', '宝箱')
+myGui.AddGroupBox('xs ys+60 w240 h80 Section', '宝箱怪')
 BuildGuiForMimic()
-myGui.AddGroupBox('xs ys+110 w240 h50 Section', '其他功能')
+myGui.AddGroupBox('xs ys+90 w240 h80 Section', '扭蛋迷宫树')
+BuildGuiForGrove()
+myGui.AddGroupBox('xs ys+90 w240 h50 Section', '其他功能')
 BuildGuiForOthers()
 myGui.AddStatusBar("vStatusBar", "StatusBar")
 myGui.OnEvent('Close', (*) => ExitApp())
@@ -23,10 +25,12 @@ myGui['UseTeleportationGate'].OnEvent('Click', UseTeleportationGate)
 myGui['UseTeleportationGateReturn'].OnEvent('Click', UseTeleportationGateReturn)
 myGui['KillMimicTest'].OnEvent('Click', KillMimicTest)
 myGui['KillMimic'].OnEvent('Click', KillMimic)
-myGui['Test'].OnEvent('Click', Test)
+myGui['PlantSaplingTest'].OnEvent('Click', PlantSaplingTest)
+myGui['PlantSapling'].OnEvent('Click', PlantSapling)
+myGui['TestColor'].OnEvent('Click', TestColor)
 myGui.Show("x2200 y500")
 CheckGameWindow()
-; SetKeyDelay 0, 50, "Play"
+F3:: Pause(-1)
 F4:: ExitApp()
 
 MyPress(key) {
@@ -117,8 +121,9 @@ _KillWithShortHold() {
     Send "{w up}{e up}"
     Sleep 2200  ; 技能后摇
     myGui['StatusBar'].Text := "自动归位"
-    MySend "w", 350  ; 前进
-    MySend "s", 630  ; 后退
+    wTime := 700
+    MySend "w", wTime  ; 前进
+    MySend "s", wTime + 220  ; 后退
 }
 
 _KillWithLongHold() {
@@ -133,6 +138,49 @@ _KillWithLongHold() {
     myGui['StatusBar'].Text := "自动归位"
     MySend "w", 500  ; 前进
     MySend "s", 400  ; 后退
+}
+
+_PlantSingleSapling() {
+    myGui['StatusBar'].Text := "选择重新种植"
+    MySend "s"
+    Sleep 100
+    MySend "s"
+    Sleep 100
+    color := PixelGetColor(1324, 432)  ; “重”字颜色
+    if (color != 0xD1C5B3) {
+        myGui['StatusBar'].Text := "“重”颜色异常: " color
+        return false
+    }
+    MySend "Space"
+    Sleep 1000
+    myGui['StatusBar'].Text := "选择年代"
+    key := (myGui['GroveSelectDirection'].Value = 1) ? "w" : "s"
+    num := myGui['GroveSelectMove'].Value
+    loop num {
+        MySend key
+        Sleep 100
+    }
+    Sleep 100
+    MySend "Space"
+    Sleep 500
+    MySend "a"
+    Sleep 100
+    color := PixelGetColor(704, 927)  ; “是”字颜色
+    if (color != 0xF8F0DC) {
+        myGui['StatusBar'].Text := "“是”颜色异常: " color
+        return false
+    }
+    MySend "Space"
+    myGui['StatusBar'].Text := "等待新的迷宫树"
+    Sleep 4000
+    MySend "Space"
+    Sleep 500
+    color := PixelGetColor(119, 62)  ; 迷宫树logo颜色
+    if (color != 0xFAE5B5) {
+        myGui['StatusBar'].Text := "迷宫树logo颜色异常: " color
+        return false
+    }
+    myGui['StatusBar'].Text := "查看迷宫树"
 }
 
 BuildGuiForGameWindow() {
@@ -176,16 +224,16 @@ BuildGuiForReduxStone() {
     myGui.AddText("xp+60 w60 hp 0x200", "数量(1-999)")
     myGui.AddButton("xp+70 w40 vBuyReduxStone", "购买")
     myGui.AddButton("xp+50 wp vSellReduxStone", "出售")
-    myGui.AddText("xs+10 ys+50 w220",
-        "购买：`n"
-        "1. 游戏内定位到长披风`n"
-        "2. 选择数量并点击购买按钮`n"
-        "`n"
-        "出售：`n"
-        "1. 游戏内定位到出售界面最下面的长披风`n"
-        "2. 选择数量并点击出售按钮`n"
-        "3. 游戏内手动出售"
-    )
+    ; myGui.AddText("xs+10 ys+50 w220",
+    ;     "购买（重复按两次空格）：`n"
+    ;     "1. 游戏内定位到长披风`n"
+    ;     "2. 选择数量并点击购买按钮`n"
+    ;     "`n"
+    ;     "出售（重复按空格再按上）：`n"
+    ;     "1. 游戏内定位到出售界面最下面的长披风`n"
+    ;     "2. 选择数量并点击出售按钮`n"
+    ;     "3. 游戏内手动出售"
+    ; )
 }
 
 BuyReduxStone(*) {
@@ -251,6 +299,15 @@ BuildGuiForMimic() {
     myGui.AddRadio("xp+60 hp vLongHold 0xC00", "长蓄力")
     ; myGui.AddButton("xp+70 w40 vKillMimicTest", "单次")
     ; myGui.AddButton("xp+50 wp vKillMimic", "击杀")
+    ; myGui.AddText("xs+10 ys+80 w220",
+    ;     "测试（只进行单次击杀）：`n"
+    ;     "1.游戏内定位到宝箱的必经之路`n"
+    ;     "2.点击测试按钮`n"
+    ;     "`n"
+    ;     "击杀（重复往返传送并击杀）：`n"
+    ;     "1.游戏内定位到宝箱的必经之路`n"
+    ;     "2.设置宝箱数量并点击击杀按钮"
+    ; )
 }
 
 KillMimicTest(*) {
@@ -292,8 +349,52 @@ KillMimic(*) {
     myGui['StatusBar'].Text := "已击杀 " num " 个宝箱"
 }
 
+BuildGuiForGrove() {
+    myGui.AddEdit("xs+10 ys+20 w50")
+    myGui.AddUpDown("vGroveNum Range1-99", 10)
+    myGui.AddText("xp+60 w60 hp 0x200", "数量(1-99)")
+    myGui.AddButton("xp+70 w40 vPlantSaplingTest", "测试")
+    myGui.AddButton("xp+50 wp vPlantSapling", "种植")
+    myGui.AddText("xs+10 ys+50 w64 h22 0x200", "年代选择：")
+    myGui.AddComboBox("xp+70 w40 vGroveSelectDirection Choose2", ["上", "下"])
+    myGui.AddEdit("xp+50 w40")
+    myGui.AddUpDown("vGroveSelectMove Range0-10", 3)
+    ; myGui.AddText("xs+10 ys+50 w220",
+    ;     "种植（重复种植）：`n"
+    ;     "1.游戏内定位扭蛋迷宫树并按F对话`n"
+    ;     "2.设置数量并点击种植按钮`n"
+    ; )
+}
+
+PlantSaplingTest(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    _PlantSingleSapling()
+}
+
+PlantSapling(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    num := myGui['GroveNum'].Value
+    loop num {
+        myGui['StatusBar'].Text := "正在种植第" A_Index " / " num "棵树..."
+        _PlantSingleSapling()
+        myGui['StatusBar'].Text := "已暂停，按F3进行下一次重新种植"
+        Pause()
+        MySend "Escape"
+        Sleep 2000
+    }
+    myGui['StatusBar'].Text := "已种植 " num " 棵树"
+}
+
 BuildGuiForOthers() {
-    myGui.AddButton("xs+10 ys+20 vTest", "测试")
+    myGui.AddEdit("xs+10 ys+20 w50")
+    myGui.AddUpDown("vTestX Range1-1920", 1)
+    myGui.AddEdit("xp+60 w50")
+    myGui.AddUpDown("vTestY Range1-1080", 1)
+    myGui.AddButton("xp+60 w60 vTestColor", "测试颜色")
 }
 
 _TestSend() {
@@ -314,16 +415,24 @@ _TestSend() {
 }
 
 _TestColor() {
-    Sleep 1000
-    color := PixelGetColor(666, 333, "Alt")
+    color := PixelGetColor(myGui['TestX'].Value, myGui['TestY'].Value)
     myGui['StatusBar'].Text := "获取颜色完成: " color
 }
 
-; SetTimer _TestColor, 500
-
-Test(*) {
+TestColor(*) {
     if !ActivateGameWindow() {
         return
     }
-    _TestColor()
+    static _Testing := false
+    if (_Testing) {
+        myGui['StatusBar'].Text := "停止测试"
+        _Testing := false
+        SetTimer(_TestColor, 0)
+    }
+    else {
+        myGui['StatusBar'].Text := "开始测试"
+        _Testing := true
+        Sleep 500
+        SetTimer(_TestColor, 250)
+    }
 }
