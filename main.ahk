@@ -16,6 +16,8 @@ myGui.AddGroupBox('xs ys+90 w240 h80 Section', '扭蛋迷宫树')
 BuildGuiForGrove()
 myGui.AddGroupBox('xs ys+90 w240 h50 Section', '云存档SL')
 BuildGuiForSaveLoad()
+myGui.AddGroupBox('xs ys+90 w240 h80 Section', '在线功能')
+BuildGuiForOnline()
 myGui.AddGroupBox('xs ys+90 w240 h50 Section', '其他功能')
 BuildGuiForOthers()
 myGui.AddStatusBar("vStatusBar", "StatusBar")
@@ -31,8 +33,11 @@ myGui['PlantSaplingTest'].OnEvent('Click', PlantSaplingTest)
 myGui['PlantSapling'].OnEvent('Click', PlantSapling)
 myGui['SaveCloud'].OnEvent('Click', SaveCloud)
 myGui['LoadCloud'].OnEvent('Click', LoadCloud)
+myGui['OnlineJoin'].OnEvent('Click', OnlineJoin)
+myGui['OnlineExit'].OnEvent('Click', OnlineExit)
+myGui['OnlineNext'].OnEvent('Click', OnlineNext)
 myGui['TestColor'].OnEvent('Click', TestColor)
-myGui.Show("x2200 y500")
+myGui.Show("x2200 y300")
 
 Sleep 1000
 WinSetAlwaysOnTop 1, "Fantasy Life Easier"
@@ -321,6 +326,129 @@ _LoadCloud() {
     myGui['StatusBar'].Text := "覆盖完成"
 }
 
+_OnlineJoin() {
+    myGui['StatusBar'].Text := "前进"
+    myPress("w")
+    counter := 0
+    while (true) {
+        color := PixelGetColor(1012, 413)  ; "F"颜色
+        if (color == 0xFFF8E4) {
+            MyRelease("w")
+            break
+        }
+        myGui['StatusBar'].Text := "等待对话中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "对话超时"
+            MyRelease("w")
+            return false
+        }
+    }
+    myGui['StatusBar'].Text := "开始对话"
+    MySend("f")
+    Sleep 1500
+    MySend("Space")
+    Sleep 1000
+    MySend("Space")
+    myGui['StatusBar'].Text := "等待保存"
+    counter := 0
+    while (true) {
+        color := PixelGetColor(240, 77)  ; "联"颜色
+        if (color == 0xF9F1DD) {
+            break
+        }
+        myGui['StatusBar'].Text := "等待保存中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "保存超时"
+            return false
+        }
+    }
+    myGui['StatusBar'].Text := "选择加入"
+    Sleep 200
+    MySend("d")
+    Sleep 200
+    MySend("Space")
+    Sleep 1000
+    MySend("s")
+    Sleep 200
+    MySend("Space")
+    Sleep 1000
+    myGui['StatusBar'].Text := "输入关键词"
+    keyword := myGui['OnlineKeyword'].Text
+    MySend("Space")
+    Sleep 500
+    SendText keyword
+    Sleep 500
+    MySend("Enter")
+    Sleep 500
+    MySend("Tab")
+    counter := 0
+    while (true) {
+        color := PixelGetColor(327, 65)  ; "览"颜色
+        if (color == 0xF9F1DD) {
+            break
+        }
+        myGui['StatusBar'].Text := "搜索中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "搜索超时"
+            return false
+        }
+    }
+    myGui['StatusBar'].Text := "已暂停，选中房间后按F3继续"
+    Pause()
+    myGui['StatusBar'].Text := "继续拜访"
+    Sleep 500
+    MySend("Space")
+    Sleep 500
+    MySend("Space")  ; 确认拜访
+    Sleep 1000
+    myGui['StatusBar'].Text := "输入密码"
+    password := myGui['OnlinePassword'].Text
+    if (password == "") {
+        password := myGui['OnlineKeyword'].Text
+    }
+    SendText password
+    Sleep 800
+    MySend("Enter")
+    counter := 0
+    while (true) {
+        color := PixelGetColor(1000, 140)  ; 蓝天颜色
+        if (color == 0x1595D7) {
+            myGui['StatusBar'].Text := "加入成功"
+            break
+        }
+        myGui['StatusBar'].Text := "加入中... 计数: " counter
+        Sleep 1000
+        counter++
+        if (counter > 60) {
+            myGui['StatusBar'].Text := "加入超时"
+            return false
+        }
+    }
+}
+
+_OnlineExit() {
+    myGui['StatusBar'].Text := "退出房间"
+    _ToggleMenu()
+    MySend "q"
+    Sleep 200
+    MySend "w"
+    Sleep 200
+    MySend "a"
+    Sleep 200
+    MySend "Space"
+    Sleep 500
+    MySend "Space"
+    Sleep 1000
+    myGui['StatusBar'].Text := "已退出房间"
+    return true
+}
+
 BuildGuiForGameWindow() {
     myGui.AddButton("xs+10 ys+20 vActivateGameWindow", "激活游戏窗口")
     myGui.AddText("xs+10 ys+50 w220 r4 vGameWindowStatus", "")
@@ -552,6 +680,46 @@ LoadCloud(*) {
         return
     }
     myGui['StatusBar'].Text := "云数据加载完成"
+}
+
+BuildGuiForOnline() {
+    myGui.AddText("xs+10 ys+20 w36 h22 0x200", "关键词")
+    myGui.AddEdit("xp+40 w60 vOnlineKeyword", "")
+    myGui.AddText("xp+70 w36 h22 0x200", "密码")
+    myGui.AddEdit("xp+40 w60 vOnlinePassword", "")
+    myGui.AddButton("xs+10 ys+50 w40 vOnlineJoin", "加入")
+    myGui.AddButton("xp+50 w40 vOnlineExit", "退出")
+    myGui.AddButton("xp+90 w40 vOnlineNext", "继续")
+}
+
+OnlineJoin(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    if !_OnlineJoin() {
+        return
+    }
+}
+
+OnlineExit(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    if !_OnlineExit() {
+        return
+    }
+}
+
+OnlineNext(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    if !_OnlineExit() {
+        return
+    }
+    if !_OnlineJoin() {
+        return
+    }
 }
 
 BuildGuiForOthers() {
