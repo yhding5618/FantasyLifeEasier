@@ -14,6 +14,8 @@ myGui.AddGroupBox('xs ys+60 w240 h80 Section', '宝箱怪')
 BuildGuiForMimic()
 myGui.AddGroupBox('xs ys+90 w240 h80 Section', '扭蛋迷宫树')
 BuildGuiForGrove()
+myGui.AddGroupBox('xs ys+90 w240 h50 Section', '云存档SL')
+BuildGuiForSaveLoad()
 myGui.AddGroupBox('xs ys+90 w240 h50 Section', '其他功能')
 BuildGuiForOthers()
 myGui.AddStatusBar("vStatusBar", "StatusBar")
@@ -27,8 +29,14 @@ myGui['KillMimicTest'].OnEvent('Click', KillMimicTest)
 myGui['KillMimic'].OnEvent('Click', KillMimic)
 myGui['PlantSaplingTest'].OnEvent('Click', PlantSaplingTest)
 myGui['PlantSapling'].OnEvent('Click', PlantSapling)
+myGui['SaveCloud'].OnEvent('Click', SaveCloud)
+myGui['LoadCloud'].OnEvent('Click', LoadCloud)
 myGui['TestColor'].OnEvent('Click', TestColor)
 myGui.Show("x2200 y500")
+
+Sleep 1000
+WinSetAlwaysOnTop 1, "Fantasy Life Easier"
+
 CheckGameWindow()
 F3:: Pause(-1)
 F4:: ExitApp()
@@ -61,10 +69,14 @@ _SelectItemAndGoUp() {
     Sleep 250
 }
 
-_SingleTeleportationGate(*) {
-    myGui['StatusBar'].Text := "进入菜单"
+_ToggleMenu() {
+    myGui['StatusBar'].Text := "切换Esc菜单"
     MySend "Escape"
     Sleep 750
+}
+
+_SingleTeleportationGate(*) {
+    _ToggleMenu()
     color := PixelGetColor(666, 333)
     if (color != 0xE337DB && color != 0xE335DB) {
         if (color = 0x963681) {
@@ -88,7 +100,7 @@ _SingleTeleportationGate(*) {
         color := PixelGetColor(50, 50)
         if (firstCheck) {
             if (color != 0xFFFFFF) {
-                myGui['StatusBar'].Text := "加载异常: " color
+                myGui['StatusBar'].Text := "加载颜色异常: " color
                 return false
             }
             firstCheck := false
@@ -181,6 +193,132 @@ _PlantSingleSapling() {
         return false
     }
     myGui['StatusBar'].Text := "查看迷宫树"
+}
+
+_SaveCloud() {
+    myGui['StatusBar'].Text := "保存云数据"
+    _ToggleMenu()
+    MySend "x"
+    Sleep 1000
+    color := PixelGetColor(961, 177)  ; 顶部感叹号背景颜色
+    if (color != 0xFFB914) {
+        myGui['StatusBar'].Text := "顶部感叹号背景颜色异常: " color
+        return false
+    }
+    color := PixelGetColor(1234, 442) ; 云存档选择颜色
+    if (color != 0x5CE93F) {
+        if (color = 0xB39770) {
+            myGui['StatusBar'].Text := "云存档未选择"
+            MySend "c"
+            Sleep 300
+            color := PixelGetColor(1234, 442) ; 再次检查
+        }
+        myGui['StatusBar'].Text := "云存档颜色异常: " color
+        return false
+    }
+    myGui['StatusBar'].Text := "确认保存"
+    MySend "a"
+    Sleep 3000
+    MySend "Space"
+    counter := 0
+    while (true) {  ; 等待覆盖完成
+        color := PixelGetColor(975, 915)  ; OK颜色
+        if (color == 0xF8F0DC) {
+            myGui['StatusBar'].Text := "覆盖完成"
+            break
+        }
+        myGui['StatusBar'].Text := "等待覆盖中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "覆盖超时"
+            return false
+        }
+    }
+    Sleep 1000
+    MySend "Space"
+    Sleep 1000
+    _ToggleMenu()
+    myGui['StatusBar'].Text := "云数据保存完成"
+}
+
+_LoadCloud() {
+    myGui['StatusBar'].Text := "加载云数据"
+    _ToggleMenu()
+    MySend "Ctrl"  ; Ctrl
+    Sleep 500
+    myGui['StatusBar'].Text := "返回标题画面"
+    MySend "a"
+    Sleep 500
+    MySend "Space"
+    counter := 0
+    while (true) {  ; 等待加载
+        color := PixelGetColor(1204, 342)  ; "i"颜色
+        if (color == 0x030300) {
+            myGui['StatusBar'].Text := "加载完成"
+            break
+        }
+        myGui['StatusBar'].Text := "等待加载中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "加载超时"
+            return false
+        }
+    }
+    Sleep 1000
+    myGui['StatusBar'].Text := "任意键"
+    MySend "Space"
+    Sleep 1000
+    color := PixelGetColor(1352, 963)  ; "X"颜色
+    if (color != 0xFFF8E4) {
+        myGui['StatusBar'].Text := "X颜色异常: " color
+        return false
+    }
+    myGui['StatusBar'].Text := "选择云存档"
+    MySend "x"
+    Sleep 2000
+    counter := 0
+    while (true) {  ; 等待云存档检测
+        color := PixelGetColor(961, 177)  ; 顶部感叹号背景颜色
+        if (color == 0xFFB914) {
+            myGui['StatusBar'].Text := "云存档检测完成"
+            break
+        }
+        myGui['StatusBar'].Text := "等待云存档检测中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "云存档检测超时"
+            return false
+        }
+    }
+    myGui['StatusBar'].Text := "初次确认"
+    MySend "a"
+    Sleep 2000
+    MySend "Space"
+    Sleep 1000
+    myGui['StatusBar'].Text := "再次确认"
+    MySend "a"
+    Sleep 2000
+    MySend "Space"
+    counter := 0
+    while (true) {  ; 等待加载完成
+        color := PixelGetColor(975, 863)  ; "OK"颜色
+        if (color == 0xF8F0DC) {
+            myGui['StatusBar'].Text := "加载完成"
+            break
+        }
+        myGui['StatusBar'].Text := "等待加载中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "加载超时"
+            return false
+        }
+    }
+    MySend "Space"
+    myGui['StatusBar'].Text := "覆盖完成"
 }
 
 BuildGuiForGameWindow() {
@@ -389,6 +527,33 @@ PlantSapling(*) {
     myGui['StatusBar'].Text := "已种植 " num " 棵树"
 }
 
+BuildGuiForSaveLoad() {
+    myGui.AddButton("xs+10 ys+20 vSaveCloud", "保存云")
+    myGui.AddButton("xp+60 vLoadCloud", "加载云")
+}
+
+SaveCloud(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    myGui['StatusBar'].Text := "正在保存云数据..."
+    if !_SaveCloud() {
+        return
+    }
+    myGui['StatusBar'].Text := "云数据保存完成"
+}
+
+LoadCloud(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    myGui['StatusBar'].Text := "正在加载云数据..."
+    if !_LoadCloud() {
+        return
+    }
+    myGui['StatusBar'].Text := "云数据加载完成"
+}
+
 BuildGuiForOthers() {
     myGui.AddEdit("xs+10 ys+20 w50")
     myGui.AddUpDown("vTestX Range1-1920", 1)
@@ -416,23 +581,20 @@ _TestSend() {
 
 _TestColor() {
     color := PixelGetColor(myGui['TestX'].Value, myGui['TestY'].Value)
-    myGui['StatusBar'].Text := "获取颜色完成: " color
+    myGui['StatusBar'].Text := "当前颜色: " color
 }
 
 TestColor(*) {
-    if !ActivateGameWindow() {
-        return
-    }
     static _Testing := false
     if (_Testing) {
-        myGui['StatusBar'].Text := "停止测试"
         _Testing := false
         SetTimer(_TestColor, 0)
+        myGui['TestColor'].Text := "测试颜色"
     }
     else {
-        myGui['StatusBar'].Text := "开始测试"
         _Testing := true
         Sleep 500
         SetTimer(_TestColor, 250)
+        myGui['TestColor'].Text := "停止测试"
     }
 }
