@@ -198,15 +198,20 @@ _GinormosiaOnce() {
 _GinormosiaCheck() {
     questList := [
         ["龙瞳山地", true, 960, 152, 0x13A6CD],  ; 传奇任务蓝色
+        ["龙鼻山地", true, 336, 749, 0x13A6CD],  ; 传奇任务蓝色
+        ["蜿蜒山峰", true, 1146, 153, 0x13A6CD],  ; 传奇任务蓝色
         ["落羽之森", true, 1775, 589, 0x13A6CD],  ; 传奇任务蓝色
+        ["菇菇秘境", true, 1630, 314, 0x13A6CD],  ; 传奇任务蓝色
+        ["翼尖峡谷", true, 1538, 260, 0x13A6CD],  ; 传奇任务蓝色
         ["干涸沙漠西部", true, 1200, 947, 0x13A6CD],  ; 传奇任务蓝色
         ["干涸沙漠东部", true, 1546, 845, 0x13A6CD],  ; 传奇任务蓝色
         ["龙牙群岛", false, 1233, 170, 0x089ACA],
         ["绿意台地", false, 1733, 687, 0x3BE2AE],
         ["巨腹大平原南部", false, 1861, 944, 0xF2A057],  ; 胡萝卜颜色
+        ["巨腹大平原西部", false, 1544, 264, 0x13A6CD],  ; 传奇任务蓝色，和翼尖峡谷有overlap
     ]
     colorVar := 0x10
-    range := 20
+    range := 10
     questID := 0
     Sleep 500
     loop questList.Length {
@@ -220,7 +225,6 @@ _GinormosiaCheck() {
             questID := A_Index
             break
         }
-        sleep 200
     }
     if (questID = 0) {
         myGui['StatusBar'].Text := "未检测到任务"
