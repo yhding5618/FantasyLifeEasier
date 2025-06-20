@@ -10,6 +10,8 @@ myGui.AddGroupBox('xs ys+160 w240 h50 Section', '重置石')
 BuildGuiForReduxStone()
 myGui.AddGroupBox('xs ys+60 w240 h50 Section', '任意门')
 BuildGuiForTeleportationGate()
+myGui.AddGroupBox('xs ys+60 w240 h50 Section', '传奇任务')
+BuildGuiForGinormosia()
 myGui.AddGroupBox('xs ys+60 w240 h80 Section', '宝箱怪')
 BuildGuiForMimic()
 myGui.AddGroupBox('xs ys+90 w240 h80 Section', '扭蛋迷宫树')
@@ -29,13 +31,15 @@ myGui['BuyReduxStone'].OnEvent('Click', BuyReduxStone)
 myGui['SellReduxStone'].OnEvent('Click', SellReduxStone)
 myGui['UseTeleportationGate'].OnEvent('Click', UseTeleportationGate)
 myGui['UseTeleportationGateReturn'].OnEvent('Click', UseTeleportationGateReturn)
+myGui['GinormosiaOnce'].OnEvent('Click', GinormosiaOnce)
+myGui['GinormosiaCheck'].OnEvent('Click', GinormosiaCheck)
 myGui['KillMimicTest'].OnEvent('Click', KillMimicTest)
 myGui['KillMimic'].OnEvent('Click', KillMimic)
 myGui['PlantSaplingTest'].OnEvent('Click', PlantSaplingTest)
 myGui['PlantSapling'].OnEvent('Click', PlantSapling)
 myGui['SaveCloud'].OnEvent('Click', SaveCloud)
 myGui['LoadCloud'].OnEvent('Click', LoadCloud)
-myGui['AgingStart'].OnEvent('Click', AgingStart)
+myGui['AgingOnce'].OnEvent('Click', AgingOnce)
 myGui['AgingNext'].OnEvent('Click', AgingNext)
 myGui['OnlineJoin'].OnEvent('Click', OnlineJoin)
 myGui['OnlineExit'].OnEvent('Click', OnlineExit)
@@ -132,6 +136,104 @@ _SingleTeleportationGate(*) {
     Sleep 2500  ; 关门动画
     myGui['StatusBar'].Text := "完成传送"
     return true
+}
+
+_GinormosiaOnce() {
+    myGui['StatusBar'].Text := "刷新无垠大陆等级"
+    MySend "f"
+    Sleep 500
+    MySend "Space"
+    Sleep 500
+    color := PixelGetColor(1327, 337)  ; "区"颜色
+    if (color != 0xF8F0DC) {
+        myGui['StatusBar'].Text := "“区”颜色异常: " color
+        return false
+    }
+    MySend "Space"
+    Sleep 1000
+    myGui['StatusBar'].Text := "检查等级"
+    counter := 0
+    while (true) {
+        color := PixelGetColor(151, 295)  ; 等级标识颜色
+        if (color == 0x978056) {
+            myGui['StatusBar'].Text := "当前等级未解锁，尝试下一级"
+            MySend "e"
+        }
+        else if (color == 0x086400) {
+            myGui['StatusBar'].Text := "当前等级已选择，尝试下一级"
+            MySend "e"
+        }
+        else if (color == 0x3C2918) {
+            myGui['StatusBar'].Text := "当前等级可选择"
+            MySend "Space"
+            break
+        }
+        else {
+            myGui['StatusBar'].Text := "等级颜色异常: " color
+            return false
+        }
+        counter++
+        if (counter > 7) {
+            myGui['StatusBar'].Text := "等级选择超时"
+            return false
+        }
+        Sleep 500
+    }
+    Sleep 500
+    color := PixelGetColor(975, 913)  ; "OK"颜色
+    if (color != 0xF8F0DC) {
+        myGui['StatusBar'].Text := "OK颜色异常: " color
+        return false
+    }
+    myGui['StatusBar'].Text := "确认选择"
+    MySend "Space"
+    Sleep 1000
+    MySend "Escape"
+    Sleep 500
+    MySend "m"
+    myGui['StatusBar'].Text := "检查地图"
+    return true
+}
+
+_GinormosiaCheck() {
+    questList := [
+        ["龙瞳山地", true, 960, 152, 0x13A6CD],  ; 传奇任务蓝色
+        ["落羽之森", true, 1775, 589, 0x13A6CD],  ; 传奇任务蓝色
+        ["干涸沙漠西部", true, 1200, 947, 0x13A6CD],  ; 传奇任务蓝色
+        ["干涸沙漠东部", true, 1546, 845, 0x13A6CD],  ; 传奇任务蓝色
+        ["龙牙群岛", false, 1233, 170, 0x089ACA],
+        ["绿意台地", false, 1733, 687, 0x3BE2AE],
+        ["巨腹大平原南部", false, 1861, 944, 0xF2A057],  ; 胡萝卜颜色
+    ]
+    colorVar := 0x10
+    range := 20
+    questID := 0
+    Sleep 500
+    loop questList.Length {
+        quest := questList[A_Index]
+        myGui['StatusBar'].Text := "检查任务: " quest[1]
+        xs := quest[3]
+        ys := quest[4]
+        color := quest[5]
+        check := PixelSearch(&x, &y, xs - range, ys - range, xs + range, ys + range, color, colorVar)
+        if (check) {
+            questID := A_Index
+            break
+        }
+        sleep 200
+    }
+    if (questID = 0) {
+        myGui['StatusBar'].Text := "未检测到任务"
+    }
+    else {
+        if questList[questID][2] {
+            myGui['StatusBar'].Text := "重要任务：" questList[questID][1]
+            SoundBeep 2500, 500
+        }
+        else {
+            myGui['StatusBar'].Text := "普通任务：" questList[questID][1]
+        }
+    }
 }
 
 _KillWithShortHold() {
@@ -606,6 +708,30 @@ UseTeleportationGateReturn(*) {
     myGui['StatusBar'].Text := "往返传送完成"
 }
 
+BuildGuiForGinormosia() {
+    myGui.AddButton("xs+10 ys+20 w40 vGinormosiaOnce", "刷新")
+    myGui.AddButton("xp+50 wp vGinormosiaCheck", "检查")
+}
+
+GinormosiaOnce(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    MySend "Escape"
+    Sleep 500
+    if !_GinormosiaOnce() {
+        return
+    }
+    _GinormosiaCheck()
+}
+
+GinormosiaCheck(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    _GinormosiaCheck()
+}
+
 BuildGuiForMimic() {
     myGui.AddEdit("xs+10 ys+20 w50")
     myGui.AddUpDown("vMimicNum Range1-99", 10)
@@ -734,11 +860,11 @@ LoadCloud(*) {
 }
 
 BuildGuiForAging() {
-    myGui.AddButton("xs+10 ys+20 w40 vAgingStart", "开始")
+    myGui.AddButton("xs+10 ys+20 w40 vAgingOnce", "检查")
     myGui.AddButton("xp+50 wp vAgingNext", "继续")
 }
 
-AgingStart(*) {
+AgingOnce(*) {
     if !ActivateGameWindow() {
         return
     }
