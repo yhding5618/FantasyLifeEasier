@@ -16,7 +16,9 @@ myGui.AddGroupBox('xs ys+90 w240 h80 Section', '扭蛋迷宫树')
 BuildGuiForGrove()
 myGui.AddGroupBox('xs ys+90 w240 h50 Section', '云存档SL')
 BuildGuiForSaveLoad()
-myGui.AddGroupBox('xs ys+90 w240 h80 Section', '在线功能')
+myGui.AddGroupBox('xs ys+60 w240 h50 Section', '熟成')
+BuildGuiForAging()
+myGui.AddGroupBox('xs ys+60 w240 h80 Section', '在线功能')
 BuildGuiForOnline()
 myGui.AddGroupBox('xs ys+90 w240 h50 Section', '其他功能')
 BuildGuiForOthers()
@@ -33,6 +35,8 @@ myGui['PlantSaplingTest'].OnEvent('Click', PlantSaplingTest)
 myGui['PlantSapling'].OnEvent('Click', PlantSapling)
 myGui['SaveCloud'].OnEvent('Click', SaveCloud)
 myGui['LoadCloud'].OnEvent('Click', LoadCloud)
+myGui['AgingStart'].OnEvent('Click', AgingStart)
+myGui['AgingNext'].OnEvent('Click', AgingNext)
 myGui['OnlineJoin'].OnEvent('Click', OnlineJoin)
 myGui['OnlineExit'].OnEvent('Click', OnlineExit)
 myGui['OnlineNext'].OnEvent('Click', OnlineNext)
@@ -119,7 +123,7 @@ _SingleTeleportationGate(*) {
         }
         Sleep 100
         counter++
-        if (counter > 500) {
+        if (counter > 50) {
             myGui['StatusBar'].Text := "加载超时"
             return false
         }
@@ -198,6 +202,7 @@ _PlantSingleSapling() {
         return false
     }
     myGui['StatusBar'].Text := "查看迷宫树"
+    return true
 }
 
 _SaveCloud() {
@@ -245,6 +250,7 @@ _SaveCloud() {
     Sleep 1000
     _ToggleMenu()
     myGui['StatusBar'].Text := "云数据保存完成"
+    return true
 }
 
 _LoadCloud() {
@@ -285,6 +291,12 @@ _LoadCloud() {
     Sleep 2000
     counter := 0
     while (true) {  ; 等待云存档检测
+        color := PixelGetColor(971, 910)  ;  "绑定"颜色
+        if (color == 0x704215) {
+            myGui['StatusBar'].Text := "Epic绑定完成"
+            Sleep 200
+            MySend "Space"
+        }
         color := PixelGetColor(961, 177)  ; 顶部感叹号背景颜色
         if (color == 0xFFB914) {
             myGui['StatusBar'].Text := "云存档检测完成"
@@ -324,6 +336,45 @@ _LoadCloud() {
     }
     MySend "Space"
     myGui['StatusBar'].Text := "覆盖完成"
+    counter := 0
+    while (true) {  ; 等待游戏界面
+        color := PixelGetColor(1480, 970)  ; 背包颜色
+        if (color == 0xDFAC5F) {
+            break
+        }
+        myGui['StatusBar'].Text := "等待游戏界面中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "游戏界面超时"
+            return false
+        }
+    }
+    myGui['StatusBar'].Text := "游戏界面已加载"
+    return true
+}
+
+_AgingOnce() {
+    myGui['StatusBar'].Text := "开始熟成"
+    MySend "f"
+    Sleep 500
+    MySend "Space"
+    counter := 0
+    while (true) {
+        color := PixelGetColor(812, 128)  ; "熟成成功"背景颜色
+        if (color == 0xE88536) {
+            myGui['StatusBar'].Text := "熟成成功"
+            break
+        }
+        myGui['StatusBar'].Text := "等待熟成中... 计数: " counter
+        Sleep 500
+        counter++
+        if (counter > 50) {
+            myGui['StatusBar'].Text := "熟成超时"
+            return false
+        }
+    }
+    return true
 }
 
 _OnlineJoin() {
@@ -430,6 +481,7 @@ _OnlineJoin() {
             return false
         }
     }
+    return true
 }
 
 _OnlineExit() {
@@ -446,7 +498,6 @@ _OnlineExit() {
     MySend "Space"
     Sleep 1000
     myGui['StatusBar'].Text := "已退出房间"
-    return true
 }
 
 BuildGuiForGameWindow() {
@@ -656,8 +707,8 @@ PlantSapling(*) {
 }
 
 BuildGuiForSaveLoad() {
-    myGui.AddButton("xs+10 ys+20 vSaveCloud", "保存云")
-    myGui.AddButton("xp+60 vLoadCloud", "加载云")
+    myGui.AddButton("xs+10 ys+20 w40 vSaveCloud", "保存")
+    myGui.AddButton("xp+50 wp vLoadCloud", "加载")
 }
 
 SaveCloud(*) {
@@ -680,6 +731,35 @@ LoadCloud(*) {
         return
     }
     myGui['StatusBar'].Text := "云数据加载完成"
+}
+
+BuildGuiForAging() {
+    myGui.AddButton("xs+10 ys+20 w40 vAgingStart", "开始")
+    myGui.AddButton("xp+50 wp vAgingNext", "继续")
+}
+
+AgingStart(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    if !_AgingOnce() {
+        return
+    }
+}
+
+AgingNext(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    MySend "Space"
+    Sleep 1000
+    if !_LoadCloud() {
+        return
+    }
+    Sleep 2000
+    if !_AgingOnce() {
+        return
+    }
 }
 
 BuildGuiForOnline() {
@@ -705,20 +785,20 @@ OnlineExit(*) {
     if !ActivateGameWindow() {
         return
     }
-    if !_OnlineExit() {
-        return
-    }
+    _OnlineExit()
 }
 
 OnlineNext(*) {
     if !ActivateGameWindow() {
         return
     }
-    if !_OnlineExit() {
-        return
-    }
-    if !_OnlineJoin() {
-        return
+    while true {
+        _OnlineExit()
+        if !_OnlineJoin() {
+            return
+        }
+        myGui['StatusBar'].Text := "已暂停，拿到惊魂器后按F3继续"
+        Pause()
     }
 }
 
