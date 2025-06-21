@@ -22,7 +22,9 @@ myGui.AddGroupBox('xs ys+60 w240 h50 Section', '熟成')
 BuildGuiForAging()
 myGui.AddGroupBox('xs ys+60 w240 h80 Section', '在线功能')
 BuildGuiForOnline()
-myGui.AddGroupBox('xs ys+90 w240 h50 Section', '其他功能')
+myGui.AddGroupBox('xs ys+90 w240 h110 Section', '制作')
+BuildGuiForCraft()
+myGui.AddGroupBox('xs ys+120 w240 h50 Section', '其他功能')
 BuildGuiForOthers()
 myGui.AddStatusBar("vStatusBar", "StatusBar")
 myGui.OnEvent('Close', (*) => ExitApp())
@@ -41,11 +43,13 @@ myGui['SaveCloud'].OnEvent('Click', SaveCloud)
 myGui['LoadCloud'].OnEvent('Click', LoadCloud)
 myGui['AgingOnce'].OnEvent('Click', AgingOnce)
 myGui['AgingNext'].OnEvent('Click', AgingNext)
+myGui['CraftSingle'].OnEvent('Click', CraftSingle)
+myGui['Craft'].OnEvent('Click', Craft)
 myGui['OnlineJoin'].OnEvent('Click', OnlineJoin)
 myGui['OnlineExit'].OnEvent('Click', OnlineExit)
 myGui['OnlineNext'].OnEvent('Click', OnlineNext)
 myGui['TestColor'].OnEvent('Click', TestColor)
-myGui.Show("x2200 y300")
+myGui.Show("x2200 y100")
 
 Sleep 1000
 WinSetAlwaysOnTop 1, "Fantasy Life Easier"
@@ -92,7 +96,7 @@ _SingleTeleportationGate(*) {
     _ToggleMenu()
     color := PixelGetColor(666, 333)
     if (color != 0xE337DB && color != 0xE335DB) {
-        if (color = 0x963681) {
+        if (color == 0x963681) {
             myGui['StatusBar'].Text := "任意门不可用"
             return false
         }
@@ -226,7 +230,7 @@ _GinormosiaCheck() {
             break
         }
     }
-    if (questID = 0) {
+    if (questID == 0) {
         myGui['StatusBar'].Text := "未检测到任务"
     }
     else {
@@ -323,7 +327,7 @@ _SaveCloud() {
     }
     color := PixelGetColor(1234, 442) ; 云存档选择颜色
     if (color != 0x5CE93F) {
-        if (color = 0xB39770) {
+        if (color == 0xB39770) {
             myGui['StatusBar'].Text := "云存档未选择"
             MySend "c"
             Sleep 300
@@ -629,10 +633,12 @@ CheckGameWindow(*) {
 
 ActivateGameWindow(*) {
     if !CheckGameWindow() {
+        myGui['StatusBar'].Text := "游戏窗口未找到"
         return
     }
+    myGui['StatusBar'].Text := "尝试激活游戏窗口"
     WinActivate("ahk_exe NFL1-Win64-Shipping.exe")
-    WinWaitActive("ahk_exe NFL1-Win64-Shipping.exe", "", 1000)
+    WinWaitActive("ahk_exe NFL1-Win64-Shipping.exe")
     if !WinActive("ahk_exe NFL1-Win64-Shipping.exe") {
         myGui['StatusBar'].Text := "游戏窗口未激活"
         return false
@@ -929,6 +935,233 @@ OnlineNext(*) {
         }
         myGui['StatusBar'].Text := "已暂停，拿到惊魂器后按F3继续"
         Pause()
+    }
+}
+
+BuildGuiForCraft() {
+    myGui.AddText("xs+10 ys+20 h22 0x200", "长按")
+    myGui.AddEdit("yp w48 hp")
+    myGui.AddUpDown("vCraftLongPress Range1-3000", 1600)
+    myGui.AddText("yp hp 0x200", "ms")
+    myGui.AddText("yp hp 0x200", "连点")
+    myGui.AddEdit("yp w36 hp")
+    myGui.AddUpDown("vCraftMultiClick Range1-99", 6)
+    myGui.AddText("yp hp 0x200", "次")
+    myGui.AddButton("xs+10 ys+50 w40 vCraftReset", "重置")
+    myGui.AddButton("yp w40 vCraftSingle", "单次")
+    myGui.AddButton("yp w40 vCraft", "循环")
+    myGui.AddText("yp w20 hp 0x200 vCraftPos", "空")
+    myGui.AddText("yp w20 hp 0x200 vCraftMove", "0/0")
+    myGui.AddText("xs+10 ys+80 h22 0x200", "左：")
+    myGui.AddText("yp w30 hp vCraft1 0x200", "00")
+    myGui.AddText("yp hp 0x200", "中：")
+    myGui.AddText("yp w30 hp vCraft2 0x200", "00")
+    myGui.AddText("yp hp 0x200", "右：")
+    myGui.AddText("yp w30 hp vCraft3 0x200", "00")
+}
+
+_CraftSearchColor(xs, ys, color, rangeX := 2, rangeY := 10, colorVar := 0x10) {
+    return PixelSearch(
+        &x, &y,
+        xs - rangeX, ys - rangeY,
+        xs + rangeX, ys + rangeY,
+        color, colorVar)
+}
+
+_CraftCenterX := 960
+_CraftCenterY := 123
+_CraftDoneOffsetY := 60  ; 中心位置偏移
+_CraftBackgroundColor := 0x8C4609  ; 背景颜色
+_CraftMoveDoneColor := 0xFFF8E4  ; 完成行动icon颜色
+_CraftIconWidth := 96  ; 图标宽度
+_CraftIconInterval := 32  ; 图标间隔
+_CraftIconNext := _CraftIconWidth + _CraftIconInterval
+
+_CraftCheckRound() {
+    moveNum := 0
+    initX := 0
+    counter := 0
+    while (true) {  ; 等待背景颜色稳定
+        leftColor := PixelGetColor(
+            _CraftCenterX - _CraftIconNext // 2, _CraftCenterY)  ; 左侧背景
+        centerColor := PixelGetColor(
+            _CraftCenterX, _CraftCenterY)  ; 中心位置颜色
+        rightColor := PixelGetColor(
+            _CraftCenterX + _CraftIconNext // 2, _CraftCenterY)  ; 右侧背景
+        leftMatch := (leftColor == _CraftBackgroundColor)
+        centerMatch := (centerColor == _CraftBackgroundColor)
+        rightMatch := (rightColor == _CraftBackgroundColor)
+        if (!leftMatch && centerMatch && !rightMatch) {
+            moveNum := 4
+            initX := _CraftCenterX - _CraftIconNext * 3 // 2
+            break
+        }
+        if (leftMatch && !centerMatch && rightMatch) {
+            moveNum := 5
+            initX := _CraftCenterX - _CraftIconNext * 2
+            break
+        }
+        myGui['StatusBar'].Text := "匹配背景..." leftMatch " " centerMatch " " rightMatch
+        Sleep 20
+        counter++
+    }
+    color := PixelGetColor(initX, _CraftCenterY)  ; 第一个图标位置颜色
+    if (color == _CraftBackgroundColor) {
+        moveNum -= 2  ; 如果第一个图标为空，则减少2个行动
+        initX += _CraftIconNext  ; 初始位置向右移动一个图标间隔
+    }
+    myGui['StatusBar'].Text := "共" moveNum "个行动"
+    return [moveNum, initX]
+}
+
+_CraftMouseX := [560, 960, 1360]
+_CraftMouseY := [320, 504]
+_CraftMouseLeftOffsetX := -20  ; 左键偏移
+_CraftMouseTextOffsetY := -105  ; 文本偏移
+_CraftWheelColor := 0x311D09  ; 滚轮颜色
+_CraftLeftColor := 0xFFC9C5  ; 粉色左键
+_CraftGreenColor := 0x96F485  ; 绿色文本
+_CraftRedColor := 0xFFB190  ; 红色文本
+
+_CraftCheckMoveType(xi, yi) {
+    x := _CraftMouseX[xi]
+    y := _CraftMouseY[yi]
+    range := 2
+    colorVar := 10
+    foundLeft := PixelSearch(
+        &xs, &ys,
+        x + _CraftMouseLeftOffsetX - range, y - range,
+        x + _CraftMouseLeftOffsetX + range, y + range,
+        _CraftLeftColor, colorVar
+    )
+    foundGreenText := PixelSearch(
+        &xs, &ys,
+        x - range, y + _CraftMouseTextOffsetY - range,
+        x + range, y + _CraftMouseTextOffsetY + range,
+        _CraftGreenColor, colorVar
+    )
+    foundRedText := PixelSearch(
+        &xs, &ys,
+        x - range, y + _CraftMouseTextOffsetY - range,
+        x + range, y + _CraftMouseTextOffsetY + range,
+        _CraftRedColor, colorVar
+    )
+    if foundLeft && !foundGreenText && !foundRedText
+        return 1
+    if foundGreenText
+        return 2
+    if foundRedText
+        return 3
+    return 0
+}
+
+_CraftSingleMove(resetPos, longPress, multiClick) {
+    static currentPos := 2
+    if resetPos {
+        currentPos := 2
+        myGui['CraftPos'].Text := "中"
+        return
+    }
+    nextPos := 0
+    while true {
+        loop 3 {
+            xp := A_Index
+            yp := (currentPos == A_Index) ? 1 : 2
+            move := _CraftCheckMoveType(xp, yp)
+            myGui['StatusBar'].Text := "pos=" xp ", move=" move
+            if move != 0 {
+                nextPos := xp
+                break
+            }
+        }
+        if (nextPos != 0) {
+            break
+        }
+    }
+    deltaPos := nextPos - currentPos
+    if (deltaPos != 0) {
+        myGui['StatusBar'].Text := "移动: " currentPos " -> " nextPos
+        key := (deltaPos > 0) ? "d" : "a"
+        deltaPos := Abs(deltaPos)
+        loop deltaPos {
+            MySend key, 10
+            Sleep 40
+        }
+        currentPos := nextPos
+        switch currentPos {
+            case 1:
+                myGui['CraftPos'].Text := "左"
+            case 2:
+                myGui['CraftPos'].Text := "中"
+            case 3:
+                myGui['CraftPos'].Text := "右"
+            default:
+                myGui['CraftPos'].Text := "空"
+        }
+    }
+    else {
+        myGui['StatusBar'].Text := "不动"
+    }
+    switch move {
+        case 1:
+            myGui['StatusBar'].Text := "单击"
+            MySend "Space", 10
+            Sleep 40
+        case 2:
+            myGui['StatusBar'].Text := "长按"
+            MyPress "Space"
+            Sleep longPress
+            MyRelease "Space"
+            Sleep 40
+        case 3:
+            myGui['StatusBar'].Text := "连按"
+            loop multiClick {
+                MySend "Space", 10
+                Sleep 40
+            }
+    }
+    return
+}
+
+_CraftSingleRound(longPress, multiClick) {
+    ret := _CraftCheckRound()
+    moveNum := ret[1]
+    initX := ret[2]
+    loop moveNum {
+        currentMove := A_Index
+        myGui['CraftMove'].Text := currentMove " / " moveNum
+        _CraftSingleMove(false, longPress, multiClick)
+        Sleep 80
+    }
+}
+
+CraftReset(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    longPress := myGui['CraftLongPress'].Value
+    multiClick := myGui['CraftMultiClick'].Value
+    _CraftSingleMove(true, longPress, multiClick)
+}
+
+CraftSingle(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    longPress := myGui['CraftLongPress'].Value
+    multiClick := myGui['CraftMultiClick'].Value
+    _CraftSingleRound(longPress, multiClick)
+}
+
+Craft(*) {
+    if !ActivateGameWindow() {
+        return
+    }
+    longPress := myGui['CraftLongPress'].Value
+    multiClick := myGui['CraftMultiClick'].Value
+    while (true) {
+        _CraftSingleRound(longPress, multiClick)
+        sleep 100
     }
 }
 
