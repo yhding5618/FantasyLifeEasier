@@ -19,6 +19,27 @@ GameWindowActivateBtnClick(*) {
     PlaySuccessSound()
 }
 
+GameWindowMouseUpdateToogle() {
+    myGui["GameWindow.MouseUpdateChk"].Value := !myGui["GameWindow.MouseUpdateChk"].Value
+    GameWindowMouseUpdateChkClick()
+}
+
+GameWindowMouseUpdateChkClick(*) {
+    if (myGui["GameWindow.MouseUpdateChk"].Value) {
+        SetTimer(GameWindowMouseUpdate, 100)
+        GameWindowMouseUpdate()
+    } else {
+        SetTimer(GameWindowMouseUpdate, 0)
+    }
+}
+
+GameWindowMouseUpdate() {
+    MouseGetPos(&x, &y)
+    color := PixelGetColor(x, y)
+    myGui["GameWindow.MousePos"].Text := x ", " y
+    myGui["GameWindow.MouseColor"].Text := color
+}
+
 GameWindowStatusUpdate() {
     if !WinExist(GameWindowTitle) {
         myGui["GameWindow.Status"].Text := "游戏窗口未找到"

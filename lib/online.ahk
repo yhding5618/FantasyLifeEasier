@@ -40,9 +40,10 @@ OnlineRejoinBtnClick(*) {
 
 _OnlineJoinCounterPos := [1012, 413]  ; 联机柜台"F"位置
 _OnlineJoinCounterColor := "0xFFF8E4"  ; 联机柜台"F"颜色
-_OnlineJoinText1Pos := [240, 77]  ; "联机"位置
-_OnlineJoinText2Pos := [327, 65]  ; "览"位置
+_OnlineJoinTextPos := [240, 77]  ; "联机"位置
 _OnlineJoinTextColor := "0xF9F1DD"  ; "联机"颜色
+_OnlineJoinDestinationLogoPos := [67, 85]  ; 小蓝人位置
+_OnlineJoinDestinationLogoColor := "0x4289FF"  ; 小蓝人颜色
 _OnlineJoinDonePos := [1000, 140]  ; 蓝天背景位置
 _OnlineJoinDoneColor := "0x1595D7"  ; 蓝天背景颜色
 
@@ -55,7 +56,7 @@ _OnlineJoin() {
         if (color == _OnlineJoinCounterColor) {
             UpdateStatusBar("到达柜台")
             MyRelease("w")
-            return true
+            break
         }
         counter++
         UpdateStatusBar("前进中..." counter)
@@ -72,8 +73,8 @@ _OnlineJoin() {
     MySend("Space")
     counter := 0
     while (true) {
-        color := PixelGetColor(_OnlineJoinText1Pos[1], _OnlineJoinText1Pos[2])
-        MyToolTip(color, _OnlineJoinText1Pos[1], _OnlineJoinText1Pos[2], _JoinDebugID + 1, DebugMiniGame)
+        color := PixelGetColor(_OnlineJoinTextPos[1], _OnlineJoinTextPos[2])
+        MyToolTip(color, _OnlineJoinTextPos[1], _OnlineJoinTextPos[2], _JoinDebugID + 1, DebugMiniGame)
         if (color == _OnlineJoinTextColor) {
             UpdateStatusBar("完成保存")
             break
@@ -94,7 +95,7 @@ _OnlineJoin() {
     MySend("Space", , 1000)
     UpdateStatusBar("输入关键词")
     keyword := myGui["Online.Keyword"].Value
-    if (keyword != "") {
+    if (keyword == "") {
         UpdateStatusBar("关键词不能为空")
         return false
     }
@@ -105,10 +106,13 @@ _OnlineJoin() {
     MySend("Tab")
     counter := 0
     while (true) {
-        color := PixelGetColor(_OnlineJoinText2Pos[1], _OnlineJoinText2Pos[2])
-        MyToolTip(color, _OnlineJoinText2Pos[1], _OnlineJoinText2Pos[2], _JoinDebugID + 2, DebugMiniGame)
-        if (color == _OnlineJoinTextColor) {
-            return true
+        color := PixelGetColor(
+            _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2])
+        MyToolTip(color,
+            _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2],
+            _JoinDebugID + 2, DebugMiniGame)
+        if (color == _OnlineJoinDestinationLogoColor) {
+            break
         }
         counter++
         UpdateStatusBar("正在搜索..." counter)
@@ -119,18 +123,19 @@ _OnlineJoin() {
         Sleep(500)
     }
     UpdateStatusBar("已暂停，光标移到目标房间后按F3继续")
-    Pause(-1)
+    Pause()
     MySend("Space", , 500)
     MySend("Space", , 1000)
-    UpdateStatusBar("输入密码")
     password := myGui["Online.Password"].Value
-    if (password != "") {
-        UpdateStatusBar("密码不能为空")
-        return false
+    if (password == "") {
+        UpdateStatusBar("无密码，直接加入")
     }
-    SendText(password)
-    Sleep(800)
-    MySend("Enter")
+    else {
+        UpdateStatusBar("输入密码")
+        SendText(password)
+        Sleep(800)
+        MySend("Enter")
+    }
     counter := 0
     while (true) {
         color := PixelGetColor(_OnlineJoinDonePos[1], _OnlineJoinDonePos[2])

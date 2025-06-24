@@ -45,7 +45,7 @@ _LongCapeSelect() {
         UpdateStatusBar("选择长披风..." A_Index " / " count)
         MySend("Space")
         Sleep(selectInterval)
-        MySend("Up")
+        MySend("s")
         Sleep(selectInterval)
     }
     UpdateStatusBar("已选择 " count " 个长披风。")

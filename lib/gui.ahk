@@ -12,6 +12,7 @@ BuildMyGui() {
 
 ShowMyGui() {
     ScriptControlAlwaysOnTopChkClick()
+    GameWindowMouseUpdateChkClick()
     if myGui["ScriptControl.RememberPos"].Value {
         pos := StrSplit(myGui["ScriptControl.WindowPos"].Value, ",")
         myGuiPos := "x" pos[1] " y" pos[2]
@@ -70,13 +71,19 @@ _CreateTabGinormosia() {
 }
 
 _CreateSectionGameWindow(firstSection := false) {
-    totalRows := 2
+    totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "游戏窗口")
     btn := myGui.AddButton(_GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
     btn.OnEvent("Click", GameWindowCheckBtnClick)
     myGui.AddText("yp w150 r4 vGameWindow.Status", "")
     btn := myGui.AddButton(_GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
     btn.OnEvent("Click", GameWindowActivateBtnClick)
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "鼠标位置")
+    myGui.AddEdit("yp hp w60 r1 vGameWindow.MousePos ReadOnly 0x200", "")
+    myGui.AddText("yp hp 0x200", "颜色")
+    myGui.AddEdit("yp hp w60 r1 vGameWindow.MouseColor ReadOnly 0x200", "")
+    chk := myGui.AddCheckbox("yp hp vGameWindow.MouseUpdateChk", "刷新")
+    chk.OnEvent("Click", GameWindowMouseUpdateChkClick)
 }
 
 _CreateSectionScriptControl(firstSection := false) {

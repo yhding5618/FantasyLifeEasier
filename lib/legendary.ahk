@@ -1,7 +1,7 @@
 #Requires AutoHotkey v2.0
 
 DebugLegendary := true
-_MapDebugID := 10
+_MapDebugID := 5
 
 LegendaryCheckMapBtnClick(*) {
     if !GameWIndowActivate() {
@@ -20,11 +20,12 @@ LegendaryRefreshMapBtnClick(*) {
         PlayFailureSound()
         return
     }
+    MySend("Escape", , 500)  ; 退出地图
     if !LegendaryRefreshMap() {
         PlayFailureSound()
         return
     }
-    autoCheck := myGui["LegendaryQuest.AutoCheckChk"].Value
+    autoCheck := myGui["Legendary.AutoCheckChk"].Value
     if (autoCheck) {
         if !LegendaryCheckMap() {
             PlayFailureSound()
@@ -57,7 +58,7 @@ LegendaryCheckMap() {
     foundQuestList := []
     anyIncludedAndFound := false
     for index, quest in _LegendaryQuestList {
-        included := myGui["LegendaryQuest." quest[1]].Value
+        included := myGui["Legendary.Include" _LegendaryQuestType[quest[2]] "Chk"].Value
         xs := quest[3]
         ys := quest[4]
         color := quest[5]
@@ -77,11 +78,11 @@ LegendaryCheckMap() {
         UpdateStatusBar("未找到任何传奇任务")
         return false
     }
-    if (foundQuestList.Length() == 1) {
+    if (foundQuestList.Length == 1) {
         UpdateStatusBar("在" _LegendaryQuestList[foundQuestList[1]][1] "找到传奇任务")
     }
     else {
-        UpdateStatusBar("找到" foundQuestList.Length() "个冲突的传奇任务")
+        UpdateStatusBar("找到" foundQuestList.Length "个冲突的传奇任务")
     }
     return true
 }
@@ -120,7 +121,7 @@ LegendaryRefreshMap() {
         }
         MySend("e", , 500)  ; 切换等级
         counter++
-        if (counter > 7) {
+        if (counter == 6) {
             UpdateStatusBar("未找到可选择等级")
             return false
         }

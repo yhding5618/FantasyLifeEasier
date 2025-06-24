@@ -19,6 +19,7 @@ CoordMode("Pixel", "Client")
 
 F3:: Pause(-1)
 F4:: SaveAndExit()
+F5:: GameWindowMouseUpdateToogle()
 
 myGui := Gui(, "Fantasy Life Easier")
 myGui.OnEvent("Close", (*) => SaveAndExit())
@@ -26,8 +27,8 @@ BuildMyGui()
 LoadConfig()
 ShowMyGui()
 
-SetTimer(UpdateByTimer, 500)
-UpdateByTimer() {
+SetTimer(UpdateByTimer1, 500)
+UpdateByTimer1() {
     GameWindowStatusUpdate()
     ScriptControlStatusUpdate()
 }

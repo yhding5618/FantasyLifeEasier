@@ -1,23 +1,29 @@
 #Requires AutoHotkey v2.0
 
-DebugSaveLoad := true
+DebugSaveLoad := false
 
 SaveLoadSaveBtnClick(*) {
     if !GameWIndowActivate() {
+        PlayFailureSound()
         return
     }
     if !SaveToCloud() {
+        PlayFailureSound()
         return
     }
+    PlaySuccessSound()
 }
 
 SaveLoadLoadBtnClick(*) {
     if !GameWIndowActivate() {
+        PlayFailureSound()
         return
     }
     if !LoadFromCloud() {
+        PlayFailureSound()
         return
     }
+    PlaySuccessSound()
 }
 
 _SaveLoadInfoPos := [1204, 342]  ; 幻想生活"i"图标位置
@@ -26,6 +32,8 @@ _SaveLoadCloudPos := [1352, 963]  ; 云存档"X"位置
 _SaveLoadCloudColor := "0xFFF8E4"  ; 云存档"X"颜色
 _SaveLoadExclamationPos := [961, 177]  ; 顶部感叹号背景位置
 _SaveLoadExclamationColor := "0xFFB914"  ; 顶部感叹号背景颜色
+_SaveLoadTextPos := [954, 525]  ; "覆盖完毕"文字位置
+_SaveLoadTextColor := "0x704216"  ; "覆盖完毕"文字颜色
 _SaveLoadOK1Pos := [975, 863]  ; "OK"位置
 _SaveLoadOK2Pos := [975, 915]  ; "OK"位置
 _SaveLoadOKColor := "0xF8F0DC"  ; "OK"颜色
@@ -56,10 +64,18 @@ SaveToCloud() {
     MySend("Space")  ; 确认保存
     counter := 0
     while (true) {
-        color := PixelGetColor(_SaveLoadOK1Pos[1], _SaveLoadOK1Pos[2])
-        if (color == _SaveLoadOKColor) {
-            UpdateStatusBar("云存档保存完成")
+        color := PixelGetColor(_SaveLoadTextPos[1], _SaveLoadTextPos[2])
+        MyToolTip("覆盖完毕 " color, _SaveLoadTextPos[1], _SaveLoadTextPos[2], 18, DebugSaveLoad)
+        if (color == _SaveLoadTextColor) {
+            UpdateStatusBar("云存档覆盖完毕")
             break
+        }
+        color := PixelGetColor(_SaveLoadOK2Pos[1], _SaveLoadOK2Pos[2])
+        MyToolTip("OK2 " color, _SaveLoadOK2Pos[1], _SaveLoadOK2Pos[2], 17, DebugSaveLoad)
+        if (color == _SaveLoadOKColor) {
+            UpdateStatusBar("确认Epic账户绑定")
+            Sleep(200)
+            MySend("Space", , 1000)  ; 确认绑定
         }
         counter++
         UpdateStatusBar("等待云存档保存..." counter)

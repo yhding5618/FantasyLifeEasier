@@ -63,10 +63,10 @@ _MiniGameDoNextAction(station := 2) {
     return [false, station]  ; 继续执行
 }
 
-_MiniGameTimerBackgroundPos := [960, 192]  ; 顶部倒计时框背景位置
+_MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置
 _MiniGameTimerBackgroundColor := "0x6B3B0D"  ; 顶部倒计时框背景颜色
 _MiniGameIconPosX := [890, 960, 1030]  ; 顶部制作图标位置X坐标（左，中，右）
-_MiniGameIconPosY := 124  ; 顶部制作图标位置Y坐标
+_MiniGameIconPosY := 85  ; 顶部制作图标位置Y坐标
 _MiniGameIconBackgroundColor := "0x8C4609"  ; 顶部制作图标背景颜色
 _MiniGameMousePosX := [562, 962, 1362]  ; 鼠标图标滚轮位置X坐标（左，中，右）
 _MiniGameMousePosY := [324, 504]  ; 鼠标图标滚轮位置Y坐标（上，下）
@@ -87,7 +87,7 @@ _MiniGameWaitForUI() {
         }
         UpdateStatusBar("等待制作界面..." counter)
         counter++
-        if (counter >= 100) {
+        if (counter >= 200) {
             UpdateStatusBar("等待制作界面超时")
             return uiType
         }
@@ -98,6 +98,7 @@ _MiniGameWaitForUI() {
 _MiniGameRecognizeUIType() {
     color := PixelGetColor(_MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2])
     foundTimer := (color == _MiniGameTimerBackgroundColor)
+    MyToolTip("Timer" foundTimer, _MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2], 8, DebugMiniGame)
     if (foundTimer) {
         allIconEmpty := True
         anyIconFound := False
