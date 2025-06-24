@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugLegendary := true
+DebugLegendary := false
 _MapDebugID := 5
 
 LegendaryCheckMapBtnClick(*) {

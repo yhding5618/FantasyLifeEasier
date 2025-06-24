@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugMiniGame := true
+DebugMiniGame := false
 _ActionDebugID := 10
 
 MiniGameSingleActionBtnClick(*) {

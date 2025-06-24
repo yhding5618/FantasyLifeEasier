@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-DebugOnline := true
+DebugOnline := false
 _JoinDebugID := 1
 OnlineJoinBtnClick(*) {
     if !GameWIndowActivate() {
