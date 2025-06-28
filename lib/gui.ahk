@@ -165,13 +165,17 @@ _CreateSectionWeaponAging(firstSection := false) {
 }
 
 _CreateSectionOnline(firstSection := false) {
-    totalRows := 2
+    totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "关键词：")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "创建类型：")
+    myGui.AddDropDownList("yp w100 Choose3 vOnline.CreateType", ["环岛冒险", "探索大陆", "扭蛋迷宫树"])
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
     myGui.AddText("yp hp 0x200", "密码：")
     myGui.AddEdit("yp hp w60 vOnline.Password", "")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vOnline.JoinBtn", "加入")
+    btn := myGui.AddButton(_GroupBoxRowPos(3) " vOnline.CreateBtn", "创建")
+    btn.OnEvent("Click", OnlineCreateBtnClick)
+    btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
     btn.OnEvent("Click", OnlineJoinBtnClick)
     btn := myGui.AddButton("yp vOnline.ExitBtn", "退出")
     btn.OnEvent("Click", OnlineExitBtnClick)
@@ -224,8 +228,8 @@ _CreateSectionLegendary(firstSection := false) {
 
 _CreateSectionTeleportationGate(firstSection := false) {
     totalRows := 2
-    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "传送门")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "传送门位置：")
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "任意门")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "任意门位置：")
     myGui.AddEdit("yp w32 hp")
     myGui.AddUpDown("vTeleportationGate.IconPage Range1-2 0x80", 1)
     myGui.AddText("yp hp 0x200", "页")

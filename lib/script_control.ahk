@@ -7,8 +7,13 @@ ScriptControlAlwaysOnTopChkClick(*) {
 }
 
 ScriptControlStatusUpdate(*) {
-    WinGetPos(&x, &y, &w, &h, myGui.Title)
-    myGui["ScriptControl.WindowPos"].Value := x "," y
+    try {
+        WinGetPos(&x, &y, &w, &h, myGui.Title)
+        myGui["ScriptControl.WindowPos"].Value := x "," y
+    }
+    catch {
+        myGui["ScriptControl.WindowPos"].Value := ""
+    }
 }
 
 ScriptControlSuccessSoundChkClick(*) {

@@ -21,7 +21,7 @@ TreasureGroveContinueReplantBtnClick(*) {
         PlayFailureSound()
         return
     }
-    MySend("Escape", , 1000)
+    MySend("Escape", , 1500)
     if (!_TreasureGroveReplant()) {
         PlayFailureSound()
         return
@@ -43,7 +43,7 @@ _TreasureGroveReplant() {
     MyToolTip(color, _TreasureGroveReplant1Pos[1], _TreasureGroveReplant1Pos[2], _ReplantDebugID, DebugMiniGame)
     if (color != _TreasureGroveReplantColor) {
         MySend("s", , 200)
-        MySend("s")
+        MySend("s", , 200)
         color := PixelGetColor(_TreasureGroveReplant2Pos[1], _TreasureGroveReplant2Pos[2])
         MyToolTip(color, _TreasureGroveReplant2Pos[1], _TreasureGroveReplant2Pos[2], _ReplantDebugID + 1, DebugMiniGame
         )

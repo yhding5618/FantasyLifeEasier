@@ -92,7 +92,10 @@ SaveAndExit() {
         section := sp[1]
         key := sp[2]
         switch (name) {
+            ; 处理特殊情况，DropDownList需要保存Value而不是Text
             case "TreasureGrove.YearMoveDir":
+                currentValue := myGui[name].Value
+            case "Online.CreateType":
                 currentValue := myGui[name].Value
         }
         IniWrite(currentValue, "main.ini", section, key)
