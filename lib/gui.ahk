@@ -12,7 +12,7 @@ BuildMyGui() {
 
 ShowMyGui() {
     ScriptControlAlwaysOnTopChkClick()
-    GameWindowMouseUpdateChkClick()
+    GameWindowPixelInfoUpdateChkClick()
     if myGui["ScriptControl.RememberPos"].Value {
         pos := StrSplit(myGui["ScriptControl.WindowPos"].Value, ",")
         myGuiPos := "x" pos[1] " y" pos[2]
@@ -78,12 +78,10 @@ _CreateSectionGameWindow(firstSection := false) {
     myGui.AddText("yp w150 r4 vGameWindow.Status", "")
     btn := myGui.AddButton(_GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
     btn.OnEvent("Click", GameWindowActivateBtnClick)
-    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "鼠标位置")
-    myGui.AddEdit("yp hp w60 r1 vGameWindow.MousePos ReadOnly 0x200", "")
-    myGui.AddText("yp hp 0x200", "颜色")
-    myGui.AddEdit("yp hp w60 r1 vGameWindow.MouseColor ReadOnly 0x200", "")
-    chk := myGui.AddCheckbox("yp hp vGameWindow.MouseUpdateChk", "刷新")
-    chk.OnEvent("Click", GameWindowMouseUpdateChkClick)
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "像素信息：")
+    myGui.AddEdit("yp hp w120 r1 vGameWindow.PixelInfo ReadOnly 0x200", "")
+    chk := myGui.AddCheckbox("yp hp vGameWindow.PixelInfoUpdateChk", "刷新")
+    chk.OnEvent("Click", GameWindowPixelInfoUpdateChkClick)
 }
 
 _CreateSectionScriptControl(firstSection := false) {

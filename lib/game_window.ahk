@@ -19,25 +19,24 @@ GameWindowActivateBtnClick(*) {
     PlaySuccessSound()
 }
 
-GameWindowMouseUpdateToogle() {
-    myGui["GameWindow.MouseUpdateChk"].Value := !myGui["GameWindow.MouseUpdateChk"].Value
-    GameWindowMouseUpdateChkClick()
+GameWindowPixelInfoUpdateToogle() {
+    myGui["GameWindow.PixelInfoUpdateChk"].Value := !myGui["GameWindow.PixelInfoUpdateChk"].Value
+    GameWindowPixelInfoUpdateChkClick()
 }
 
-GameWindowMouseUpdateChkClick(*) {
-    if (myGui["GameWindow.MouseUpdateChk"].Value) {
-        SetTimer(GameWindowMouseUpdate, 100)
-        GameWindowMouseUpdate()
+GameWindowPixelInfoUpdateChkClick(*) {
+    if (myGui["GameWindow.PixelInfoUpdateChk"].Value) {
+        SetTimer(GameWindowPixelInfoUpdate, 100)
+        GameWindowPixelInfoUpdate()
     } else {
-        SetTimer(GameWindowMouseUpdate, 0)
+        SetTimer(GameWindowPixelInfoUpdate, 0)
     }
 }
 
-GameWindowMouseUpdate() {
+GameWindowPixelInfoUpdate() {
     MouseGetPos(&x, &y)
     color := PixelGetColor(x, y)
-    myGui["GameWindow.MousePos"].Text := x ", " y
-    myGui["GameWindow.MouseColor"].Text := color
+    myGui["GameWindow.PixelInfo"].Text := x ", " y ", " color
 }
 
 GameWindowStatusUpdate() {
