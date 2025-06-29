@@ -36,13 +36,63 @@ MySend(singleKey, pressDelay := 30, postDelay := 0) {
     }
 }
 
+TryAndCatch(function, args*) {
+    try {
+        return function(args*)
+    } catch Error as e {
+        MsgBox("函数调用失败: " e.Message)
+        return false
+    }
+}
+
+WaitUntilPixelGetColor(
+    x, y, color,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        currentColor := PixelGetColor(x, y)
+        if (currentColor == color) {
+            return true
+        }
+        Sleep(interval)
+        count++
+    }
+    return false
+}
+
+WaitUntilPixelSearch(
+    x, y, color,
+    range := 10, colorVariation := 0,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        found := PixelSearch(&x, &y,
+            x - range, y - range,
+            x + range, y + range, color, colorVariation)
+        if (found) {
+            return true
+        }
+        Sleep(interval)
+        count++
+    }
+    return false
+}
+
 MenuIconPos := [670, 326]  ; 菜单图标1行1列中心位置
 MenuIconOffsetX := 192  ; 菜单图标X偏移量
 MenuIconOffsetY := 234  ; 菜单图标Y偏移量
+MenuUIStickPixel := [341, 431, "0xC4B694"]  ; 菜单UI摇杆
 
-MoveToMenuIcon(page, row, col) {
-    UpdateStatusBar("移动到菜单" page "页，" row "行，" col "列")
-    MySend("Escape", , 500)  ; 打开菜单
+OpenMenuAndGetIconColor(page, row, col) {
+    UpdateStatusBar("打开菜单")
+    MySend("Escape")
+    foundUIStick := WaitUntilPixelSearch(MenuUIStickPixel*)
+    if !foundUIStick {
+        return false
+    }
+    UpdateStatusBar("移动到" page "页，" row "行，" col "列")
     loop (page - 1) {
         MySend("e", , 100)  ; 翻页
     }

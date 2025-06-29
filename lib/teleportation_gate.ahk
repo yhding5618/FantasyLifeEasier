@@ -98,7 +98,7 @@ _MoveToMenuTeleportationGate() {
     page := myGui["TeleportationGate.IconPage"].Value
     row := myGui["TeleportationGate.IconRow"].Value
     col := myGui["TeleportationGate.IconCol"].Value
-    color := MoveToMenuIcon(page, row, col)
+    color := OpenMenuAndGetIconColor(page, row, col)
     switch (color) {
         case _TeleportationGateIconCheckedColor:
             UpdateStatusBar("传送图标已选择")
