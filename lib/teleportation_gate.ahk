@@ -3,32 +3,15 @@
 DebugLegendary := false
 _MenuDebugID := 8
 
-TeleportationGateOneWayBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !TeleportationGateOneWay() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+TeleportationGateOneWayBtnClick() {
+    GameWIndowActivate()
+    TeleportationGateOneWay()
 }
 
 TeleportationGateReturnTripBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !TeleportationGateOneWay() {
-        PlayFailureSound()
-        return
-    }
-    if !TeleportationGateOneWay() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    GameWIndowActivate()
+    TeleportationGateOneWay()
+    TeleportationGateOneWay()
 }
 
 _TeleportationGateInProgressPos := [50, 50]  ; 传送中白色背景
@@ -37,9 +20,7 @@ _TeleportationGateSavingIconPos := [85, 370]  ; 保存中图标位置
 _TeleportationGateSavingIconColor := "0xFFDC7E"  ; 保存中图标位置
 
 TeleportationGateOneWay() {
-    if !_MoveToMenuTeleportationGate() {
-        return
-    }
+    _MoveToMenuTeleportationGate()
     MySend("Space", , 750)
     MySend("Space")
     counter := 0
@@ -91,26 +72,23 @@ TeleportationGateOneWay() {
 }
 
 _TeleportationGateIconCheckedColor := "0xD4B1EB"  ; 传送图标已选择颜色
-_TeleportationGateIconUncheckedColor := "0xDD7BE3"  ; 传送图标未选择颜色
 _TeleportationGateIconDisabledColor := "0x935986"  ; 传送图标不可选颜色
+_TeleportationGateIconUncheckedColor := "0xDD7BE3"  ; 传送图标未选择颜色
 
 _MoveToMenuTeleportationGate() {
     page := myGui["TeleportationGate.IconPage"].Value
     row := myGui["TeleportationGate.IconRow"].Value
     col := myGui["TeleportationGate.IconCol"].Value
-    color := OpenMenuAndGetIconColor(page, row, col)
+    ret := OpenMenuAndGetIconColor(page, row, col)
+    color := ret[3]
     switch (color) {
         case _TeleportationGateIconCheckedColor:
             UpdateStatusBar("传送图标已选择")
-            return true
-        case _TeleportationGateIconUncheckedColor:
-            UpdateStatusBar("传送图标未选择")
-            return false
         case _TeleportationGateIconDisabledColor:
-            UpdateStatusBar("传送图标不可选")
-            return false
+            throw ValueError("传送图标不可选")
+        case _TeleportationGateIconUncheckedColor:
+            throw ValueError("传送图标未选择")
         default:
-            UpdateStatusBar("传送图标颜色不匹配: " color)
-            return false
+            throw ValueError("传送图标颜色不匹配: " color)
     }
 }

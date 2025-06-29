@@ -3,20 +3,12 @@
 GameWindowTitle := "ahk_exe NFL1-Win64-Shipping.exe"
 
 ; GUI callbacks
-GameWindowCheckBtnClick(*) {
-    if !GameWindowStatusUpdate() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+GameWindowCheckBtnClick() {
+    GameWindowStatusUpdate()
 }
 
-GameWindowActivateBtnClick(*) {
-    if !GameWindowActivate() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+GameWindowActivateBtnClick() {
+    GameWindowActivate()
 }
 
 GameWindowPixelInfoUpdateToogle() {
@@ -36,13 +28,13 @@ GameWindowPixelInfoUpdateChkClick(*) {
 GameWindowPixelInfoUpdate() {
     MouseGetPos(&x, &y)
     color := PixelGetColor(x, y)
-    myGui["GameWindow.PixelInfo"].Text := x ", " y ", " color
+    myGui["GameWindow.PixelInfo"].Text := x "," y "," color
 }
 
 GameWindowStatusUpdate() {
     if !WinExist(GameWindowTitle) {
         myGui["GameWindow.Status"].Text := "游戏窗口未找到"
-        return false
+        return
     }
     pid := WinGetPID(GameWindowTitle)
     WinGetClientPos(&x, &y, &w, &h, "ahk_pid " pid)
@@ -50,24 +42,19 @@ GameWindowStatusUpdate() {
         "PID：" pid "`n"
         "位置：(" x ", " y ")`n"
         "大小：" w "x" h "`n"
-        ; "已打开：" (WinActive(GameWindowTitle) ? "是" : "否")
     )
-    return true
 }
 
 GameWindowActivate() {
     if !WinExist(GameWindowTitle) {
-        UpdateStatusBar("游戏窗口未找到")
-        return false
+        throw TargetError("游戏窗口未找到")
     }
     UpdateStatusBar("正在打开游戏窗口...")
     WinActivate(GameWindowTitle)
     WinRestore(GameWindowTitle)
     hwnd := WinWaitActive(GameWindowTitle, , 5)
     if (hwnd = 0) {
-        UpdateStatusBar("未能打开游戏窗口，可能已最小化")
-        return false
+        throw TargetError("未能打开游戏窗口，可能已最小化")
     }
     UpdateStatusBar("游戏窗口已激活")
-    return true
 }

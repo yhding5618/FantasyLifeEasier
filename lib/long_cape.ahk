@@ -1,30 +1,14 @@
 #Requires AutoHotkey v2.0
 
-LongCapeBuyBtnClick(*) {
-    if !GameWindowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_LongCapeBuy() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+LongCapeBuyBtnClick() {
+    LongCapeBuy()
 }
 
-LongCapeSelectBtnClick(*) {
-    if !GameWindowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_LongCapeSelect() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+LongCapeSelectBtnClick() {
+    LongCapeSelect()
 }
 
-_LongCapeBuy() {
+LongCapeBuy() {
     count := myGui["LongCape.Count"].Value
     buyInterval := myGui["LongCape.BuyInterval"].Value
     loop count {
@@ -38,7 +22,7 @@ _LongCapeBuy() {
     return true
 }
 
-_LongCapeSelect() {
+LongCapeSelect() {
     count := myGui["LongCape.Count"].Value
     selectInterval := myGui["LongCape.SelectInterval"].Value
     loop count {

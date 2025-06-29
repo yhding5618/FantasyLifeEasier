@@ -1,12 +1,12 @@
 #Requires AutoHotkey v2.0
 
-ScriptControlAlwaysOnTopChkClick(*) {
+ScriptControlAlwaysOnTopChkClick() {
     checked := myGui["ScriptControl.AlwaysOnTopChk"].Value
     mark := checked ? "+" : "-"
     myGui.Opt(mark "AlwaysOnTop")
 }
 
-ScriptControlStatusUpdate(*) {
+ScriptControlStatusUpdate() {
     try {
         WinGetPos(&x, &y, &w, &h, myGui.Title)
         myGui["ScriptControl.WindowPos"].Value := x "," y
@@ -16,7 +16,7 @@ ScriptControlStatusUpdate(*) {
     }
 }
 
-ScriptControlSuccessSoundChkClick(*) {
+ScriptControlSuccessSoundChkClick() {
     PlaySuccessSound()
     if (myGui["ScriptControl.SuccessSoundChk"].Value) {
         UpdateStatusBar("成功音效已启用")
@@ -26,12 +26,21 @@ ScriptControlSuccessSoundChkClick(*) {
     }
 }
 
-ScriptControlFailureSoundChkClick(*) {
+ScriptControlFailureSoundChkClick() {
     PlayFailureSound()
     if (myGui["ScriptControl.FailureSoundChk"].Value) {
         UpdateStatusBar("失败音效已启用")
     }
     else {
         UpdateStatusBar("失败音效已禁用")
+    }
+}
+
+ScriptControlFailureMsgBoxChkClick(*) {
+    if (myGui["ScriptControl.FailureMsgBoxChk"].Value) {
+        UpdateStatusBar("失败弹窗已启用")
+    }
+    else {
+        UpdateStatusBar("失败弹窗已禁用")
     }
 }
