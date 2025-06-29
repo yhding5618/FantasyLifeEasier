@@ -19,7 +19,7 @@ CoordMode("Pixel", "Client")
 
 F3:: Pause(-1)
 F4:: SaveAndExit()
-; F5:: GameWindowMouseUpdateToogle()
+F5:: SaveAndReload()
 
 myGui := Gui(, "Fantasy Life Easier")
 myGui.OnEvent("Close", (*) => SaveAndExit())

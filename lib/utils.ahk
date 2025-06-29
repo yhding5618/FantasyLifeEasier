@@ -81,7 +81,7 @@ LoadConfig() {
     }
 }
 
-SaveAndExit() {
+SaveConfig() {
     config := myGui.Submit(0)
     FileMove("main.ini", "main.ini.old", 1)  ; 备份旧配置文件
     for name, currentValue in config.OwnProps() {
@@ -101,5 +101,14 @@ SaveAndExit() {
         IniWrite(currentValue, "main.ini", section, key)
     }
     FileDelete("main.ini.old")  ; 删除备份文件
+}
+
+SaveAndExit() {
+    SaveConfig()
     ExitApp()
+}
+
+SaveAndReload() {
+    SaveConfig()
+    Reload()
 }
