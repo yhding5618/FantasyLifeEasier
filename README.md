@@ -1,5 +1,7 @@
 # Fantasy Life Easier (FLE)
 
+> B站视频版介绍：[BV1tug9zGEZ8](https://www.bilibili.com/video/BV1tug9zGEZ8)
+
 这里是Fantasy Life Easier (FLE)，一个基于[AutoHotKey](https://www.autohotkey.com/)的键鼠宏脚本，用于自动化《幻想生活i》游戏中的一些重复性的操作。此脚本仅使用AutoHotKey中的键盘鼠标控制、延迟等待和窗口像素颜色检测功能，不涉及任何对游戏内存的读取和修改。
 
 最初是因为买长披风换重置石太无聊，但是我的键鼠没有宏，又不想用闭源的键鼠宏软件，然后偶然间发现了AutoHotKey，写AutoHotKey脚本的过程中发现它的功能非常强大，可以实现很多有意思的功能。于是从一开始最简单的买长披风换重置石，慢慢加功能，直到最近实现了自动完成制作小游戏。写完之后觉得可以把它分享出来，让和我一样疲于重复点点点的玩家轻松一些，脚本代码完全开源，欢迎大家查看、使用和修改，祝大家早日毕业！
