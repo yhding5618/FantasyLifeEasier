@@ -95,9 +95,9 @@ WaitUntilColorMatch(x, y, color, title,
 ) {
     count := 0
     while (count < timeoutCount) {
-        currentColor := PixelGetColor(x, y)
-        if (currentColor == color) {
-            UpdateStatusBar("检测到" title "颜色: " currentColor)
+        match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
+        if (match) {
+            UpdateStatusBar("检测到" title "颜色: " color)
             return
         }
         UpdateStatusBar("等待" title "..." count "/" timeoutCount)

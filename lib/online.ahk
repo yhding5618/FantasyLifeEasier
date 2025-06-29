@@ -2,56 +2,23 @@
 DebugOnline := false
 _JoinDebugID := 1
 
-OnlineCreateBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_CheckInput() {
-        PlayFailureSound()
-        return
-    }
-    if !_TalkToOnlineCounter() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineCreate() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+OnlineCreateBtnClick() {
+    GameWIndowActivate()
+    _OnlineCheckInput()
+    _TalkToOnlineCounter()
+    _OnlineCreate()
 }
 
 OnlineJoinBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_CheckInput() {
-        PlayFailureSound()
-        return
-    }
-    if !_TalkToOnlineCounter() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineJoin() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    GameWIndowActivate()
+    _OnlineCheckInput()
+    _TalkToOnlineCounter()
+    _OnlineJoin()
 }
 
 OnlineExitBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineExit() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    GameWIndowActivate()
+    _OnlineExit()
 }
 
 OnlineRejoinBtnClick(*) {
@@ -59,7 +26,7 @@ OnlineRejoinBtnClick(*) {
         PlayFailureSound()
         return
     }
-    if !_CheckInput() {
+    if !_OnlineCheckInput() {
         PlayFailureSound()
         return
     }
@@ -78,15 +45,19 @@ OnlineRejoinBtnClick(*) {
     PlaySuccessSound()
 }
 
-_CheckInput() {
+_OnlineCheckInput() {
     keyword := myGui["Online.Keyword"].Value
     if (keyword == "") {
-        UpdateStatusBar("关键词不能为空")
-        return false
+        throw ValueError("关键词不能为空")
     }
-    return true
 }
 
+SelectedTextColor := "0xF8F0DC"  ; 选中对话文本颜色
+_OnlineCounterText1Pixel := [1314, 453, SelectedTextColor]  ; 对话选项“互联网连接游玩”像素
+_OnlineCounterText2Pixel := [703, 933, SelectedTextColor]  ; 感叹号确认“即将开始互联网连接”像素
+_OnlineCounterText3Pixel := [144, 75, SelectedTextColor]  ; 标题“多人联机”像素
+_OnlineCreateText1Pixel := [310, 937, "0xFFC444"]  ; 按钮“招募！”像素
+_OnlineCreateText2Pixel := [890, 238, SelectedTextColor]  ; 标题“设置目的地”像素
 _OnlineCounterPos := [1012, 413]  ; 联机柜台"F"位置
 _OnlineCounterColor := "0xFFF8E4"  ; 联机柜台"F"颜色
 _OnlineCounterTextPos := [240, 77]  ; "联机"位置
@@ -111,58 +82,82 @@ _TalkToOnlineCounter() {
         }
         counter++
         UpdateStatusBar("前进中..." counter)
-        if (counter > 50) {
+        if (counter > 100) {
             UpdateStatusBar("前进超时")
             MyRelease("w")
-            return false
+            throw TimeoutError("前往联机柜台超时")
         }
         Sleep(100)
     }
     UpdateStatusBar("开始对话")
-    MySend("f", , 1500)
-    MySend("Space", , 1000)
+    MySend("f")
+    WaitUntilColorMatch(
+        _OnlineCounterText1Pixel[1],
+        _OnlineCounterText1Pixel[2],
+        _OnlineCounterText1Pixel[3],
+        "对话选项"
+    )
+    Sleep(100)
     MySend("Space")
-    counter := 0
-    while (true) {
-        color := PixelGetColor(_OnlineCounterTextPos[1], _OnlineCounterTextPos[2])
-        MyToolTip(color, _OnlineCounterTextPos[1], _OnlineCounterTextPos[2], _JoinDebugID + 1, DebugOnline)
-        if (color == _OnlineCounterTextColor) {
-            UpdateStatusBar("完成保存")
-            break
-        }
-        counter++
-        UpdateStatusBar("等待保存..." counter)
-        if (counter > 50) {
-            UpdateStatusBar("等待保存超时")
-            return false
-        }
-        Sleep(500)
-    }
-    return true
+    WaitUntilColorMatch(
+        _OnlineCounterText2Pixel[1],
+        _OnlineCounterText2Pixel[2],
+        _OnlineCounterText2Pixel[3],
+        "感叹号确认页"
+    )
+    Sleep(100)
+    MySend("Space")
+    WaitUntilColorMatch(
+        _OnlineCounterText3Pixel[1],
+        _OnlineCounterText3Pixel[2],
+        _OnlineCounterText3Pixel[3],
+        "多人联机页", , , 1000, 60
+    )
 }
 
 _OnlineCreate() {
     UpdateStatusBar("选择创建")
-    Sleep(200)
-    MySend("Space", , 1000)
-    MySend("Space", , 1000)
+    Sleep(100)
+    MySend("Space")
+    WaitUntilColorMatch(
+        _OnlineCreateText1Pixel[1],
+        _OnlineCreateText1Pixel[2],
+        _OnlineCreateText1Pixel[3],
+        "招募按钮"
+    )
+    Sleep(800)
+    MySend("Space")
+    UpdateStatusBar("选择创建类型")
+    WaitUntilColorMatch(
+        _OnlineCreateText2Pixel[1],
+        _OnlineCreateText2Pixel[2],
+        _OnlineCreateText2Pixel[3],
+        "设置目的地"
+    )
     creatType := myGui["Online.CreateType"].Value
     loop (creatType) {
         MySend("d", , 200)
     }
-    MySend("Space", , 200)
-    MySend("Escape", , 500)
-    keyword := myGui["Online.Keyword"].Value
-    UpdateStatusBar("输入关键词")
-    loop (6) {
-        MySend("s", , 200)
-    }
     MySend("Space", , 500)
+    MySend("Escape", , 500)
+    loop (6) {
+        MySend("s", , 500)
+    }
+    UpdateStatusBar("输入关键词")
+    MySend("Space", , 500)
+    keyword := myGui["Online.Keyword"].Value
     SendText(keyword)
+    Sleep(500)
+    MySend("Enter", 100)
+    WaitUntilColorMatch(
+        _OnlineCreateText1Pixel[1],
+        _OnlineCreateText1Pixel[2],
+        _OnlineCreateText1Pixel[3],
+        "招募按钮"
+    )
     Sleep(800)
-    MySend("Enter", , 500)
+    MySend("s", , 500)
     password := myGui["Online.Password"].Value
-    MySend("s", , 200)
     if (password == "") {
         UpdateStatusBar("跳过密码")
     }
@@ -170,12 +165,19 @@ _OnlineCreate() {
         UpdateStatusBar("输入密码")
         MySend("Space", , 500)
         SendText(password)
+        Sleep(500)
+        MySend("Enter", 100)
+        WaitUntilColorMatch(
+            _OnlineCreateText1Pixel[1],
+            _OnlineCreateText1Pixel[2],
+            _OnlineCreateText1Pixel[3],
+            "招募按钮"
+        )
         Sleep(800)
-        MySend("Enter", , 500)
     }
     UpdateStatusBar("开始招募")
-    MySend("s", , 200)
-    MySend("s", , 200)
+    MySend("s", , 500)
+    MySend("s", , 500)
     MySend("Space", 500)
     UpdateStatusBar("确认招募")
     MySend("Space", , 500)
@@ -278,12 +280,11 @@ _OnlineJoin() {
 
 _OnlineExit() {
     myGui["StatusBar"].Text := "退出房间"
-    MySend("Escape", , 750)
+    OpenMenu()
     MySend("q", , 200)
     MySend("w", , 200)
     MySend("a", , 200)
     MySend("Space", , 500)
     MySend("Space", , 1000)
     myGui["StatusBar"].Text := "已退出房间"
-    return true
 }

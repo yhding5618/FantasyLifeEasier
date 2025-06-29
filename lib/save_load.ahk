@@ -158,5 +158,7 @@ LoadFromCloud() {
         _SaveLoadOK1Pixel[3],
         "云存档加载", 1000, 50
     )
-    MySend("Space", , 500)  ; 确认完成
+    Sleep(1000)
+    MySend("Space")  ; 确认完成
+    UpdateStatusBar("云存档加载完成")
 }

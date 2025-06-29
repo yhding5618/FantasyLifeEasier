@@ -3,11 +3,8 @@
 DebugMiniGame := false
 _ActionDebugID := 10
 
-MiniGameSingleActionBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+MiniGameSingleActionBtnClick() {
+    GameWIndowActivate()
     ret := _MiniGameDoNextAction()
     done := ret[1]
     station := ret[2]
@@ -16,14 +13,10 @@ MiniGameSingleActionBtnClick(*) {
         return
     }
     AppendStatusBar("，结束于工作台" station)
-    PlaySuccessSound()
 }
 
-MiniGameContinuousActionBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+MiniGameContinuousActionBtnClick() {
+    GameWIndowActivate()
     UpdateStatusBar("执行连续操作")
     station := 2
     while (true) {
