@@ -58,7 +58,7 @@ GameWindowStatusUpdate() {
 
 GameWindowActivate() {
     if !WinExist(GameWindowTitle) {
-        myGui["GameWindow.Status"].Text := "游戏窗口未找到"
+        UpdateStatusBar("游戏窗口未找到")
         return false
     }
     UpdateStatusBar("正在打开游戏窗口...")
