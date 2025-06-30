@@ -14,13 +14,13 @@
 #Include "lib/teleportation_gate.ahk"
 #Include "lib/save_load.ahk"
 
-ProcessSetPriority "High"
+ProcessSetPriority("High")
 CoordMode("Pixel", "Client")
 
 F3:: Pause(-1)
 F4:: SaveAndExit()
-F5:: SaveAndReload()
-F6:: GameWindowPixelInfoUpdateToogle()
+F7:: SaveAndReload()
+F8:: GameWindowPixelInfoUpdateToogle()
 
 myGui := Gui(, "Fantasy Life Easier")
 myGui.OnEvent("Close", (*) => SaveAndExit())

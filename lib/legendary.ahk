@@ -3,36 +3,16 @@
 DebugLegendary := false
 _MapDebugID := 5
 
-LegendaryCheckMapBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !LegendaryCheckMap() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+LegendaryCheckMapBtnClick() {
+    LegendaryCheckMap()
 }
 
 LegendaryRefreshMapBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
     MySend("Escape", , 500)  ; 退出地图
-    if !LegendaryRefreshMap() {
-        PlayFailureSound()
-        return
+    LegendaryRefreshMap()
+    if (myGui["Legendary.AutoCheckChk"].Value) {
+        LegendaryCheckMap()
     }
-    autoCheck := myGui["Legendary.AutoCheckChk"].Value
-    if (autoCheck) {
-        if !LegendaryCheckMap() {
-            PlayFailureSound()
-            return
-        }
-    }
-    PlaySuccessSound()
 }
 
 _LegendaryQuestType := ["Enemy", "Tree", "Diamond", "Fish", "Potato"]
@@ -49,7 +29,7 @@ _LegendaryQuestList := [
     ["龙牙群岛", 4, 1233, 170, 0x089ACA],
     ["绿意台地", 5, 1733, 687, 0x3BE2AE],
     ["巨腹大平原南部", 5, 1861, 944, 0xF2A057],  ; 胡萝卜颜色
-    ["巨腹大平原西部", 5, 1544, 264, _LegendaryQuestBlueColor],  ; 传奇任务蓝色，和翼尖峡谷有overlap
+    ["巨腹大平原西部", 5, 1544, 264, _LegendaryQuestBlueColor]  ; 传奇任务蓝色
 ]
 
 LegendaryCheckMap() {
@@ -58,7 +38,8 @@ LegendaryCheckMap() {
     foundQuestList := []
     anyIncludedAndFound := false
     for index, quest in _LegendaryQuestList {
-        included := myGui["Legendary.Include" _LegendaryQuestType[quest[2]] "Chk"].Value
+        included := myGui["Legendary.Include" _LegendaryQuestType[quest[2]] "Chk"
+            ].Value
         xs := quest[3]
         ys := quest[4]
         color := quest[5]
@@ -86,15 +67,13 @@ LegendaryCheckMap() {
     }
     return true
 }
-
 _LegendaryText1Pos := [1327, 337]  ; "区域"位置
 _LegendaryText2Pos := [975, 913]  ; "OK"位置
 _LegendaryTextColor := "0xF8F0DC"  ; "区域"颜色
 _LegendaryLevelPos := [151, 295]  ; 等级标识位置
 _LegendaryLevelLockedColor := "0x978056"  ; 等级标识未解锁颜色
-_LegendaryLevelSelectedColor := "0x086400" ; 等级标识已选中颜色
+_LegendaryLevelSelectedColor := "0x086400"  ; 等级标识已选中颜色
 _LegendaryLevelValidColor := "0x3C2918"  ; 等级标识有效颜色
-
 LegendaryRefreshMap() {
     MySend("f", , 500)
     MySend("Space", , 500)
@@ -134,7 +113,7 @@ LegendaryRefreshMap() {
     }
     MySend("Space", , 1000)  ; 确认切换
     MySend("Escape", , 500)  ; 退出对话
-    MySend("m") ; 打开地图
+    MySend("m")  ; 打开地图
     UpdateStatusBar("地图刷新完成")
     return true
 }

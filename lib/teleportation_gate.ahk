@@ -4,91 +4,51 @@ DebugLegendary := false
 _MenuDebugID := 8
 
 TeleportationGateOneWayBtnClick() {
-    GameWIndowActivate()
     TeleportationGateOneWay()
 }
 
-TeleportationGateReturnTripBtnClick(*) {
-    GameWIndowActivate()
+TeleportationGateReturnTripBtnClick() {
     TeleportationGateOneWay()
     TeleportationGateOneWay()
 }
 
 _TeleportationGateInProgressPos := [50, 50]  ; 传送中白色背景
 _TeleportationGateInProgressColor := "0xFFFFFF"  ; 传送中白色背景颜色
-_TeleportationGateSavingIconPos := [85, 370]  ; 保存中图标位置
-_TeleportationGateSavingIconColor := "0xFFDC7E"  ; 保存中图标位置
 
 TeleportationGateOneWay() {
     _MoveToMenuTeleportationGate()
     MySend("Space", , 750)
     MySend("Space")
-    counter := 0
-    loading := false
-    while (true) {
-        color := PixelGetColor(_TeleportationGateInProgressPos[1], _TeleportationGateInProgressPos[2])
-        if (!loading && color == _TeleportationGateInProgressColor) {
-            loading := true
-        }
-        else if (loading && color != _TeleportationGateInProgressColor) {
-            break
-        }
-        counter++
-        if (loading) {
-            UpdateStatusBar("等待白屏加载..." counter)
-        }
-        else {
-            UpdateStatusBar("等待开门动画..." counter)
-        }
-        if (counter > 100) {
-            UpdateStatusBar("传送超时")
-            return false
-        }
-        Sleep(200)
-    }
-    counter := 0
-    savingIconPosRange := 10
-    savingIconColorRange := 10
-    while (true) {
-        foundSavingIcon := PixelSearch(&x, &y,
-            _TeleportationGateSavingIconPos[1] - savingIconPosRange,
-            _TeleportationGateSavingIconPos[2] - savingIconPosRange,
-            _TeleportationGateSavingIconPos[1] + savingIconPosRange,
-            _TeleportationGateSavingIconPos[2] + savingIconPosRange,
-            _TeleportationGateSavingIconColor, savingIconColorRange)
-        if (foundSavingIcon) {
-            UpdateStatusBar("传送完成")
-            break
-        }
-        counter++
-        UpdateStatusBar("等待关门动画..." counter)
-        if (counter > 50) {
-            UpdateStatusBar("等待关门动画超时")
-            return false
-        }
-        Sleep(200)
-    }
-    return true
+    WaitUntilColorMatch(
+        _TeleportationGateInProgressPos[1],
+        _TeleportationGateInProgressPos[2],
+        _TeleportationGateInProgressColor,
+        "开门动画", , , 200, 100)
+    WaitUntilColorNotMatch(
+        _TeleportationGateInProgressPos[1],
+        _TeleportationGateInProgressPos[2],
+        _TeleportationGateInProgressColor,
+        "白屏加载", , , 200, 100)
+    WaitUntilSavingIcon()
+    UpdateStatusBar("传送完成")
 }
 
 _TeleportationGateIconCheckedColor := "0xD4B1EB"  ; 传送图标已选择颜色
 _TeleportationGateIconDisabledColor := "0x935986"  ; 传送图标不可选颜色
-_TeleportationGateIconUncheckedColor := "0xDD7BE3"  ; 传送图标未选择颜色
 
 _MoveToMenuTeleportationGate() {
     page := myGui["TeleportationGate.IconPage"].Value
     row := myGui["TeleportationGate.IconRow"].Value
     col := myGui["TeleportationGate.IconCol"].Value
-    ret := OpenMenuAndGetIconColor(page, row, col)
-    color := ret[3]
-    switch (color) {
-        case _TeleportationGateIconCheckedColor:
-            UpdateStatusBar("传送图标已选择")
-        case _TeleportationGateIconDisabledColor:
-            throw ValueError("传送图标不可选")
-        case _TeleportationGateIconUncheckedColor:
-            throw ValueError("传送图标未选择")
-        default:
-            throw ValueError("传送图标颜色不匹配: " color)
+    ret := OpenMenuAndMoveToIcon(page, row, col)
+    x := ret[1]
+    y := ret[2]
+    if SearchColorMatch(x, y, _TeleportationGateIconCheckedColor, 5) {
+        UpdateStatusBar("传送图标已选择")
+        return
     }
+    if SearchColorMatch(x, y, _TeleportationGateIconDisabledColor, 5) {
+        throw ValueError("传送图标不可选")
+    }
+    throw ValueError("传送图标颜色不匹配")
 }

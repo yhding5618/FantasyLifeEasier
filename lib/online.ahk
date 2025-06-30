@@ -3,46 +3,26 @@ DebugOnline := false
 _JoinDebugID := 1
 
 OnlineCreateBtnClick() {
-    GameWIndowActivate()
     _OnlineCheckInput()
     _TalkToOnlineCounter()
     _OnlineCreate()
 }
 
 OnlineJoinBtnClick(*) {
-    GameWIndowActivate()
     _OnlineCheckInput()
     _TalkToOnlineCounter()
     _OnlineJoin()
 }
 
 OnlineExitBtnClick(*) {
-    GameWIndowActivate()
     _OnlineExit()
 }
 
 OnlineRejoinBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineCheckInput() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineExit() {
-        PlayFailureSound()
-        return
-    }
-    if !_TalkToOnlineCounter() {
-        PlayFailureSound()
-        return
-    }
-    if !_OnlineJoin() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    _OnlineCheckInput()
+    _OnlineExit()
+    _TalkToOnlineCounter()
+    _OnlineJoin()
 }
 
 _OnlineCheckInput() {
@@ -74,7 +54,8 @@ _TalkToOnlineCounter() {
     counter := 0
     while (true) {
         color := PixelGetColor(_OnlineCounterPos[1], _OnlineCounterPos[2])
-        MyToolTip(color, _OnlineCounterPos[1], _OnlineCounterPos[2], _JoinDebugID, DebugOnline)
+        MyToolTip(color, _OnlineCounterPos[1], _OnlineCounterPos[2],
+            _JoinDebugID, DebugOnline)
         if (color == _OnlineCounterColor) {
             UpdateStatusBar("到达柜台")
             MyRelease("w")
@@ -262,7 +243,8 @@ _OnlineJoin() {
     counter := 0
     while (true) {
         color := PixelGetColor(_OnlineJoinDonePos[1], _OnlineJoinDonePos[2])
-        MyToolTip(color, _OnlineJoinDonePos[1], _OnlineJoinDonePos[2], _JoinDebugID + 3, DebugOnline)
+        MyToolTip(color, _OnlineJoinDonePos[1], _OnlineJoinDonePos[2],
+            _JoinDebugID + 3, DebugOnline)
         if (color == _OnlineJoinDoneColor) {
             UpdateStatusBar("加入成功")
             break

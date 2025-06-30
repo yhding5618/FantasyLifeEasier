@@ -73,11 +73,13 @@ _CreateTabGinormosia() {
 _CreateSectionGameWindow(firstSection := false) {
     totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "游戏窗口")
-    btn := myGui.AddButton(_GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
-    btn.OnEvent("Click", (*) => TryAndCatch(GameWindowActivateBtnClick))
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
+    btn.OnEvent("Click", (*) => TryAndCatch(GameWindowCheckBtnClick()))
     myGui.AddText("yp w150 r4 vGameWindow.Status", "")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
-    btn.OnEvent("Click", (*) => TryAndCatch(GameWindowActivateBtnClick))
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
+    btn.OnEvent("Click", (*) => TryAndCatch(GameWindowActivateBtnClick()))
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "像素信息：")
     myGui.AddEdit("yp hp w146 r1 vGameWindow.PixelInfo ReadOnly 0x200", "")
     chk := myGui.AddCheckbox("yp hp vGameWindow.PixelInfoUpdateChk", "刷新")
@@ -89,14 +91,17 @@ _CreateSectionScriptControl(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "脚本控制")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "窗口位置：")
     myGui.AddEdit("yp w80 hp ReadOnly vScriptControl.WindowPos", "")
-    chk := myGui.AddCheckbox(_GroupBoxRowPos(2) " h22 vScriptControl.RememberPos", "记住窗口位置")
+    chk := myGui.AddCheckbox(
+        _GroupBoxRowPos(2) " h22 vScriptControl.RememberPos", "记住窗口位置")
     chk := myGui.AddCheckbox("yp hp vScriptControl.AlwaysOnTopChk", "脚本窗口置顶")
     chk.OnEvent("Click", (*) => TryAndCatch(ScriptControlAlwaysOnTopChkClick))
-    chk := myGui.AddCheckbox(_GroupBoxRowPos(3) " hp vScriptControl.SuccessSoundChk", "启用成功音效")
+    chk := myGui.AddCheckbox(
+        _GroupBoxRowPos(3) " hp vScriptControl.SuccessSoundChk", "启用成功音效")
     chk.OnEvent("Click", (*) => TryAndCatch(ScriptControlSuccessSoundChkClick))
     chk := myGui.AddCheckbox("yp hp vScriptControl.FailureSoundChk", "启用失败音效")
     chk.OnEvent("Click", (*) => TryAndCatch(ScriptControlFailureSoundChkClick))
-    chk := myGui.AddCheckbox(_GroupBoxRowPos(4) " hp vScriptControl.FailureMsgBoxChk", "启用失败弹窗")
+    chk := myGui.AddCheckbox(
+        _GroupBoxRowPos(4) " hp vScriptControl.FailureMsgBoxChk", "启用失败弹窗")
     chk.OnEvent("Click", (*) => TryAndCatch(ScriptControlFailureMsgBoxChkClick))
 }
 
@@ -136,7 +141,8 @@ _CreateSectionMiniGame(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "转动间隔（毫秒）：")
     myGui.AddEdit("xp+110 yp hp w50", "100")
     myGui.AddUpDown("vMiniGame.SpinInterval Range0-1000 0x80", 0)
-    btn := myGui.AddButton(_GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
     btn.OnEvent("Click", (*) => TryAndCatch(MiniGameSingleActionBtnClick))
     btn := myGui.AddButton("yp vMiniGame.ContinuousActionBtn", "连续操作")
     btn.OnEvent("Click", (*) => TryAndCatch(MiniGameContinuousActionBtnClick))
@@ -146,13 +152,16 @@ _CreateSectionTreasureGrove(firstSection := false) {
     totalRows := 2
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "扭蛋迷宫树")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "年代选择：向")
-    myGui.AddDropDownList("yp w36 Choose2 vTreasureGrove.YearMoveDir", ["上", "下"])
+    myGui.AddDropDownList(
+        "yp w36 Choose2 vTreasureGrove.YearMoveDir", ["上", "下"])
     myGui.AddEdit("yp w36")
     myGui.AddUpDown("vTreasureGrove.YearMoveCount Range1-10 0x80", 1)
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
     btn.OnEvent("Click", (*) => TryAndCatch(TreasureGroveReplantBtnClick))
     btn := myGui.AddButton("yp vTreasureGrove.ContinueReplantBtn", "下一次重新种植")
-    btn.OnEvent("Click", (*) => TryAndCatch(TreasureGroveContinueReplantBtnClick))
+    btn.OnEvent(
+        "Click", (*) => TryAndCatch(TreasureGroveContinueReplantBtnClick))
 }
 
 _CreateSectionWeaponAging(firstSection := false) {
@@ -168,7 +177,8 @@ _CreateSectionOnline(firstSection := false) {
     totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "创建类型：")
-    myGui.AddDropDownList("yp w100 Choose3 vOnline.CreateType", ["环岛冒险", "探索大陆", "扭蛋迷宫树"])
+    myGui.AddDropDownList(
+        "yp w100 Choose3 vOnline.CreateType", ["环岛冒险", "探索大陆", "扭蛋迷宫树"])
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
     myGui.AddText("yp hp 0x200", "密码：")
@@ -219,7 +229,8 @@ _CreateSectionLegendary(firstSection := false) {
     myGui.AddCheckbox("yp hp vLegendary.IncludeDiamondChk", "钻")
     myGui.AddCheckbox("yp hp vLegendary.IncludeFishChk", "鱼")
     myGui.AddCheckbox("yp hp vLegendary.IncludePotatoChk", "豆")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vLegendary.CheckMapBtn", "检查地图")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vLegendary.CheckMapBtn", "检查地图")
     btn.OnEvent("Click", (*) => TryAndCatch(LegendaryCheckMapBtnClick))
     btn := myGui.AddButton("yp vLegendary.StartBtn", "刷新等级")
     btn.OnEvent("Click", (*) => TryAndCatch(LegendaryRefreshMapBtnClick))
@@ -239,10 +250,12 @@ _CreateSectionTeleportationGate(firstSection := false) {
     myGui.AddEdit("yp w32 hp hp")
     myGui.AddUpDown("vTeleportationGate.IconCol Range1-4 0x80", 1)
     myGui.AddText("yp hp 0x200", "列")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vTeleportationGate.OneWayBtn", "单程")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vTeleportationGate.OneWayBtn", "单程")
     btn.OnEvent("Click", (*) => TryAndCatch(TeleportationGateOneWayBtnClick))
     btn := myGui.AddButton("yp vTeleportationGate.ReturnTripBtn", "往返")
-    btn.OnEvent("Click", (*) => TryAndCatch(TeleportationGateReturnTripBtnClick))
+    btn.OnEvent(
+        "Click", (*) => TryAndCatch(TeleportationGateReturnTripBtnClick))
 }
 
 _CreateSectionSaveLoad(firstSection := false) {

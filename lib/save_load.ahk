@@ -3,162 +3,153 @@
 DebugSaveLoad := false
 
 SaveLoadSaveBtnClick() {
-    GameWIndowActivate()
     SaveToCloud()
 }
 
 SaveLoadLoadBtnClick() {
-    GameWIndowActivate()
     LoadFromCloud()
 }
 
-_SaveLoadInfoPos := [1204, 342]  ; 幻想生活"i"图标位置
-_SaveLoadInfoColor := "0x030300"  ; 幻想生活"i"图标颜色
+_SaveLoadLogoPos := [1204, 342]  ; 幻想生活"i"图标位置
+_SaveLoadLogoColor := "0x030300"  ; 幻想生活"i"图标颜色
 _SaveLoadCloudPos := [1352, 963]  ; 云存档"X"位置
 _SaveLoadCloudColor := "0xFFF8E4"  ; 云存档"X"颜色
-; _SaveLoadExclamationPos := [961, 177]  ; 顶部感叹号背景位置
-; _SaveLoadExclamationColor := "0xFFB914"  ; 顶部感叹号背景颜色
-_SaveLoadExclamationPixel := [961, 177, "0xFFB914"]  ; 顶部感叹号背景像素
-_SaveLoadTextPos := [954, 525]  ; "覆盖完毕"文字位置
-_SaveLoadTextColor := "0x704216"  ; "覆盖完毕"文字颜色
-_SaveLoadOKColor := "0xF8F0DC"  ; "OK"颜色
-_SaveLoadOK1Pixel := [975, 863, _SaveLoadOKColor]  ; "OK"1像素
-_SaveLoadOK2Pixel := [975, 915, _SaveLoadOKColor]  ; "OK"2像素
-_SaveLoadOK1Pos := [975, 863]  ; "OK"位置
-_SaveLoadOK2Pos := [975, 915]  ; "OK"位置
-_SaveLoadCloudCheckedPos := [1234, 442]  ; 云存档选择位置
-_SaveLoadCloudCheckedColor := "0x5CE93F"  ; 云存档选择颜色
-_SaveLoadCloudUncheckedColor := "0xB39770"  ; 云存档未选择颜色
+
+_SaveLoadConfirmNoPos := [1218, 960]  ; 确认“否”按钮（保存覆盖/加载覆盖）
+_SaveLoadConfirmYesPos := [706, 960]  ; 确认“是”按钮（保存覆盖/加载覆盖）
+_SaveLoadWarningNoPos := [1218, 940]  ; 注意“否”按钮（返回标题/加载覆盖）
+_SaveLoadWarningYesPos := [706, 940]  ; 注意“是”按钮（返回标题/加载覆盖）
+_SaveLoadOK1Pos := [965, 885]  ; “OK”按钮（Epic账户绑定OK/保存覆盖完毕OK）
+_SaveLoadOK2Pos := [965, 835]  ; “OK”按钮（加载覆盖完毕OK）
+_ButtonBackgroundColor := "0x88FF74"  ; 按钮背景颜色
+_SaveLoadCloudCheckPos := [1234, 442]  ; 共享存档打勾位置
+_SaveLoadCloudCheckedColor := "0x5CE93F"  ; 共享存档已打勾颜色
+_SaveLoadCloudUncheckedColor := "0xB39770"  ; 共享存档未打勾颜色
+_SaveLoadEpicAccountTextPos := [720, 500]  ; Epic账户绑定OK文字位置
+_SaveLoadSaveDoneTextPos := [921, 524]  ; 保存覆盖完毕OK文字位置
+_SaveLoadLoadDoneTextPos := [921, 381]  ; 加载覆盖完毕OK文字位置
+_SaveLoadTextColor := "0x88613B"  ; 文字颜色
+_SaveLoadLogoPixel := [1202, 348, "0xFFE000"]  ; 标题幻想生活"i"图标
+_SaveLoadXBtnPixel := [1357, 964, "0x75674E"]  ; 标题[X]共享存档确认
 
 SaveToCloud() {
     OpenMenu()
-    Sleep(500)
-    MySend("x", , 500)  ; 点击存档
+    MySend("x")  ; 点击存档
     WaitUntilColorMatch(
-        _SaveLoadExclamationPixel[1],
-        _SaveLoadExclamationPixel[2],
-        _SaveLoadExclamationPixel[3],
-        "感叹号颜色", 100, 10
+        _SaveLoadConfirmNoPos[1], _SaveLoadConfirmNoPos[2],
+        _ButtonBackgroundColor, "确认保存覆盖“否”", 5
     )
-    Sleep(500)  ; 等待界面稳定
-    if SearchColorMatch(
-        _SaveLoadCloudCheckedPos[1],
-        _SaveLoadCloudCheckedPos[2],
-        _SaveLoadCloudUncheckedColor,
+    MySend("a")  ; 移动到“是”按钮
+    WaitUntilColorMatch(
+        _SaveLoadConfirmYesPos[1], _SaveLoadConfirmYesPos[2],
+        _ButtonBackgroundColor, "确认保存覆盖“是”", 5
+    )
+    if SearchColorMatch(  ; 未选择共享存档
+        _SaveLoadCloudCheckPos[1], _SaveLoadCloudCheckPos[2],
+        _SaveLoadCloudUncheckedColor, 5
     ) {
-        UpdateStatusBar("正在选择云存档")
-        MySend("c", , 500)  ; 选择云存档
+        UpdateStatusBar("选择共享存档")
+        MySend("c", , 200)
     }
-    if !SearchColorMatch(
-        _SaveLoadCloudCheckedPos[1],
-        _SaveLoadCloudCheckedPos[2],
-        _SaveLoadCloudCheckedColor,
+    if !SearchColorMatch(  ; 选择共享存档
+        _SaveLoadCloudCheckPos[1], _SaveLoadCloudCheckPos[2],
+        _SaveLoadCloudCheckedColor, 5
     ) {
-        throw ValueError("云存档选择颜色不匹配")
+        color := PixelGetColor(_SaveLoadCloudCheckPos*)
+        throw ValueError("共享存档无法选择[" color "]")
     }
     UpdateStatusBar("确认保存")
-    MySend("a", , 500)
     MySend("Space")  ; 确认保存
-    counter := 0
-    while (true) {
+    loop (2) {  ; 有可能需要两次OK
+        WaitUntilColorMatch(
+            _SaveLoadOK1Pos[1], _SaveLoadOK1Pos[2],
+            _ButtonBackgroundColor, "OK", 5, , 1000, 60
+        )
         if SearchColorMatch(
-            _SaveLoadTextPos[1], _SaveLoadTextPos[2],
-            _SaveLoadTextColor
+            _SaveLoadEpicAccountTextPos[1], _SaveLoadEpicAccountTextPos[2],
+            _SaveLoadTextColor, 5
         ) {
-            UpdateStatusBar("云存档覆盖完毕")
+            UpdateStatusBar("检测到Epic账户绑定OK")
+            MySend("Space")  ; 确认Epic账户绑定
+        }
+        if SearchColorMatch(
+            _SaveLoadSaveDoneTextPos[1], _SaveLoadSaveDoneTextPos[2],
+            _SaveLoadTextColor, 5
+        ) {
+            UpdateStatusBar("检测到保存覆盖完毕OK")
+            MySend("Space")  ; 确认保存覆盖完毕
             break
         }
-        if SearchColorMatch(
-            _SaveLoadOK2Pos[1], _SaveLoadOK2Pos[2],
-            _SaveLoadOKColor
-        ) {
-            UpdateStatusBar("确认Epic账户绑定")
-            Sleep(200)
-            MySend("Space", , 1000)  ; 确认绑定
-        }
-        counter++
-        UpdateStatusBar("等待云存档保存..." counter)
-        if (counter > 50) {
-            throw TimeoutError("云存档保存超时")
-        }
-        Sleep(1000)
     }
     Sleep(1000)
-    MySend("Space", , 1000)
-    MySend("Escape", , 750)  ; 退出菜单
+    MySend("Escape")  ; 退出菜单
+    UpdateStatusBar("共享存档保存完成")
 }
 
 LoadFromCloud() {
     OpenMenu()
-    Sleep(500)
-    MySend("Ctrl", , 500)  ; 返回标题画面
-    MySend("a", , 500)
-    MySend("Space") ; 确认返回
+    MySend("Ctrl")  ; 返回标题画面
     WaitUntilColorMatch(
-        _SaveLoadInfoPos[1],
-        _SaveLoadInfoPos[2],
-        _SaveLoadInfoColor,
-        "标题界面加载", 1000, 50
-    )
-    counter := 0
-    while (true) {
-        color := PixelGetColor(_SaveLoadInfoPos[1], _SaveLoadInfoPos[2])
-        if (color == _SaveLoadInfoColor) {
-            UpdateStatusBar("标题界面加载完成")
-            break
-        }
-        counter++
-        UpdateStatusBar("等待标题界面加载..." counter)
-        if (counter > 50) {
-            UpdateStatusBar("标题界面加载超时")
-            return false
-        }
-        Sleep(1000)
-    }
+        _SaveLoadWarningNoPos[1], _SaveLoadWarningNoPos[2],
+        _ButtonBackgroundColor, "注意返回标题“否”", 5)
+    MySend("a")  ; 移动到“是”按钮
+    WaitUntilColorMatch(
+        _SaveLoadWarningYesPos[1], _SaveLoadWarningYesPos[2],
+        _ButtonBackgroundColor, "注意返回标题“是”", 5)
+    MySend("Space")  ; 确认返回
+    WaitUntilColorMatch(
+        _SaveLoadLogoPixel[1], _SaveLoadLogoPixel[2],
+        _SaveLoadLogoPixel[3], "标题界面加载", 5, , 1000, 60)
     Sleep(1000)  ; 等待界面稳定
-    MySend("Space", , 1000)  ; 任意键继续
-    if !SearchColorMatch(_SaveLoadCloudPos[1], _SaveLoadCloudPos[2],
-        _SaveLoadCloudColor
-    ) {
-        throw ValueError("云存档按钮颜色不匹配")
-    }
-    MySend("x", , 2000)  ; 点击云存档按钮
-    counter := 0
-    while (true) {
-        if SearchColorMatch(_SaveLoadOK2Pos[1], _SaveLoadOK2Pos[2], _SaveLoadOKColor) {
-            UpdateStatusBar("确认Epic账户绑定")
-            Sleep(200)
-            MySend("Space", , 1000)  ; 确认绑定
-        }
-        if SearchColorMatch(
-            _SaveLoadExclamationPixel[1],
-            _SaveLoadExclamationPixel[2],
-            _SaveLoadExclamationPixel[3]
+    MySend("Space")  ; 任意键继续
+    WaitUntilColorMatch(
+        _SaveLoadXBtnPixel[1], _SaveLoadXBtnPixel[2],
+        _SaveLoadXBtnPixel[3], "[X]共享存档确认", 5, 20)
+    Sleep(1000)  ; 等待界面稳定
+    MySend("x")  ; 共享存档确认
+    count := 0
+    timeOutCount := 60
+    while (count < timeOutCount) {
+        ; 这里需要同时检测Epic账户绑定OK和确认加载覆盖“否”
+        ; WaitUntilColorMatch()不支持同时检测多个位置
+        if SearchColorMatch(  ; 检测Epic账户绑定OK
+            _SaveLoadOK1Pos[1], _SaveLoadOK1Pos[2],
+            _ButtonBackgroundColor, 5
         ) {
-            UpdateStatusBar("检测到云存档")
+            UpdateStatusBar("检测到Epic账户绑定OK")
+            MySend("Space")  ; 确认Epic账户绑定
+            count := 0  ; 重置计数器
+        }
+        if SearchColorMatch(  ; 检测确认加载覆盖“否”
+            _SaveLoadConfirmNoPos[1], _SaveLoadConfirmNoPos[2],
+            _ButtonBackgroundColor, 5
+        ) {
+            UpdateStatusBar("检测到确认加载覆盖“否”")
             break
         }
-        counter++
-        UpdateStatusBar("等待云存档检测..." counter)
-        if (counter > 60) {
-            throw TimeoutError("云存档检测超时")
-        }
+        UpdateStatusBar("等待加载界面..." count "/" timeOutCount)
         Sleep(1000)
+        count++
     }
-    UpdateStatusBar("首次确认覆盖")
-    MySend("a", , 500)
-    MySend("Space", , 1000)
-    UpdateStatusBar("再次确认覆盖")
-    MySend("a", , 500)
-    MySend("Space", , 1000)
-    UpdateStatusBar("等待云存档加载")
+    if (count >= timeOutCount) {
+        throw TimeoutError("等待加载界面超时")
+    }
+    MySend("a")  ; 移动到“是”按钮
     WaitUntilColorMatch(
-        _SaveLoadOK1Pixel[1],
-        _SaveLoadOK1Pixel[2],
-        _SaveLoadOK1Pixel[3],
-        "云存档加载", 1000, 50
-    )
-    Sleep(1000)
-    MySend("Space")  ; 确认完成
-    UpdateStatusBar("云存档加载完成")
+        _SaveLoadConfirmYesPos[1], _SaveLoadConfirmYesPos[2],
+        _ButtonBackgroundColor, "确认加载覆盖“是”", 5)
+    MySend("Space")  ; 确认加载覆盖
+    WaitUntilColorMatch(
+        _SaveLoadWarningNoPos[1], _SaveLoadWarningNoPos[2],
+        _ButtonBackgroundColor, "注意加载覆盖“否”", 5)
+    MySend("a")  ; 移动到“是”按钮
+    WaitUntilColorMatch(
+        _SaveLoadWarningYesPos[1], _SaveLoadWarningYesPos[2],
+        _ButtonBackgroundColor, "注意加载覆盖“是”", 5)
+    MySend("Space")  ; 确认加载覆盖
+    WaitUntilColorMatch(
+        _SaveLoadOK2Pos[1], _SaveLoadOK2Pos[2],
+        _ButtonBackgroundColor, "加载覆盖完毕OK", 5, , 1000, 60)
+    MySend("Space")  ; 确认加载覆盖完毕OK
+    UpdateStatusBar("共享存档加载完成")
 }

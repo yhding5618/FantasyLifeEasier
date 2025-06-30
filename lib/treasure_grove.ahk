@@ -1,32 +1,16 @@
 #Requires AutoHotkey v2.0
 
-DebugMiniGame := false
+DebugTreasureGrove := false
 _ReplantDebugID := 1
 
-TreasureGroveReplantBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+TreasureGroveReplantBtnClick() {
     MySend("f", , 1200)
-    if (!_TreasureGroveReplant()) {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    _TreasureGroveReplant()
 }
 
-TreasureGroveContinueReplantBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+TreasureGroveContinueReplantBtnClick() {
     MySend("Escape", , 1500)
-    if (!_TreasureGroveReplant()) {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    _TreasureGroveReplant()
 }
 
 _TreasureGroveReplant1Pos := [1323, 401]  ; “重新种植”在第一行位置
@@ -39,51 +23,45 @@ _TreasureGroveLogoColor := "0xFAE5B5"  ; 迷宫树logo颜色
 
 _TreasureGroveReplant() {
     UpdateStatusBar("重新种植")
-    color := PixelGetColor(_TreasureGroveReplant1Pos[1], _TreasureGroveReplant1Pos[2])
-    MyToolTip(color, _TreasureGroveReplant1Pos[1], _TreasureGroveReplant1Pos[2], _ReplantDebugID, DebugMiniGame)
-    if (color != _TreasureGroveReplantColor) {
+    if !SearchColorMatch(
+        _TreasureGroveReplant1Pos[1], _TreasureGroveReplant1Pos[2],
+        _TreasureGroveReplantColor
+    ) {
+        UpdateStatusBar("向下两次")
         MySend("s", , 200)
         MySend("s", , 200)
-        color := PixelGetColor(_TreasureGroveReplant2Pos[1], _TreasureGroveReplant2Pos[2])
-        MyToolTip(color, _TreasureGroveReplant2Pos[1], _TreasureGroveReplant2Pos[2], _ReplantDebugID + 1, DebugMiniGame
-        )
-        if (color != _TreasureGroveReplantColor) {
-            UpdateStatusBar("未找到重新种植")
-            return false
+        if !SearchColorMatch(
+            _TreasureGroveReplant2Pos[1], _TreasureGroveReplant2Pos[2],
+            _TreasureGroveReplantColor
+        ) {
+            throw ValueError("未找到重新种植选项")
         }
     }
-    MySend "Space"
-    Sleep(1000)
+    MySend("Space", , 1000)
     UpdateStatusBar("选择年代")
     key := myGui["TreasureGrove.YearMoveDir"].Value == 1 ? "w" : "s"
     count := myGui["TreasureGrove.YearMoveCount"].Value
     loop count {
-        MySend(key)
-        Sleep(100)
+        MySend(key, , 200)
+    }
+    MySend("Space", , 1000)
+    UpdateStatusBar("确认重新种植")
+    MySend("a", , 500)
+    if !SearchColorMatch(
+        _TreasureGroveReplantConfirmPos[1], _TreasureGroveReplantConfirmPos[2],
+        _TreasureGroveReplantConfirmColor
+    ) {
+        throw ValueError("无法找到确认重新种植按钮")
     }
     MySend("Space")
-    Sleep(500)
-    UpdateStatusBar("确认重新种植")
-    MySend("a")
-    Sleep(100)
-    color := PixelGetColor(_TreasureGroveReplantConfirmPos[1], _TreasureGroveReplantConfirmPos[2])
-    MyToolTip(color, _TreasureGroveReplantConfirmPos[1], _TreasureGroveReplantConfirmPos[2], _ReplantDebugID,
-        DebugMiniGame)
-    if (color != _TreasureGroveReplantConfirmColor) {
-        UpdateStatusBar("无法确认重新种植")
-        return false
-    }
-    MySend "Space"
     UpdateStatusBar("等待新的迷宫树")
     Sleep(4000)
-    MySend("Space")
-    Sleep(500)
-    color := PixelGetColor(_TreasureGroveLogoPos[1], _TreasureGroveLogoPos[2])
-    MyToolTip(color, _TreasureGroveLogoPos[1], _TreasureGroveLogoPos[2], _ReplantDebugID, DebugMiniGame)
-    if (color != _TreasureGroveLogoColor) {
-        UpdateStatusBar("迷宫树加载失败")
-        return false
+    MySend("Space", , 500)
+    if !SearchColorMatch(
+        _TreasureGroveLogoPos[1], _TreasureGroveLogoPos[2],
+        _TreasureGroveLogoColor
+    ) {
+        throw ValueError("迷宫树加载失败")
     }
     UpdateStatusBar("重新种植完成")
-    return true
 }

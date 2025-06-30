@@ -1,37 +1,17 @@
 #Requires AutoHotkey v2.0
 
-WeaponAgingStartBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_WeaponAging() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+DebugWeaponAging := false
+
+WeaponAgingStartBtnClick() {
+    _WeaponAging()
 }
 
-WeaponAgingNextBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+WeaponAgingNextBtnClick() {
     MySend("Space", , 1000)
-    if !LoadFromCloud() {
-        PlayFailureSound()
-        return
-    }
-    if !_WeaponAgingWaitUI() {
-        PlayFailureSound()
-        return
-    }
+    LoadFromCloud()
+    _WeaponAgingWaitUI()
     Sleep(2000)
-    if !_WeaponAging() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+    _WeaponAging()
 }
 
 _WeaponAgingDonePos := [812, 128]  ; "熟成成功"背景位置
@@ -46,7 +26,8 @@ _WeaponAging() {
     counter := 0
     while (true) {
         color := PixelGetColor(_WeaponAgingDonePos[1], _WeaponAgingDonePos[2])
-        MyToolTip(color, _WeaponAgingDonePos[1], _WeaponAgingDonePos[2], 1, DebugMiniGame)
+        MyToolTip(color, _WeaponAgingDonePos[1], _WeaponAgingDonePos[2], 1,
+            DebugWeaponAging)
         if (color == _WeaponAgingDoneColor) {
             UpdateStatusBar("武器熟成完成")
             return true
@@ -66,7 +47,8 @@ _WeaponAgingWaitUI() {
     counter := 0
     while (true) {
         color := PixelGetColor(_WeaponAgingBagPos[1], _WeaponAgingBagPos[2])
-        MyToolTip(color, _WeaponAgingBagPos[1], _WeaponAgingBagPos[2], 2, DebugMiniGame)
+        MyToolTip(color, _WeaponAgingBagPos[1], _WeaponAgingBagPos[2], 2,
+            DebugWeaponAging)
         if (color == _WeaponAgingBagColor) {
             UpdateStatusBar("界面加载完成")
             return true

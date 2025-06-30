@@ -4,7 +4,6 @@ DebugMiniGame := false
 _ActionDebugID := 10
 
 MiniGameSingleActionBtnClick() {
-    GameWIndowActivate()
     ret := _MiniGameDoNextAction()
     done := ret[1]
     station := ret[2]
@@ -16,7 +15,6 @@ MiniGameSingleActionBtnClick() {
 }
 
 MiniGameContinuousActionBtnClick() {
-    GameWIndowActivate()
     UpdateStatusBar("执行连续操作")
     station := 2
     while (true) {
@@ -28,11 +26,9 @@ MiniGameContinuousActionBtnClick() {
         }
     }
     if (station == 0) {
-        PlayFailureSound()
-        return
+        throw TargetError("小游戏操作识别失败或超时")
     }
     AppendStatusBar("，结束于工作台" station)
-    PlaySuccessSound()
 }
 
 _MiniGameDoNextAction(station := 2) {
@@ -59,7 +55,7 @@ _MiniGameDoNextAction(station := 2) {
 _MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置
 _MiniGameTimerBackgroundColor := "0x6B3B0D"  ; 顶部倒计时框背景颜色
 _MiniGameIconPosX := [890, 960, 1030]  ; 顶部制作图标位置X坐标（左，中，右）
-_MiniGameIconPosY := 85  ; 顶部制作图标位置Y坐标
+_MiniGameIconPosY := 78  ; 顶部制作图标位置Y坐标
 _MiniGameIconBackgroundColor := "0x8C4609"  ; 顶部制作图标背景颜色
 _MiniGameMousePosX := [562, 962, 1362]  ; 鼠标图标滚轮位置X坐标（左，中，右）
 _MiniGameMousePosY := [324, 504]  ; 鼠标图标滚轮位置Y坐标（上，下）
@@ -72,44 +68,45 @@ _MiniGameActionHoldColor := "0x96F485"  ; “长按”绿色
 _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
 
 _MiniGameWaitForUI() {
-    counter := 0
-    while (true) {
+    count := 0
+    while (count < 200) {
         uiType := _MiniGameRecognizeUIType()
-        if (uiType != 0) {
+        if (uiType != 0) {  ; 非0为有效UI类型
             return uiType
         }
-        UpdateStatusBar("等待制作界面..." counter)
-        counter++
-        if (counter >= 200) {
-            UpdateStatusBar("等待制作界面超时")
-            return uiType
-        }
+        UpdateStatusBar("等待制作界面..." count "/" 200)
         Sleep(50)
+        count++
     }
+    UpdateStatusBar("等待制作界面超时")
+    return 0
 }
 
 _MiniGameRecognizeUIType() {
-    color := PixelGetColor(_MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2])
-    foundTimer := (color == _MiniGameTimerBackgroundColor)
-    MyToolTip("Timer" foundTimer, _MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2], 8, DebugMiniGame)
-    if (foundTimer) {
-        allIconEmpty := True
-        anyIconFound := False
+    if SearchColorMatch(
+        _MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2],
+        _MiniGameTimerBackgroundColor
+    ) {
+        isBackground := [false, false, false]
         loop (3) {
-            color := PixelGetColor(_MiniGameIconPosX[A_Index], _MiniGameIconPosY)
-            iconEmpty := (color == _MiniGameIconBackgroundColor)
-            allIconEmpty := allIconEmpty && iconEmpty
-            anyIconFound := anyIconFound || !iconEmpty
-            MyToolTip(iconEmpty, _MiniGameIconPosX[A_Index] + 10, _MiniGameIconPosY + 10, 10 + A_Index, DebugMiniGame)
+            isBackground[A_Index] := SearchColorMatch(
+                _MiniGameIconPosX[A_Index], _MiniGameIconPosY,
+                _MiniGameIconBackgroundColor
+            )
+            MyToolTip(isBackground[A_Index],
+                _MiniGameIconPosX[A_Index] + 5,
+                _MiniGameIconPosY + 5,
+                10 + A_Index, DebugMiniGame)
         }
-        if anyIconFound && !allIconEmpty {
-            MyToolTip("图标栏非空", 960, 800, 14, DebugMiniGame)
+        icon101 := isBackground[1] && !isBackground[2] && isBackground[3]
+        icon010 := !isBackground[1] && isBackground[2] && !isBackground[3]
+        icon111 := isBackground[1] && isBackground[2] && isBackground[3]
+        if (icon101 || icon010) {
             UpdateStatusBar("检测到制作界面")
             return 1
         }
-        if allIconEmpty {
-            MyToolTip("图标栏为空", 960, 800, 14, DebugMiniGame)
-            UpdateStatusBar("图标栏为空")
+        if (icon111) {
+            UpdateStatusBar("图标栏全空")
             return 2
         }
     }
@@ -120,30 +117,36 @@ _MiniGameRecognizeAction(ix, iy) {
     x := _MiniGameMousePosX[ix]
     y := _MiniGameMousePosY[iy]
     leftColor := PixelGetColor(x + _MiniGameMouseLeftOffsetX, y)
-    textColor := PixelGetColor(x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY)
+    textColor := PixelGetColor(x + _MiniGameMouseTextOffsetX, y +
+        _MiniGameMouseTextOffsetY)
     foundTap := leftColor == _MiniGameActionTapColor
     foundMash := textColor == _MiniGameActionMashColor
     foundHold := textColor == _MiniGameActionHoldColor
     foundSpin := textColor == _MiniGameActionSpinColor
     foundSpecial := foundMash || foundHold || foundSpin
     if (foundTap && !foundSpecial) {
-        MyToolTip("单击", x + 10, y + 10, 17 + ix, DebugMiniGame)
+        MyToolTip("单击", x + 5, _MiniGameMousePosY[1] + 5,
+            17 + ix, DebugMiniGame)
         return 1  ; 单击
     }
     else if (foundMash) {
-        MyToolTip("连按", x + 10, y + 10, 17 + ix, DebugMiniGame)
+        MyToolTip("连按", x + 5, _MiniGameMousePosY[1] + 5,
+            17 + ix, DebugMiniGame)
         return 2  ; 连按
     }
     else if (foundHold) {
-        MyToolTip("长按", x + 10, y + 10, 17 + ix, DebugMiniGame)
+        MyToolTip("长按", x + 5, _MiniGameMousePosY[1] + 5,
+            17 + ix, DebugMiniGame)
         return 3  ; 长按
     }
     else if (foundSpin) {
-        MyToolTip("转动", x + 10, y + 10, 17 + ix, DebugMiniGame)
+        MyToolTip("转动", x + 5, _MiniGameMousePosY[1] + 5,
+            17 + ix, DebugMiniGame)
         return 4  ; 转动
     }
     else {
-        MyToolTip("未知", x + 10, y + 10, 17 + ix, DebugMiniGame)
+        MyToolTip("未知", x + 5, _MiniGameMousePosY[1] + 5,
+            17 + ix, DebugMiniGame)
         return 0  ; 未知
     }
 }
@@ -215,7 +218,6 @@ _MiniGameDoAction(action) {
 
 _MiniGameActionMash(count, interval) {
     loop count {
-        MyToolTip("连按" A_Index, 960, 300, _ActionDebugID, DebugMiniGame)
         MySend("Space")
         Sleep(interval)
     }
@@ -227,11 +229,11 @@ _MiniGameActionHold(delay) {
     MyRelease("Space")
 }
 
-_MiniGameActionSpin(count, interval, length := 150, sideNum := 12, speed := 100, delay := 1) {
+_MiniGameActionSpin(count, interval, length := 150, sideNum := 12, speed := 100,
+    delay := 1) {
     Pi := 3.141592653589793
     MouseMove(960, 100, speed)  ; 鼠标复位
     loop count {
-        MyToolTip("转动" A_Index, 960, 300, _ActionDebugID, DebugMiniGame)
         loop sideNum {
             side := A_Index
             radian := (side - 1) / sideNum * 2 * Pi

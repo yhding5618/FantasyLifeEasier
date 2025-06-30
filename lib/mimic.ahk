@@ -1,39 +1,16 @@
 #Requires AutoHotkey v2.0
 
-MimicTestSkillBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_MimicKillWithSkill() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+MimicTestSkillBtnClick() {
+    _MimicKillWithSkill()
 }
 
-MimicRefreshAndKillBtnClick(*) {
-    if !GameWIndowActivate() {
-        PlayFailureSound()
-        return
-    }
+MimicRefreshAndKillBtnClick() {
     count := myGui["Mimic.KillCount"].Value
     loop count {
-        if !TeleportationGateOneWay() {
-            PlayFailureSound()
-            return
-        }
-        if !TeleportationGateOneWay() {
-            PlayFailureSound()
-            return
-        }
-        prefix := A_Index "/" count
-        if !_MimicKillWithSkill(prefix) {
-            PlayFailureSound()
-            return
-        }
+        TeleportationGateOneWay()
+        TeleportationGateOneWay()
+        _MimicKillWithSkill(A_Index "/" count)
     }
-    PlaySuccessSound()
 }
 
 _MimicKillWithSkill(prefix := "") {

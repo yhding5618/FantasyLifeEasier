@@ -12,7 +12,8 @@ GameWindowActivateBtnClick() {
 }
 
 GameWindowPixelInfoUpdateToogle() {
-    myGui["GameWindow.PixelInfoUpdateChk"].Value := !myGui["GameWindow.PixelInfoUpdateChk"].Value
+    myGui["GameWindow.PixelInfoUpdateChk"].Value := !myGui[
+        "GameWindow.PixelInfoUpdateChk"].Value
     GameWindowPixelInfoUpdateChkClick()
 }
 
@@ -28,7 +29,7 @@ GameWindowPixelInfoUpdateChkClick(*) {
 GameWindowPixelInfoUpdate() {
     MouseGetPos(&x, &y)
     color := PixelGetColor(x, y)
-    myGui["GameWindow.PixelInfo"].Text := x "," y "," color
+    myGui["GameWindow.PixelInfo"].Text := x "," y ",`"" color "`""
 }
 
 GameWindowStatusUpdate() {
