@@ -1,6 +1,10 @@
 # Fantasy Life Easier (FLE)
 
-> B站视频版介绍：[BV1tug9zGEZ8](https://www.bilibili.com/video/BV1tug9zGEZ8)
+> 脚本已更新至v1.1版本，修复了一些bug并增加了新功能，具体更新内容请查看[v1.1更新日志](https://github.com/yhding5618/FantasyLifeEasier/releases/tag/v1.1)，如果需要下载历史版本可以查看[Releases](https://github.com/yhding5618/FantasyLifeEasier/releases)。
+>
+>新增了[常见问题](#常见问题)部分，如果你在使用脚本时遇到问题，可以先查看此部分，可能会有解决方案，如果没有，可以提交[Issue](https://github.com/yhding5618/FantasyLifeEasier/issues)，并按照模板提供详细信息，方便排查问题。
+>
+> B站视频介绍（v1.0版本）：[BV1tug9zGEZ8](https://www.bilibili.com/video/BV1tug9zGEZ8)
 
 这里是Fantasy Life Easier (FLE)，一个基于[AutoHotKey](https://www.autohotkey.com/)的键鼠宏脚本，用于自动化《幻想生活i》游戏中的一些重复性的操作。此脚本仅使用AutoHotKey中的键盘鼠标控制、延迟等待和窗口像素颜色检测功能，不涉及任何对游戏内存的读取和修改。
 
@@ -203,3 +207,14 @@
 1. 重复上述步骤，直到地图上有想要的传奇任务。
 
 > 目前的检测完全基于像素颜色，脚本如果无法区别任务类型会提示冲突，此时需要手动检查地图上是否有想要的任务。已知冲突的任务有：翼尖峡谷和巨腹大平原西部。
+
+## 常见问题
+
+### 为什么脚本在我的电脑上无法进行任何键盘鼠标操作？
+
+可能是AutoHotKey的安装问题，可以尝试修改AutoHotKey的设置：
+
+1. 打开AutoHotKey Dash。
+1. 点击Launch settings。
+1. 将两个UI Access选项都打勾。
+1. 关闭AutoHotKey Dash并重启脚本。

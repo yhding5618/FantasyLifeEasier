@@ -272,7 +272,7 @@ _CreateSectionFarming(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "等待时间（秒）：")
     myGui.AddEdit("xp+140 yp w50 hp")
     myGui.AddUpDown("vFarming.HarvestWaitDelay Range1-999 0x80", 30)
-    btn := myGui.AddButton(_GroupBoxRowPos(3) " vFarming.HarvestBtn", "批量收获")
+    btn := myGui.AddButton(_GroupBoxRowPos(3) " vFarming.HarvestBtn", "重复收获")
     btn.OnEvent("Click", (*) => TryAndCatch(Farming_HarvestBtn_Click))
 }
 
