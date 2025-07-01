@@ -1,30 +1,14 @@
 #Requires AutoHotkey v2.0
 
-LongCapeBuyBtnClick(*) {
-    if !GameWindowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_LongCapeBuy() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+LongCape_BuyBtn_Click() {
+    LongCapeBuy()
 }
 
-LongCapeSelectBtnClick(*) {
-    if !GameWindowActivate() {
-        PlayFailureSound()
-        return
-    }
-    if !_LongCapeSelect() {
-        PlayFailureSound()
-        return
-    }
-    PlaySuccessSound()
+LongCape_SelectBtn_Click() {
+    LongCapeSelect()
 }
 
-_LongCapeBuy() {
+LongCapeBuy() {
     count := myGui["LongCape.Count"].Value
     buyInterval := myGui["LongCape.BuyInterval"].Value
     loop count {
@@ -35,10 +19,9 @@ _LongCapeBuy() {
         Sleep(buyInterval)
     }
     UpdateStatusBar("已购买 " count " 个长披风。")
-    return true
 }
 
-_LongCapeSelect() {
+LongCapeSelect() {
     count := myGui["LongCape.Count"].Value
     selectInterval := myGui["LongCape.SelectInterval"].Value
     loop count {
@@ -49,5 +32,4 @@ _LongCapeSelect() {
         Sleep(selectInterval)
     }
     UpdateStatusBar("已选择 " count " 个长披风。")
-    return true
 }

@@ -6,13 +6,14 @@ BuildMyGui() {
     _CreateTabCraft()
     _CreateTabCamp()
     _CreateTabGinormosia()
+    _CreateTabSetting()
     myTab.Choose(1)
     myGui.AddStatusBar("vStatusBar", "")
 }
 
 ShowMyGui() {
-    ScriptControlAlwaysOnTopChkClick()
-    GameWindowMouseUpdateChkClick()
+    ScriptControl_AlwaysOnTopChk_Click()
+    GameWindow_PixelInfoUpdateChk_Click()
     if myGui["ScriptControl.RememberPos"].Value {
         pos := StrSplit(myGui["ScriptControl.WindowPos"].Value, ",")
         myGuiPos := "x" pos[1] " y" pos[2]
@@ -46,7 +47,6 @@ _GroupBoxRowPos(row) {
 _CreateTabBasic() {
     _AddAndUseTab("基本")
     _CreateSectionGameWindow(true)
-    _CreateSectionScriptControl()
     _CreateSectionTeleportationGate()
     _CreateSectionSaveLoad()
 }
@@ -68,36 +68,60 @@ _CreateTabGinormosia() {
     _AddAndUseTab("无垠大陆")
     _CreateSectionMimic(true)
     _CreateSectionLegendary()
+    _CreateSectionFarming()
+}
+
+_CreateTabSetting() {
+    _AddAndUseTab("设置")
+    _CreateSectionScriptWindow(true)
+    _CreateSectionScriptNotification()
+    _CreateSectionScriptHotkey()
 }
 
 _CreateSectionGameWindow(firstSection := false) {
     totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "游戏窗口")
-    btn := myGui.AddButton(_GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
-    btn.OnEvent("Click", GameWindowCheckBtnClick)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
+    btn.OnEvent("Click", (*) => TryAndCatch(GameWindow_CheckBtn_Click))
     myGui.AddText("yp w150 r4 vGameWindow.Status", "")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
-    btn.OnEvent("Click", GameWindowActivateBtnClick)
-    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "鼠标位置")
-    myGui.AddEdit("yp hp w60 r1 vGameWindow.MousePos ReadOnly 0x200", "")
-    myGui.AddText("yp hp 0x200", "颜色")
-    myGui.AddEdit("yp hp w60 r1 vGameWindow.MouseColor ReadOnly 0x200", "")
-    chk := myGui.AddCheckbox("yp hp vGameWindow.MouseUpdateChk", "刷新")
-    chk.OnEvent("Click", GameWindowMouseUpdateChkClick)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
+    btn.OnEvent("Click", (*) => TryAndCatch(GameWindow_ActivateBtn_Click))
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "像素信息：")
+    myGui.AddEdit("yp hp w146 r1 vGameWindow.PixelInfo ReadOnly 0x200", "")
+    chk := myGui.AddCheckbox("yp hp vGameWindow.PixelInfoUpdateChk", "刷新")
+    chk.OnEvent("Click", (*) => GameWindow_PixelInfoUpdateChk_Click())
 }
 
-_CreateSectionScriptControl(firstSection := false) {
-    totalRows := 3
-    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "脚本控制")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "窗口位置：")
-    myGui.AddEdit("yp w80 hp ReadOnly vScriptControl.WindowPos", "")
-    chk := myGui.AddCheckbox(_GroupBoxRowPos(2) " h22 vScriptControl.RememberPos", "记住窗口位置")
-    chk := myGui.AddCheckbox("yp hp vScriptControl.AlwaysOnTopChk", "脚本窗口置顶")
-    chk.OnEvent("Click", ScriptControlAlwaysOnTopChkClick)
-    chk := myGui.AddCheckbox(_GroupBoxRowPos(3) " hp vScriptControl.SuccessSoundChk", "启用成功提示音")
-    chk.OnEvent("Click", ScriptControlSuccessSoundChkClick)
-    chk := myGui.AddCheckbox("yp hp vScriptControl.FailureSoundChk", "启用失败提示音")
-    chk.OnEvent("Click", ScriptControlFailureSoundChkClick)
+_CreateSectionTeleportationGate(firstSection := false) {
+    totalRows := 2
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "任意门")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "任意门位置：")
+    myGui.AddEdit("yp w32 hp")
+    myGui.AddUpDown("vTeleportationGate.IconPage Range1-2 0x80", 1)
+    myGui.AddText("yp hp 0x200", "页")
+    myGui.AddEdit("yp w32 hp hp")
+    myGui.AddUpDown("vTeleportationGate.IconRow Range1-3 0x80", 1)
+    myGui.AddText("yp hp 0x200", "行")
+    myGui.AddEdit("yp w32 hp hp")
+    myGui.AddUpDown("vTeleportationGate.IconCol Range1-4 0x80", 1)
+    myGui.AddText("yp hp 0x200", "列")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vTeleportationGate.OneWayBtn", "单程")
+    btn.OnEvent("Click", (*) => TryAndCatch(TeleportationGate_OneWayBtn_Click))
+    btn := myGui.AddButton("yp vTeleportationGate.ReturnTripBtn", "往返")
+    btn.OnEvent(
+        "Click", (*) => TryAndCatch(TeleportationGate_ReturnTripBtn_Click))
+}
+
+_CreateSectionSaveLoad(firstSection := false) {
+    totalRows := 1
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "存档")
+    btn := myGui.AddButton(_GroupBoxRowPos(1) " vSaveLoad.SaveBtn", "保存云")
+    btn.OnEvent("Click", (*) => TryAndCatch(SaveLoad_SaveBtn_Click))
+    btn := myGui.AddButton("yp vSaveLoad.LoadBtn", "加载云")
+    btn.OnEvent("Click", (*) => TryAndCatch(SaveLoad_LoadBtn_Click))
 }
 
 _CreateSectionLongCape(firstSection := false) {
@@ -113,9 +137,9 @@ _CreateSectionLongCape(firstSection := false) {
     myGui.AddEdit("xp+110 yp hp w50", "30")
     myGui.AddUpDown("vLongCape.SelectInterval Range1-5000 0x80", 250)
     btn := myGui.AddButton(_GroupBoxRowPos(4) " vLongCape.BuyBtn", "批量购买")
-    btn.OnEvent("Click", LongCapeBuyBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(LongCape_BuyBtn_Click))
     btn := myGui.AddButton("yp vLongCape.SelectBtn", "批量选择")
-    btn.OnEvent("Click", LongCapeSelectBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(LongCape_SelectBtn_Click))
 }
 
 _CreateSectionMiniGame(firstSection := false) {
@@ -136,78 +160,90 @@ _CreateSectionMiniGame(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "转动间隔（毫秒）：")
     myGui.AddEdit("xp+110 yp hp w50", "100")
     myGui.AddUpDown("vMiniGame.SpinInterval Range0-1000 0x80", 0)
-    btn := myGui.AddButton(_GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
-    btn.OnEvent("Click", MiniGameSingleActionBtnClick)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
+    btn.OnEvent("Click", (*) => TryAndCatch(MiniGame_SingleActionBtn_Click))
     btn := myGui.AddButton("yp vMiniGame.ContinuousActionBtn", "连续操作")
-    btn.OnEvent("Click", MiniGameContinuousActionBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(MiniGame_ContinuousActionBtn_Click))
 }
 
 _CreateSectionTreasureGrove(firstSection := false) {
     totalRows := 2
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "扭蛋迷宫树")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "年代选择：向")
-    myGui.AddDropDownList("yp w36 Choose2 vTreasureGrove.YearMoveDir", ["上", "下"])
+    myGui.AddDropDownList(
+        "yp w36 Choose2 vTreasureGrove.YearMoveDir", ["上", "下"])
     myGui.AddEdit("yp w36")
     myGui.AddUpDown("vTreasureGrove.YearMoveCount Range1-10 0x80", 1)
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
-    btn.OnEvent("Click", TreasureGroveReplantBtnClick)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
+    btn.OnEvent("Click", (*) => TryAndCatch(TreasureGrove_ReplantBtn_Click))
     btn := myGui.AddButton("yp vTreasureGrove.ContinueReplantBtn", "下一次重新种植")
-    btn.OnEvent("Click", TreasureGroveContinueReplantBtnClick)
+    btn.OnEvent("Click", (*) =>
+        TryAndCatch(TreasureGrove_ContinueReplantBtn_Click))
 }
 
 _CreateSectionWeaponAging(firstSection := false) {
     totalRows := 1
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "武器熟成")
-    btn := myGui.AddButton(_GroupBoxRowPos(1) " vWeaponAging.StartBtn", "开始熟成")
-    btn.OnEvent("Click", WeaponAgingStartBtnClick)
+    btn := myGui.AddButton(_GroupBoxRowPos(1) " vWeaponAging.StartBtn", "熟成")
+    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_StartBtn_Click))
     btn := myGui.AddButton("yp vWeaponAging.NextBtn", "下一次熟成")
-    btn.OnEvent("Click", WeaponAgingNextBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_NextBtn_Click))
 }
 
 _CreateSectionOnline(firstSection := false) {
-    totalRows := 3
+    totalRows := 4
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "创建类型：")
-    myGui.AddDropDownList("yp w100 Choose3 vOnline.CreateType", ["环岛冒险", "探索大陆", "扭蛋迷宫树"])
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "招募目的地：")
+    myGui.AddDropDownList(
+        "yp w100 Choose1 vOnline.Destination",
+        ["皆可", "环岛冒险", "探索大陆", "扭蛋迷宫树"])
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
     myGui.AddText("yp hp 0x200", "密码：")
     myGui.AddEdit("yp hp w60 vOnline.Password", "")
-    btn := myGui.AddButton(_GroupBoxRowPos(3) " vOnline.CreateBtn", "创建")
-    btn.OnEvent("Click", OnlineCreateBtnClick)
-    btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
-    btn.OnEvent("Click", OnlineJoinBtnClick)
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "作为房主：")
+    btn := myGui.AddButton("yp vOnline.RecruitBtn", "招募")
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_RecruitBtn_Click))
     btn := myGui.AddButton("yp vOnline.ExitBtn", "退出")
-    btn.OnEvent("Click", OnlineExitBtnClick)
-    btn := myGui.AddButton("yp vOnline.RejoinBtn", "退出并重新加入")
-    btn.OnEvent("Click", OnlineRejoinBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_ExitBtn_Click))
+    btn := myGui.AddButton("yp vOnline.DismissBtn", "解散")
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_DismissBtn_Click))
+    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "作为队友：")
+    btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_JoinBtn_Click))
+    btn := myGui.AddButton("yp vOnline.LeaveBtn", "离开")
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_LeaveBtn_Click))
+    btn := myGui.AddButton("yp vOnline.RejoinBtn", "离开并重新加入")
+    btn.OnEvent("Click", (*) => TryAndCatch(Online_RejoinBtn_Click))
 }
 
 _CreateSectionMimic(firstSection := false) {
     totalRows := 7
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "宝箱怪")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "蓄力时间（毫秒）：")
-    myGui.AddEdit("yp w50 hp")
+    myGui.AddEdit("xp+140 yp w50 hp")
     myGui.AddUpDown("vMimic.HoldTime Range1-5000 0x80", 1050)
     myGui.AddText(_GroupBoxRowPos(2) " hp 0x200", "等待时间（毫秒）：")
-    myGui.AddEdit("yp w50 hp")
+    myGui.AddEdit("xp+140 yp w50 hp")
     myGui.AddUpDown("vMimic.WaitTime Range1-5000 0x80", 2200)
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "复位前进时间（毫秒）：")
-    myGui.AddEdit("yp yp hp w50")
+    myGui.AddEdit("xp+140 yp hp w50")
     myGui.AddUpDown("vMimic.ResetForwardTime Range1-5000 0x80", 700)
     myGui.AddText(_GroupBoxRowPos(4) " hp 0x200", "复位后退时间（毫秒）：")
-    myGui.AddEdit("yp yp hp w50")
+    myGui.AddEdit("xp+140 yp hp w50")
     myGui.AddUpDown("vMimic.ResetBackwardTime Range1-5000 0x80", 920)
     myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "手动复位时间（秒）：")
-    myGui.AddEdit("yp yp hp w50")
+    myGui.AddEdit("xp+140 yp hp w50")
     myGui.AddUpDown("vMimic.ResetWaitTime Range0-10 0x80", 1)
     myGui.AddText(_GroupBoxRowPos(6) " h22 0x200", "重复击杀数量：")
-    myGui.AddEdit("yp yp hp w50")
+    myGui.AddEdit("xp+140 yp hp w50")
     myGui.AddUpDown("vMimic.KillCount Range1-99 0x80", 1)
     btn := myGui.AddButton(_GroupBoxRowPos(7) " vMimic.TestSkillBtn", "测试技能")
-    btn.OnEvent("Click", MimicTestSkillBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(Mimic_TestSkillBtn_Click))
     btn := myGui.AddButton("yp vMimic.RefreshAndKillBtn", "刷新并击杀")
-    btn.OnEvent("Click", MimicRefreshAndKillBtnClick)
+    btn.OnEvent("Click", (*) => TryAndCatch(Mimic_RefreshAndKillBtn_Click))
 }
 
 _CreateSectionLegendary(firstSection := false) {
@@ -219,37 +255,64 @@ _CreateSectionLegendary(firstSection := false) {
     myGui.AddCheckbox("yp hp vLegendary.IncludeDiamondChk", "钻")
     myGui.AddCheckbox("yp hp vLegendary.IncludeFishChk", "鱼")
     myGui.AddCheckbox("yp hp vLegendary.IncludePotatoChk", "豆")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vLegendary.CheckMapBtn", "检查地图")
-    btn.OnEvent("Click", LegendaryCheckMapBtnClick)
-    btn := myGui.AddButton("yp vLegendary.StartBtn", "刷新等级")
-    btn.OnEvent("Click", LegendaryRefreshMapBtnClick)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(2) " vLegendary.CheckMapBtn", "检查地图")
+    btn.OnEvent("Click", (*) => TryAndCatch(Legendary_CheckMapBtn_Click))
+    btn := myGui.AddButton("yp vLegendary.RefreshMapBtn", "刷新等级")
+    btn.OnEvent("Click", (*) => TryAndCatch(Legendary_RefreshMapBtn_Click))
     myGui.AddCheckbox("yp hp vLegendary.AutoCheckChk", "刷新后自动检查")
 }
 
-_CreateSectionTeleportationGate(firstSection := false) {
-    totalRows := 2
-    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "任意门")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "任意门位置：")
-    myGui.AddEdit("yp w32 hp")
-    myGui.AddUpDown("vTeleportationGate.IconPage Range1-2 0x80", 1)
-    myGui.AddText("yp hp 0x200", "页")
-    myGui.AddEdit("yp w32 hp hp")
-    myGui.AddUpDown("vTeleportationGate.IconRow Range1-3 0x80", 1)
-    myGui.AddText("yp hp 0x200", "行")
-    myGui.AddEdit("yp w32 hp hp")
-    myGui.AddUpDown("vTeleportationGate.IconCol Range1-4 0x80", 1)
-    myGui.AddText("yp hp 0x200", "列")
-    btn := myGui.AddButton(_GroupBoxRowPos(2) " vTeleportationGate.OneWayBtn", "单程")
-    btn.OnEvent("Click", TeleportationGateOneWayBtnClick)
-    btn := myGui.AddButton("yp vTeleportationGate.ReturnTripBtn", "往返")
-    btn.OnEvent("Click", TeleportationGateReturnTripBtnClick)
+_CreateSectionFarming(firstSection := false) {
+    totalRows := 3
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "农田")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "重复收获次数：")
+    myGui.AddEdit("xp+140 yp w50 hp")
+    myGui.AddUpDown("vFarming.HarvestCount Range1-999 0x80", 3)
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "等待时间（秒）：")
+    myGui.AddEdit("xp+140 yp w50 hp")
+    myGui.AddUpDown("vFarming.HarvestWaitDelay Range1-999 0x80", 30)
+    btn := myGui.AddButton(_GroupBoxRowPos(3) " vFarming.HarvestBtn", "批量收获")
+    btn.OnEvent("Click", (*) => TryAndCatch(Farming_HarvestBtn_Click))
 }
 
-_CreateSectionSaveLoad(firstSection := false) {
+_CreateSectionScriptWindow(firstSection := false) {
     totalRows := 1
-    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "存档")
-    btn := myGui.AddButton(_GroupBoxRowPos(1) " vSaveLoad.SaveBtn", "保存云")
-    btn.OnEvent("Click", SaveLoadSaveBtnClick)
-    btn := myGui.AddButton("yp vSaveLoad.LoadBtn", "加载云")
-    btn.OnEvent("Click", SaveLoadLoadBtnClick)
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "脚本窗口")
+    chk := myGui.AddCheckbox(
+        _GroupBoxRowPos(1) " h22 vScriptControl.RememberPos", "记住位置：")
+    myGui.AddEdit("yp w60 hp ReadOnly vScriptControl.WindowPos", "")
+    chk := myGui.AddCheckbox("xp+80 yp hp vScriptControl.AlwaysOnTopChk", "置顶")
+    chk.OnEvent("Click", (*) => ScriptControl_AlwaysOnTopChk_Click())
+}
+
+_CreateSectionScriptNotification(firstSection := false) {
+    totalRows := 2
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "运行结果")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "成功时：")
+    MyGui.AddRadio("yp hp Checked vScriptControl.SuccessNoChk", "不提醒")
+    chk := myGui.AddRadio("yp hp vScriptControl.SuccessSoundChk", "音效")
+    chk.OnEvent("Click", (*) => ScriptControl_SuccessSoundChk_Click())
+    chk := myGui.AddRadio("yp hp vScriptControl.SuccessMsgBoxChk", "弹窗")
+    chk.OnEvent("Click", (*) => ScriptControl_SuccessMsgBoxChk_Click())
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "失败时：")
+    MyGui.AddRadio("yp hp Checked vScriptControl.FailureNoChk", "不提醒")
+    chk := myGui.AddRadio("yp hp vScriptControl.FailureSoundChk", "音效")
+    chk.OnEvent("Click", (*) => ScriptControl_FailureSoundChk_Click())
+    chk := myGui.AddRadio("yp hp vScriptControl.FailureMsgBoxChk", "弹窗")
+    chk.OnEvent("Click", (*) => ScriptControl_FailureMsgBoxChk_Click())
+}
+
+_CreateSectionScriptHotkey(firstSection := false) {
+    totalRows := 3
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "快捷键")
+    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "暂停：")
+    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.PauseHotkey", "F3")
+    hk.OnEvent("Change", (*) => ScriptControl_PauseHotkey_Change())
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "退出：")
+    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.ExitHotkey", "F4")
+    hk.OnEvent("Change", (*) => ScriptControl_ExitHotkey_Change())
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "重置：")
+    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.ResetHotkey", "F5")
+    hk.OnEvent("Change", (*) => ScriptControl_ResetHotkey_Change())
 }

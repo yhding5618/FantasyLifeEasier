@@ -3,7 +3,8 @@
 #Include "lib/utils.ahk"
 #Include "lib/gui.ahk"
 #Include "lib/game_window.ahk"
-#Include "lib/script_control.ahk"
+#Include "lib/teleportation_gate.ahk"
+#Include "lib/save_load.ahk"
 #Include "lib/long_cape.ahk"
 #Include "lib/mini_game.ahk"
 #Include "lib/treasure_grove.ahk"
@@ -11,15 +12,15 @@
 #Include "lib/online.ahk"
 #Include "lib/mimic.ahk"
 #Include "lib/legendary.ahk"
-#Include "lib/teleportation_gate.ahk"
-#Include "lib/save_load.ahk"
+#Include "lib/harvest.ahk"
+#Include "lib/script_control.ahk"
 
-ProcessSetPriority "High"
+ProcessSetPriority("High")
 CoordMode("Pixel", "Client")
 
 F3:: Pause(-1)
 F4:: SaveAndExit()
-; F5:: GameWindowMouseUpdateToogle()
+F5:: SaveAndReload()
 
 myGui := Gui(, "Fantasy Life Easier")
 myGui.OnEvent("Close", (*) => SaveAndExit())
