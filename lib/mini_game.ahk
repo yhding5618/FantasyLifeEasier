@@ -80,12 +80,10 @@ _MiniGameRecognizeUIType() {
         loop (3) {
             iconEmpty[A_Index] := SearchColorMatch(
                 _MiniGameIconPosX[A_Index], _MiniGameIconPosY,
-                _MiniGameIconBackgroundColor
-            )
+                _MiniGameIconBackgroundColor, 1)
             MyToolTip(iconEmpty[A_Index],
                 _MiniGameIconPosX[A_Index] + 5, _MiniGameIconPosY + 5,
-                10 + A_Index, DebugMiniGame
-            )
+                10 + A_Index, DebugMiniGame)
         }
         icon101 := iconEmpty[1] && !iconEmpty[2] && iconEmpty[3]
         icon010 := !iconEmpty[1] && iconEmpty[2] && !iconEmpty[3]
