@@ -59,6 +59,7 @@ SaveToCloud() {
             UpdateStatusBar("检测到Epic账户绑定OK")
             Sleep(200)  ; 等待界面稳定
             MySend("Space")  ; 确认Epic账户绑定
+            Sleep(1000)  ; 等待按钮消失，防止下一次WaitUntilColorMatch误触发
         } else if SearchColorMatch(
             _SaveLoadSaveDoneTextPos[1], _SaveLoadSaveDoneTextPos[2],
             _SaveLoadTextColor, 2
