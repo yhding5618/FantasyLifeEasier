@@ -77,7 +77,7 @@ TryAndCatch(function) {
     if (Type(function) != "Func") {
         throw TypeError("参数必须是函数对象")
     }
-    if (SubStr(function.Name, -8) != "Btn_Click") {
+    if (SubStr(function.Name, -9) != "Btn_Click") {
         throw ValueError("函数名必须以'Btn_Click'结尾")
     }
     splits := StrSplit(function.Name, "_", , 3)
@@ -293,10 +293,10 @@ LoadConfig() {
         }
         try {
             myGui[name].Value := IniRead(
-                "main.ini", section, key, defaultValue)
+                "main.ini", section, key, myGui[name].Value)
         } catch Error as e {
             ; 如果读取失败，保持默认值
-            MsgBox("无法读取配置: " section "." key "重设为默认值`n" e.Message)
+            MsgBox("无法读取配置: " section "." key "，保持默认值")
         }
     }
 }

@@ -197,7 +197,7 @@ _CreateSectionOnline(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "招募目的地：")
     myGui.AddDropDownList(
-        "yp w100 Choose4 vOnline.Destination",
+        "yp w100 Choose1 vOnline.Destination",
         ["皆可", "环岛冒险", "探索大陆", "扭蛋迷宫树"])
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
