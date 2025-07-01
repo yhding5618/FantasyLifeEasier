@@ -1,10 +1,10 @@
 #Requires AutoHotkey v2.0
 
-MimicTestSkillBtnClick() {
+Mimic_TestSkillBtn_Click() {
     _MimicKillWithSkill()
 }
 
-MimicRefreshAndKillBtnClick() {
+Mimic_RefreshAndKillBtn_Click() {
     count := myGui["Mimic.KillCount"].Value
     loop count {
         TeleportationGateOneWay()
@@ -38,5 +38,4 @@ _MimicKillWithSkill(prefix := "") {
         }
     }
     UpdateStatusBar(prefix "完成击杀")
-    return true
 }

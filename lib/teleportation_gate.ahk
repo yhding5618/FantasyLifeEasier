@@ -3,11 +3,11 @@
 DebugLegendary := false
 _MenuDebugID := 8
 
-TeleportationGateOneWayBtnClick() {
+TeleportationGate_OneWayBtn_Click() {
     TeleportationGateOneWay()
 }
 
-TeleportationGateReturnTripBtnClick() {
+TeleportationGate_ReturnTripBtn_Click() {
     TeleportationGateOneWay()
     TeleportationGateOneWay()
 }
@@ -23,12 +23,12 @@ TeleportationGateOneWay() {
         _TeleportationGateInProgressPos[1],
         _TeleportationGateInProgressPos[2],
         _TeleportationGateInProgressColor,
-        "开门动画", , , 200, 100)
+        "开门动画", , 0, 200, 100)
     WaitUntilColorNotMatch(
         _TeleportationGateInProgressPos[1],
         _TeleportationGateInProgressPos[2],
         _TeleportationGateInProgressColor,
-        "白屏加载", , , 200, 100)
+        "白屏加载", , 0, 200, 100)
     WaitUntilSavingIcon()
     UpdateStatusBar("传送完成")
 }
@@ -43,11 +43,11 @@ _MoveToMenuTeleportationGate() {
     ret := OpenMenuAndMoveToIcon(page, row, col)
     x := ret[1]
     y := ret[2]
-    if SearchColorMatch(x, y, _TeleportationGateIconCheckedColor, 5) {
+    if SearchColorMatch(x, y, _TeleportationGateIconCheckedColor) {
         UpdateStatusBar("传送图标已选择")
         return
     }
-    if SearchColorMatch(x, y, _TeleportationGateIconDisabledColor, 5) {
+    if SearchColorMatch(x, y, _TeleportationGateIconDisabledColor) {
         throw ValueError("传送图标不可选")
     }
     throw ValueError("传送图标颜色不匹配")

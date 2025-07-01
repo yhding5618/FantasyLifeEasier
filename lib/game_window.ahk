@@ -3,21 +3,21 @@
 GameWindowTitle := "ahk_exe NFL1-Win64-Shipping.exe"
 
 ; GUI callbacks
-GameWindowCheckBtnClick() {
+GameWindow_CheckBtn_Click() {
     GameWindowStatusUpdate()
 }
 
-GameWindowActivateBtnClick() {
+GameWindow_ActivateBtn_Click() {
     GameWindowActivate()
 }
 
 GameWindowPixelInfoUpdateToogle() {
     myGui["GameWindow.PixelInfoUpdateChk"].Value := !myGui[
         "GameWindow.PixelInfoUpdateChk"].Value
-    GameWindowPixelInfoUpdateChkClick()
+    GameWindow_PixelInfoUpdateChk_Click()
 }
 
-GameWindowPixelInfoUpdateChkClick(*) {
+GameWindow_PixelInfoUpdateChk_Click(*) {
     if (myGui["GameWindow.PixelInfoUpdateChk"].Value) {
         SetTimer(GameWindowPixelInfoUpdate, 100)
         GameWindowPixelInfoUpdate()
@@ -34,16 +34,22 @@ GameWindowPixelInfoUpdate() {
 
 GameWindowStatusUpdate() {
     if !WinExist(GameWindowTitle) {
-        myGui["GameWindow.Status"].Text := "游戏窗口未找到"
+        myGui["GameWindow.Status"].Text := "未检测到游戏窗口"
         return
     }
     pid := WinGetPID(GameWindowTitle)
     WinGetClientPos(&x, &y, &w, &h, "ahk_pid " pid)
-    myGui["GameWindow.Status"].Text := (
-        "PID：" pid "`n"
-        "位置：(" x ", " y ")`n"
-        "大小：" w "x" h "`n"
-    )
+    text := "PID：" pid "`n"
+    text .= "位置：(" x ", " y ")`n"
+    text .= "大小：" w "x" h "`n"
+    if (w = 0 || h = 0) {
+        text .= "游戏窗口可能已最小化"
+    } else if w != 1920 || h != 1080 {
+        text .= "请使用1920x1080分辨率运行"
+    } else {
+        text .= "检测到游戏窗口"
+    }
+    myGui["GameWindow.Status"].Text := text
 }
 
 GameWindowActivate() {

@@ -1,10 +1,10 @@
 #Requires AutoHotkey v2.0
 
-LongCapeBuyBtnClick() {
+LongCape_BuyBtn_Click() {
     LongCapeBuy()
 }
 
-LongCapeSelectBtnClick() {
+LongCape_SelectBtn_Click() {
     LongCapeSelect()
 }
 
@@ -19,7 +19,6 @@ LongCapeBuy() {
         Sleep(buyInterval)
     }
     UpdateStatusBar("已购买 " count " 个长披风。")
-    return true
 }
 
 LongCapeSelect() {
@@ -33,5 +32,4 @@ LongCapeSelect() {
         Sleep(selectInterval)
     }
     UpdateStatusBar("已选择 " count " 个长披风。")
-    return true
 }

@@ -3,11 +3,11 @@
 DebugLegendary := false
 _MapDebugID := 5
 
-LegendaryCheckMapBtnClick() {
+Legendary_CheckMapBtn_Click() {
     LegendaryCheckMap()
 }
 
-LegendaryRefreshMapBtnClick(*) {
+Legendary_RefreshMapBtn_Click(*) {
     MySend("Escape", , 500)  ; 退出地图
     LegendaryRefreshMap()
     if (myGui["Legendary.AutoCheckChk"].Value) {
@@ -57,7 +57,6 @@ LegendaryCheckMap() {
     }
     if (!anyIncludedAndFound) {
         UpdateStatusBar("未找到任何传奇任务")
-        return false
     }
     if (foundQuestList.Length == 1) {
         UpdateStatusBar("在" _LegendaryQuestList[foundQuestList[1]][1] "找到传奇任务")
@@ -65,8 +64,8 @@ LegendaryCheckMap() {
     else {
         UpdateStatusBar("找到" foundQuestList.Length "个冲突的传奇任务")
     }
-    return true
 }
+
 _LegendaryText1Pos := [1327, 337]  ; "区域"位置
 _LegendaryText2Pos := [975, 913]  ; "OK"位置
 _LegendaryTextColor := "0xF8F0DC"  ; "区域"颜色
@@ -74,46 +73,46 @@ _LegendaryLevelPos := [151, 295]  ; 等级标识位置
 _LegendaryLevelLockedColor := "0x978056"  ; 等级标识未解锁颜色
 _LegendaryLevelSelectedColor := "0x086400"  ; 等级标识已选中颜色
 _LegendaryLevelValidColor := "0x3C2918"  ; 等级标识有效颜色
+
 LegendaryRefreshMap() {
     MySend("f", , 500)
     MySend("Space", , 500)
-    color := PixelGetColor(_LegendaryText1Pos[1], _LegendaryText1Pos[2])
-    if (color != _LegendaryTextColor) {
-        UpdateStatusBar("对话颜色不匹配: " color)
-        return false
-    }
+    found := SearchColorMatch(
+        _LegendaryText1Pos[1], _LegendaryText1Pos[2], _LegendaryTextColor)
     MySend("Space", , 1000)
-    counter := 0
-    while (true) {
-        color := PixelGetColor(_LegendaryLevelPos[1], _LegendaryLevelPos[2])
-        switch (color) {
-            case _LegendaryLevelLockedColor:
-                UpdateStatusBar("该等级未解锁")
-            case _LegendaryLevelSelectedColor:
-                UpdateStatusBar("该等级已选中")
-            case _LegendaryLevelValidColor:
-                UpdateStatusBar("该等级有效")
-                break
-            default:
-                UpdateStatusBar("异常等级颜色: " color)
-                return false
+    count := 0
+    maxCount := 7
+    while (count < maxCount) {
+        if SearchColorMatch(_LegendaryLevelPos[1], _LegendaryLevelPos[2],
+            _LegendaryLevelValidColor
+        ) {
+            UpdateStatusBar("该等级可选择")
+            break
+        } else if SearchColorMatch(
+            _LegendaryLevelPos[1], _LegendaryLevelPos[2],
+            _LegendaryLevelLockedColor
+        ) {
+            UpdateStatusBar("该等级未解锁")
+        } else if SearchColorMatch(
+            _LegendaryLevelPos[1], _LegendaryLevelPos[2],
+            _LegendaryLevelSelectedColor
+        ) {
+            UpdateStatusBar("该等级已选中")
+        } else {
+            throw ValueError("等级检测异常")
         }
         MySend("e", , 500)  ; 切换等级
-        counter++
-        if (counter == 6) {
-            UpdateStatusBar("未找到可选择等级")
-            return false
+        count++
+        if (count == maxCount) {
+            throw ValueError("未找到可选择的等级")
         }
     }
-    MySend("Space", , 500)  ; 确认选择
-    color := PixelGetColor(_LegendaryText2Pos[1], _LegendaryText2Pos[2])
-    if (color != _LegendaryTextColor) {
-        UpdateStatusBar("确认颜色不匹配: " color)
-        return false
-    }
+    MySend("Space")  ; 确认选择
+    WaitUntilColorMatch(
+        _LegendaryText2Pos[1], _LegendaryText2Pos[2],
+        _LegendaryTextColor, "确认区域")
     MySend("Space", , 1000)  ; 确认切换
     MySend("Escape", , 500)  ; 退出对话
     MySend("m")  ; 打开地图
     UpdateStatusBar("地图刷新完成")
-    return true
 }

@@ -3,57 +3,45 @@
 DebugMiniGame := false
 _ActionDebugID := 10
 
-MiniGameSingleActionBtnClick() {
-    ret := _MiniGameDoNextAction()
-    done := ret[1]
-    station := ret[2]
-    if (station == 0) {
-        PlayFailureSound()
-        return
-    }
+MiniGame_SingleActionBtn_Click() {
+    station := 2
+    done := false
+    _MiniGameDoNextAction(&station, &done)
     AppendStatusBar("，结束于工作台" station)
 }
 
-MiniGameContinuousActionBtnClick() {
-    UpdateStatusBar("执行连续操作")
+MiniGame_ContinuousActionBtn_Click() {
     station := 2
+    done := false
     while (true) {
-        ret := _MiniGameDoNextAction(station)
-        done := ret[1]
-        station := ret[2]
+        _MiniGameDoNextAction(&station, &done)
         if (done) {
             break
         }
     }
-    if (station == 0) {
-        throw TargetError("小游戏操作识别失败或超时")
-    }
     AppendStatusBar("，结束于工作台" station)
 }
 
-_MiniGameDoNextAction(station := 2) {
+/**
+ * @description 执行下一步操作
+ * @param {VarRef} station 当前工作台位置（1:左, 2:中, 3:右）
+ * @param {VarRef} done 是否完成操作
+ */
+_MiniGameDoNextAction(&station, &done) {
     uiType := _MiniGameWaitForUI()
     MyToolTip("uiType: " uiType, 0, 0, 1, DebugMiniGame)
-    if (uiType == 0) {
-        return [true, 0]  ; 错误或超时
-    }
-    else if (uiType == 2) {
-        return [true, station]  ; 图标栏为空，正常结束
-    }
     MyToolTip("station: " station, 960, 800, 2, DebugMiniGame)
-    ret := _MiniGameGoNextStation(station)
-    station := ret[1]
-    action := ret[2]
-    if (station == 0 || action == 0) {
-        MyToolTip("here: " station action, 960, 900, 3, DebugMiniGame)
-        return [true, 0]  ; 错误或超时
+    if (uiType == 2) {
+        done := true  ; 图标栏为空，直接返回
+        return
     }
+    action := _MiniGameGoNextStation(&station)
     _MiniGameDoAction(action)
-    return [false, station]  ; 继续执行
 }
 
 _MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置
 _MiniGameTimerBackgroundColor := "0x6B3B0D"  ; 顶部倒计时框背景颜色
+_MiniGameTimerBackgroundPixel := [1000, 54, "0x6B3B0D"]  ; 顶部倒计时框背景像素
 _MiniGameIconPosX := [890, 960, 1030]  ; 顶部制作图标位置X坐标（左，中，右）
 _MiniGameIconPosY := 78  ; 顶部制作图标位置Y坐标
 _MiniGameIconBackgroundColor := "0x8C4609"  ; 顶部制作图标背景颜色
@@ -69,38 +57,39 @@ _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
 
 _MiniGameWaitForUI() {
     count := 0
-    while (count < 200) {
+    timeoutCount := 200
+    while (count < timeoutCount) {
         uiType := _MiniGameRecognizeUIType()
         if (uiType != 0) {  ; 非0为有效UI类型
             return uiType
         }
-        UpdateStatusBar("等待制作界面..." count "/" 200)
+        UpdateStatusBar("等待制作界面..." count "/" timeoutCount)
         Sleep(50)
         count++
     }
-    UpdateStatusBar("等待制作界面超时")
-    return 0
+    throw TimeoutError("等待制作界面超时")
 }
 
 _MiniGameRecognizeUIType() {
-    if SearchColorMatch(
-        _MiniGameTimerBackgroundPos[1], _MiniGameTimerBackgroundPos[2],
-        _MiniGameTimerBackgroundColor
-    ) {
-        isBackground := [false, false, false]
+    foundTimer := SearchColorMatch(
+        _MiniGameTimerBackgroundPixel[1], _MiniGameTimerBackgroundPixel[2],
+        _MiniGameTimerBackgroundPixel[3]
+    )
+    if foundTimer {
+        iconEmpty := [false, false, false]
         loop (3) {
-            isBackground[A_Index] := SearchColorMatch(
+            iconEmpty[A_Index] := SearchColorMatch(
                 _MiniGameIconPosX[A_Index], _MiniGameIconPosY,
                 _MiniGameIconBackgroundColor
             )
-            MyToolTip(isBackground[A_Index],
-                _MiniGameIconPosX[A_Index] + 5,
-                _MiniGameIconPosY + 5,
-                10 + A_Index, DebugMiniGame)
+            MyToolTip(iconEmpty[A_Index],
+                _MiniGameIconPosX[A_Index] + 5, _MiniGameIconPosY + 5,
+                10 + A_Index, DebugMiniGame
+            )
         }
-        icon101 := isBackground[1] && !isBackground[2] && isBackground[3]
-        icon010 := !isBackground[1] && isBackground[2] && !isBackground[3]
-        icon111 := isBackground[1] && isBackground[2] && isBackground[3]
+        icon101 := iconEmpty[1] && !iconEmpty[2] && iconEmpty[3]
+        icon010 := !iconEmpty[1] && iconEmpty[2] && !iconEmpty[3]
+        icon111 := iconEmpty[1] && iconEmpty[2] && iconEmpty[3]
         if (icon101 || icon010) {
             UpdateStatusBar("检测到制作界面")
             return 1
@@ -110,72 +99,84 @@ _MiniGameRecognizeUIType() {
             return 2
         }
     }
-    return 0
+    return 0  ; 未检测到制作界面
 }
 
+/**
+ * @description 识别工作台操作
+ * @param {Integer} ix 工作台识别位置（1:左, 2:中, 3:右）
+ * @param {Integer} iy 工作台识别高度（1:上, 2:下）
+ * @returns {Integer} 操作类型（0:未知, 1:单击, 2:连按, 3:长按, 4:转动）
+ */
 _MiniGameRecognizeAction(ix, iy) {
     x := _MiniGameMousePosX[ix]
     y := _MiniGameMousePosY[iy]
-    leftColor := PixelGetColor(x + _MiniGameMouseLeftOffsetX, y)
-    textColor := PixelGetColor(x + _MiniGameMouseTextOffsetX, y +
-        _MiniGameMouseTextOffsetY)
-    foundTap := leftColor == _MiniGameActionTapColor
-    foundMash := textColor == _MiniGameActionMashColor
-    foundHold := textColor == _MiniGameActionHoldColor
-    foundSpin := textColor == _MiniGameActionSpinColor
+    foundTap := SearchColorMatch(
+        x + _MiniGameMouseLeftOffsetX, y,
+        _MiniGameActionTapColor)
+    foundMash := SearchColorMatch(
+        x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
+        _MiniGameActionMashColor)
+    foundHold := SearchColorMatch(
+        x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
+        _MiniGameActionHoldColor)
+    foundSpin := SearchColorMatch(
+        x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
+        _MiniGameActionSpinColor)
     foundSpecial := foundMash || foundHold || foundSpin
     if (foundTap && !foundSpecial) {
         MyToolTip("单击", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 1  ; 单击
-    }
-    else if (foundMash) {
+    } else if (foundMash) {
         MyToolTip("连按", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 2  ; 连按
-    }
-    else if (foundHold) {
+    } else if (foundHold) {
         MyToolTip("长按", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 3  ; 长按
-    }
-    else if (foundSpin) {
+    } else if (foundSpin) {
         MyToolTip("转动", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 4  ; 转动
-    }
-    else {
+    } else {
         MyToolTip("未知", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 0  ; 未知
     }
 }
 
-_MiniGameGoNextStation(station) {
+/**
+ * @description 识别工作台操作并移动到下一个工作台
+ * @param {VarRef} station 当前工作台位置（1:左, 2:中, 3:右）
+ * @returns {Integer} 操作类型（0:未知, 1:单击, 2:连按, 3:长按, 4:转动）
+ */
+_MiniGameGoNextStation(&station) {
     nextStation := 0  ; 初始化为未知
-    counter := 0
-    while (true) {
+    count := 0
+    timeoutCount := 25
+    while (count < timeoutCount) {
         loop 3 {  ; 识别左中右工作台操作
             ix := A_Index
-            iy := (station == ix) ? 1 : 2
+            iy := (station == ix) ? 1 : 2  ; 如果是当前工作台需要识别上部操作
             action := _MiniGameRecognizeAction(ix, iy)
             if (action > 0) {
                 nextStation := ix
-                if (nextStation == station) {
-                    return [station, action]
-                }
                 break
             }
         }
-        if (nextStation > 0) {
-            break
-        }
-        counter++
-        if (counter > 25) {
-            UpdateStatusBar("工作台识别超时")
-            return [0, 0]  ; 超时返回
+        if (action > 0) {
+            break  ; 如果识别到操作，跳出循环
         }
         Sleep(20)
+        count++
+    }
+    if (action == 0) {
+        throw TimeoutError("工作台操作识别超时")
+    }
+    if (nextStation == station) {
+        return action  ; 当前工作台不需要移动，直接返回
     }
     move := nextStation - station
     UpdateStatusBar("移动到工作台" nextStation)
@@ -185,7 +186,7 @@ _MiniGameGoNextStation(station) {
         Sleep(50)  ; 移动间隔
     }
     station := nextStation
-    return [station, action]
+    return action  ; 返回操作类型
 }
 
 _MiniGameActionTap() {
