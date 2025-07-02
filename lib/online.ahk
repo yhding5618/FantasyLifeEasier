@@ -89,7 +89,7 @@ _OnlineRecruit() {
     WaitUntilColorMatch(
         _OnlineRecruitDestinationPixel[1], _OnlineRecruitDestinationPixel[2],
         _OnlineRecruitDestinationPixel[3], "设置目的地")
-    destination := myGui["Online.Destination"].Value
+    destination := myGui["Online.DestinationDdl"].Value
     loop (destination - 1) {
         MySend("d", , 200)
     }
@@ -157,6 +157,7 @@ _OnlineJoin() {
     Sleep(800)
     MySend("Enter", , 500)
     MySend("Tab")
+    Sleep(500)  ; 等待界面稳定
     counter := 0
     while (true) {
         color := PixelGetColor(
@@ -191,7 +192,7 @@ _OnlineJoin() {
     }
     WaitUntilColorMatch(
         _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
-        _OnlineJoiningSkyPixel[3], "加入", , , 500, 60)
+        _OnlineJoiningSkyPixel[3], "加入", , , 1000, 60)
 }
 
 _OnlineExitIconColor := "0x3C4C44"  ; 退出房间图标中心颜色
@@ -250,6 +251,7 @@ _OnlineLeave() {
     WaitUntilColorMatch(
         UtilsWindowYes1Pos[1], UtilsWindowYes1Pos[2],
         UtilsWindowButtonColor, "离开房间“是”")
+    Sleep(500)  ; 等待确认按钮稳定
     MySend("Space")  ; 确认离开
     WaitUntilSavingIcon()
     myGui["StatusBar"].Text := "已离开房间"

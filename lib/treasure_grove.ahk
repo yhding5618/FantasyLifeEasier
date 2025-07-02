@@ -9,16 +9,16 @@ TreasureGrove_ReplantBtn_Click() {
     _TreasureGroveCheckBoss()
 }
 
-TreasureGrove_ContinueReplantBtn_Click() {
+TreasureGrove_NextReplantBtn_Click() {
     MySend("Escape")
     _TreasureGroveReplant()
     _TreasureGroveCheckBoss()
 }
 
-_TreasureGroveGlow1Pos := [1293, 403]  ; 3个选项时发光位置
-_TreasureGroveGlow2Pos := [1293, 283]  ; 5个选项时发光位置
-_TreasureGroveGlowColor := "0xAFF258"  ; 发光颜色
-_TreasureGroveContinueSpacePixel := [1688, 976, "0x93805B"]  ; 继续空格键像素
+_TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos  ; 3个选项时发光位置
+_TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos  ; 5个选项时发光位置
+_TreasureGroveGlowColor := UtilsOptionListGlowColor  ; 发光颜色
+_TreasureGroveContinueSpacePixel := UtilsConversationSpacePixel  ; 继续按钮像素
 ; 迷宫树地图共10行11列，奇数行只有奇数列有效，偶数行只有偶数列有效（从1开始计数）
 _TreasureGroveRoomZeroPos := [424, 272]  ; 迷宫树地图(1,1)房间的中心位置
 _TreasureGroveRoomSize := 72  ; 迷宫树房间大小
@@ -56,7 +56,7 @@ _TreasureGroveReplant() {
     ; Pause()
     MySend("Space", , 1000)
     UpdateStatusBar("选择年代")
-    key := myGui["TreasureGrove.YearMoveDir"].Value == 1 ? "w" : "s"
+    key := myGui["TreasureGrove.YearMoveDirDdl"].Value == 1 ? "w" : "s"
     count := myGui["TreasureGrove.YearMoveCount"].Value
     loop count {
         MySend(key, , 200)

@@ -10,6 +10,7 @@
 #Include "lib/treasure_grove.ahk"
 #Include "lib/weapon_aging.ahk"
 #Include "lib/online.ahk"
+#Include "lib/mystery_box.ahk"
 #Include "lib/mimic.ahk"
 #Include "lib/legendary.ahk"
 #Include "lib/harvest.ahk"

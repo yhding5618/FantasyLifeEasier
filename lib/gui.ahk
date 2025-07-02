@@ -62,6 +62,7 @@ _CreateTabCamp() {
     _CreateSectionTreasureGrove(true)
     _CreateSectionWeaponAging()
     _CreateSectionOnline()
+    _CreateSectionMysteryBox()
 
 }
 _CreateTabGinormosia() {
@@ -172,24 +173,23 @@ _CreateSectionTreasureGrove(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "扭蛋迷宫树")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "年代选择：向")
     myGui.AddDropDownList(
-        "yp w36 Choose2 vTreasureGrove.YearMoveDir", ["上", "下"])
+        "yp w36 Choose2 vTreasureGrove.YearMoveDirDdl", ["上", "下"])
     myGui.AddEdit("yp w36")
     myGui.AddUpDown("vTreasureGrove.YearMoveCount Range1-10 0x80", 1)
     btn := myGui.AddButton(
         _GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
     btn.OnEvent("Click", (*) => TryAndCatch(TreasureGrove_ReplantBtn_Click))
-    btn := myGui.AddButton("yp vTreasureGrove.ContinueReplantBtn", "下一次重新种植")
-    btn.OnEvent("Click", (*) =>
-        TryAndCatch(TreasureGrove_ContinueReplantBtn_Click))
+    btn := myGui.AddButton("yp vTreasureGrove.NextReplantBtn", "下一次重新种植")
+    btn.OnEvent("Click", (*) => TryAndCatch(TreasureGrove_NextReplantBtn_Click))
 }
 
 _CreateSectionWeaponAging(firstSection := false) {
     totalRows := 1
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "武器熟成")
-    btn := myGui.AddButton(_GroupBoxRowPos(1) " vWeaponAging.StartBtn", "熟成")
-    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_StartBtn_Click))
-    btn := myGui.AddButton("yp vWeaponAging.NextBtn", "下一次熟成")
-    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_NextBtn_Click))
+    btn := myGui.AddButton(_GroupBoxRowPos(1) " vWeaponAging.AgeBtn", "熟成")
+    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_AgeBtn_Click))
+    btn := myGui.AddButton("yp vWeaponAging.LoadAndAgeBtn", "SL并熟成")
+    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_LoadAndAgeBtn_Click))
 }
 
 _CreateSectionOnline(firstSection := false) {
@@ -197,7 +197,7 @@ _CreateSectionOnline(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "招募目的地：")
     myGui.AddDropDownList(
-        "yp w100 Choose1 vOnline.Destination",
+        "yp w100 Choose1 vOnline.DestinationDdl",
         ["皆可", "环岛冒险", "探索大陆", "扭蛋迷宫树"])
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
@@ -217,6 +217,25 @@ _CreateSectionOnline(firstSection := false) {
     btn.OnEvent("Click", (*) => TryAndCatch(Online_LeaveBtn_Click))
     btn := myGui.AddButton("yp vOnline.RejoinBtn", "离开并重新加入")
     btn.OnEvent("Click", (*) => TryAndCatch(Online_RejoinBtn_Click))
+}
+
+_CreateSectionMysteryBox(firstSection := false) {
+    totalRows := 2
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "盲盒")
+    myGui.AddDropDownList(
+        _GroupBoxRowPos(1) " w110 Choose1 vMysteryBox.ShopDdl",
+        ["女神草交易所", "女神果实交易所"])
+    myGui.AddText("yp hp 0x200", " -> 其他类别 -> 第")
+    myGui.AddEdit("yp hp w40")
+    myGui.AddUpDown("vMysteryBox.ItemIndex Range1-3 0x80", 1)
+    myGui.AddText("yp hp 0x200", "项")
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "数量：")
+    myGui.AddEdit("yp hp w50")
+    myGui.AddUpDown("vMysteryBox.BuyCount Range1-999 0x80", 1)
+    btn := myGui.AddButton("yp vMysteryBox.BuyBtn", "购买")
+    btn.OnEvent("Click", (*) => TryAndCatch(MysteryBox_BuyBtn_Click))
+    btn := myGui.AddButton("yp vMysteryBox.LoadAndBuyBtn", "SL并购买")
+    btn.OnEvent("Click", (*) => TryAndCatch(MysteryBox_LoadAndBuyBtn_Click))
 }
 
 _CreateSectionMimic(firstSection := false) {

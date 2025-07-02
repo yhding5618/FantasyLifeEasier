@@ -2,11 +2,11 @@
 
 DebugWeaponAging := false
 
-WeaponAging_StartBtn_Click() {
+WeaponAging_AgeBtn_Click() {
     _WeaponAging()
 }
 
-WeaponAging_NextBtn_Click() {
+WeaponAging_LoadAndAgeBtn_Click() {
     MySend("Space", , 1000)
     LoadFromCloud()
     Sleep(1000)

@@ -197,14 +197,14 @@ WaitUntilPixelSearch(
 _MenuIconPos := [670, 326]  ; 菜单图标1行1列中心位置
 _MenuIconOffsetX := 192  ; 菜单图标X偏移量
 _MenuIconOffsetY := 234  ; 菜单图标Y偏移量
-_MenuCoinPixel := [952, 556, "0xFEED41"]  ; 菜单中心背景像素
+_MenuCenterPixel := [952, 556, "0xFEED41"]  ; 菜单中心背景像素
 
 OpenMenu() {
     UpdateStatusBar("打开菜单")
     MySend("Escape")
     WaitUntilColorMatch(
-        _MenuCoinPixel[1], _MenuCoinPixel[2],
-        _MenuCoinPixel[3], "菜单图标加载", 5, 5, 50, 20)
+        _MenuCenterPixel[1], _MenuCenterPixel[2],
+        _MenuCenterPixel[3], "菜单图标加载", 5, 5, 50, 20)
     Sleep(500)  ; 等待菜单稳定
     UpdateStatusBar("已打开菜单")
 }
@@ -268,12 +268,27 @@ UtilsWindowNo2Pos := [1218, 940]
 UtilsWindowYes3Pos := [706, 960]
 ; 低位“否”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowNo3Pos := [1218, 960]
+; 超高位“是”按钮位置，用于：商店交换确认
+UtilsWindowYes4Pos := [706, 865]
+; 超高位“否”按钮位置，用于：商店交换确认
+UtilsWindowNo4Pos := [1218, 865]
 ; 高位“OK”按钮位置，用于：加载覆盖完毕
 UtilsWindowOK1Pos := [965, 835]
 ; 低位“OK”按钮位置，用于：Epic账户绑定，保存覆盖完毕
 UtilsWindowOK2Pos := [965, 885]
+; 超高位“OK”按钮位置，用于：商店选择购买数量
+UtilsWindowOK3Pos := [965, 750]
+; 超高位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
+UtilsWindowOK4Pos := [965, 895]
 ; 按钮背景颜色
 UtilsWindowButtonColor := "0x88FF74"
+; 右侧三选项时首选项位置
+UtilsOptionListTopIn3GlowPos := [1293, 403]
+; 右侧五选项时首选项位置
+UtilsOptionListTopIn5GlowPos := [1293, 283]
+; 右侧选项发光颜色
+UtilsOptionListGlowColor := "0xAFF258"
+UtilsConversationSpacePixel := [1688, 976, "0x93805B"]  ; 继续对话空格键像素
 
 LoadConfig() {
     if !FileExist("main.ini") {
@@ -311,12 +326,9 @@ SaveConfig() {
         }
         section := sp[1]
         key := sp[2]
-        switch (name) {
+        if (SubStr(key, -3) == "Ddl") {
             ; 处理特殊情况，DropDownList需要保存Value而不是Text
-            case "TreasureGrove.YearMoveDir":
-                currentValue := myGui[name].Value
-            case "Online.Destination":
-                currentValue := myGui[name].Value
+            currentValue := myGui[name].Value
         }
         IniWrite(currentValue, "main.ini", section, key)
     }
