@@ -86,7 +86,6 @@ ScriptControlCheckHotkeyExist(keyName) {
     loop HotkeyMaxNum {
         prefix := "ScriptControl.CustomHotkey" A_Index
         if (myGui[prefix "KeyName"].Value == keyName) {
-            MsgBox(prefix keyName, "")
             return true  ; 找到匹配的快捷键
         }
     }
@@ -111,6 +110,7 @@ ScriptControlUpdateHotkey(hkGui, prefix) {
     oldKeyValid := oldKeyName != ""
     newActionName := hkGui["CustomActionName"].Text
     newKeyName := hkGui["CustomKeyName"].Value
+    hkGui.Opt("OwnDialogs")
     ;; 检查新的快捷键是否已存在
     try {
         if ScriptControlCheckHotkeyExist(newKeyName) {
@@ -149,7 +149,7 @@ ScriptControl_CustomHotkeyBtn_Click(prefix, *) {
     btn.OnEvent("Click", (*) => ScriptControlUpdateHotkey(hkGui, prefix))
     hkGui.AddText("xm+10 ym+40 w360",
         "如果要清除已经设置的快捷键，可以将功能设置为“无”，或者将快捷键设置为空（按Esc或退格键）。")
-    hkGui.Opt("+OwnDialogs")
+    hkGui.Opt("+AlwaysOnTop")
     myGui.Opt("+Disabled")
     hkGui.Show("AutoSize")
     WinWaitClose("ahk_id " hkGui.Hwnd)

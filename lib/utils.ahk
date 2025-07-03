@@ -19,7 +19,7 @@ PlayFailureSound() {
  */
 ShowSuccessMsgBox(text, force := false) {
     if (force || myGui["ScriptControl.SuccessMsgBoxChk"].Value) {
-        MsgBox(text, MainTitle, "Iconi")
+        MsgBox(text, MainTitle, "0x1000 Iconi")
     }
 }
 
@@ -35,7 +35,7 @@ ShowFailureMsgBox(text, e, force := false) {
         eText := Format(
             "{1}: {2}`nFunction: {3}`nLocation: {4}:{5}`nStack:`n{6}"
             , type(e), e.Message, e.What, eFileName, e.Line, e.Stack)
-        MsgBox(text '`n' eText, MainTitle, "IconX")
+        MsgBox(text '`n' eText, MainTitle, "0x1000 IconX")
     }
 }
 
