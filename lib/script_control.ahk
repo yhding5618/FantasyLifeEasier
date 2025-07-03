@@ -79,13 +79,27 @@ ScriptControlRegisterAllHotkeys() {
     }
 }
 
-ScriptControlRegisterHotkey(prefix, actionName, keyName) {
-    actionValid := HotkeyAction2Function.Has(actionName)
-    keyValid := keyName != ""
+ScriptControlCheckHotkeyExist(keyName) {
+    if (keyName == "") {
+        return false  ; 空快捷键视为不存在
+    }
+    loop HotkeyMaxNum {
+        prefix := "ScriptControl.CustomHotkey" A_Index
+        if (myGui[prefix "KeyName"].Value == keyName) {
+            MsgBox(prefix keyName, "")
+            return true  ; 找到匹配的快捷键
+        }
+    }
+    return false  ; 没有找到匹配的快捷键
+}
+
+ScriptControlRegisterHotkey(prefix, newActionName, oldKeyName) {
+    actionValid := HotkeyAction2Function.Has(newActionName)
+    keyValid := oldKeyName != ""
     if actionValid && keyValid {
-        Hotkey(keyName, HotkeyAction2Function[actionName])
-        myGui[prefix "ActionName"].Text := actionName
-        myGui[prefix "KeyName"].Value := keyName
+        Hotkey(oldKeyName, HotkeyAction2Function[newActionName])
+        myGui[prefix "ActionName"].Text := newActionName
+        myGui[prefix "KeyName"].Value := oldKeyName
     } else {  ; 其他所有情况都视为无效
         myGui[prefix "ActionName"].Text := "无"
         myGui[prefix "KeyName"].Value := ""
@@ -93,21 +107,27 @@ ScriptControlRegisterHotkey(prefix, actionName, keyName) {
 }
 
 ScriptControlUpdateHotkey(hkGui, prefix) {
+    oldKeyName := myGui[prefix "KeyName"].Value
+    oldKeyValid := oldKeyName != ""
+    newActionName := hkGui["CustomActionName"].Text
+    newKeyName := hkGui["CustomKeyName"].Value
+    ;; 检查新的快捷键是否已存在
     try {
+        if ScriptControlCheckHotkeyExist(newKeyName) {
+            throw ValueError("快捷键已存在，请选择其他快捷键")
+        }
         ;; 先禁用旧的快捷键
-        oldKeyName := myGui[prefix "KeyName"].Value
-        oldKeyValid := oldKeyName != ""
         if oldKeyValid {
             Hotkey(oldKeyName, "Off")
         }
         ;; 设置新的快捷键
-        newActionName := hkGui["CustomActionName"].Text
-        newKeyName := hkGui["CustomKeyName"].Value
         ScriptControlRegisterHotkey(prefix, newActionName, newKeyName)
     } catch Error as e {
-        ShowFailureMsgBox("设置自定义快捷键失败", e)
+        ShowFailureMsgBox("设置自定义快捷键失败", e, true)
+    } else {
+        UpdateStatusBar("自定义快捷键已更新：" newActionName " -> " newKeyName)
+        hkGui.Destroy()
     }
-    hkGui.Destroy()
 }
 
 /**
@@ -127,7 +147,9 @@ ScriptControl_CustomHotkeyBtn_Click(prefix, *) {
     hkGui.AddHotkey("yp hp w80 vCustomKeyName", currentKeyName)
     btn := hkGui.AddButton("yp hp", "确认")
     btn.OnEvent("Click", (*) => ScriptControlUpdateHotkey(hkGui, prefix))
-    hkGui.Opt("+AlwaysOnTop")
+    hkGui.AddText("xm+10 ym+40 w360",
+        "如果要清除已经设置的快捷键，可以将功能设置为“无”，或者将快捷键设置为空（按Esc或退格键）。")
+    hkGui.Opt("+OwnDialogs")
     myGui.Opt("+Disabled")
     hkGui.Show("AutoSize")
     WinWaitClose("ahk_id " hkGui.Hwnd)

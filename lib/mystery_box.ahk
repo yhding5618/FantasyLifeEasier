@@ -67,9 +67,10 @@ _MysteryBoxBuy() {
         MySend(key, , 100)
     }
     MySend("Space")  ; 确认数量
+    yesPos := shop == 1 ? UtilsWindowYes4Pos : UtilsWindowYes5Pos
+    yesText := shop == 1 ? "女神草交换确认" : "女神果交换确认"
     WaitUntilColorMatch(
-        UtilsWindowYes4Pos[1], UtilsWindowYes4Pos[2],
-        UtilsWindowButtonColor, "商店购买确认")
+        yesPos[1], yesPos[2], UtilsWindowButtonColor, yesText)
     Sleep(300)
     MySend("Space")  ; 确认购买
     UpdateStatusBar("购买了" buyCount "个盲盒")
