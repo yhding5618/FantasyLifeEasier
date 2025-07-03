@@ -248,7 +248,7 @@ _CreateSectionOnline(firstSection := false) {
     callback := TryAndCatch.Bind(Online_EndBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
-    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "作为队友：")
+    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "作为成员：")
     btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
     callback := TryAndCatch.Bind(Online_JoinBtn_Click)
     btn.OnEvent("Click", callback)
