@@ -6,16 +6,6 @@ ScriptControl_AlwaysOnTopChk_Click() {
     myGui.Opt(mark "AlwaysOnTop")
 }
 
-ScriptControlStatusUpdate() {
-    try {
-        WinGetPos(&x, &y, &w, &h, myGui.Title)
-        myGui["ScriptControl.WindowPos"].Value := x "," y
-    }
-    catch {
-        myGui["ScriptControl.WindowPos"].Value := ""
-    }
-}
-
 ScriptControl_SuccessSoundChk_Click() {
     if (myGui["ScriptControl.SuccessSoundChk"].Value) {
         UpdateStatusBar("成功音效已启用")
@@ -76,4 +66,43 @@ ScriptControl_ResetHotkey_Change() {
 
 _SetHotkey(hotkeyName, function) {
     ; Hotkey(hotkeyName, function)
+}
+
+ScriptControlStatusUpdate() {
+    try {
+        WinGetPos(&x, &y, &w, &h, myGui.Title)
+        myGui["ScriptControl.WindowPosX"].Value := x
+        myGui["ScriptControl.WindowPosY"].Value := y
+    }
+    catch {
+        myGui["ScriptControl.WindowPosX"].Value := -1
+        myGui["ScriptControl.WindowPosY"].Value := -1
+    }
+    try {
+        myGui["ScriptControl.TabIndex"].Value := myGui["MainTab"].Value
+    }
+    catch {
+        myGui["ScriptControl.TabIndex"].Value := 1
+    }
+}
+
+ScriptControlGetWindowPos() {
+    MonitorGetWorkArea(MonitorGetPrimary(), &left, &top, &right, &bottom)
+    if myGui["ScriptControl.RememberWindowPos"].Value {
+        x := Max(left, Min(right,
+            Integer(myGui["ScriptControl.WindowPosX"].Value)))
+        y := Max(top, Min(bottom,
+            Integer(myGui["ScriptControl.WindowPosY"].Value)))
+        return "x" x " y" y
+    } else {
+        return "Center"
+    }
+}
+
+ScriptControlGetTabIndex() {
+    if myGui["ScriptControl.RememberTabIndex"].Value {
+        return Integer(myGui["ScriptControl.TabIndex"].Value)
+    } else {
+        return 1  ; 默认返回第一个标签页
+    }
 }

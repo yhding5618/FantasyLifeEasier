@@ -23,7 +23,8 @@ F3:: Pause(-1)
 F4:: SaveAndExit()
 F5:: SaveAndReload()
 
-myGui := Gui(, "Fantasy Life Easier")
+MainTitle := "Fantasy Life Easier"
+myGui := Gui(, MainTitle)
 myGui.OnEvent("Close", (*) => SaveAndExit())
 BuildMyGui()
 LoadConfig()
