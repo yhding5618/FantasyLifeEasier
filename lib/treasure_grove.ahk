@@ -55,7 +55,7 @@ _TreasureGroveReplant() {
     ; Pause()
     MySend("Space", , 1000)
     UpdateStatusBar("选择年代")
-    key := myGui["TreasureGrove.YearMoveDirDdl"].Value == 1 ? "w" : "s"
+    key := myGui["TreasureGrove.YearMoveDir"].Value == 1 ? "w" : "s"
     count := myGui["TreasureGrove.YearMoveCount"].Value
     loop count {
         MySend(key, , 200)

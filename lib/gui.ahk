@@ -2,12 +2,12 @@
 
 BuildMyGui() {
     try {
-        myTab := myGui.AddTab3("w300 vMainTab", [])
+        myGui.AddTab3("w300 vMainTab", [])
         _CreateTabBasic()
         _CreateTabCraft()
         _CreateTabCamp()
         _CreateTabGinormosia()
-        _CreateTabScriptControl()
+        _CreateTabSetting()
         myGui.AddStatusBar("vStatusBar", "")
     } catch Error as e {
         ShowFailureMsgBox("创建GUI失败", e, true)
@@ -18,6 +18,7 @@ BuildMyGui() {
 ShowMyGui() {
     ScriptControl_AlwaysOnTopChk_Click()
     GameWindow_PixelInfoUpdateChk_Click()
+    ScriptControlRegisterAllHotkeys()
     tabIndex := ScriptControlGetTabIndex()
     myGui["MainTab"].Choose(tabIndex)
     myGuiPos := ScriptControlGetWindowPos()
@@ -33,9 +34,9 @@ AppendStatusBar(text) {
 }
 
 _AddAndUseTab(name) {
-    myTab := myGui["MainTab"]
-    myTab.Add([name])
-    myTab.UseTab(name)
+    myGui["MainTab"].Add([name])
+    myGui["MainTab"].Choose(name)
+    myGui["MainTab"].UseTab(name)
 }
 
 _GroupBoxSize(row, firstSection) {
@@ -74,11 +75,13 @@ _CreateTabGinormosia() {
     _CreateSectionFarming()
 }
 
-_CreateTabScriptControl() {
-    _AddAndUseTab("脚本控制")
+_CreateTabSetting() {
+    _AddAndUseTab("设置")
     _CreateSectionScriptWindow(true)
     _CreateSectionScriptNotification()
-    _CreateSectionScriptHotkey()
+    _CreateSectionScriptPresetHotkey()
+    _CreateSectionScriptCustomHotkey()
+    _CreateSectionScriptVersion()
 }
 
 _CreateSectionGameWindow(firstSection := false) {
@@ -86,15 +89,19 @@ _CreateSectionGameWindow(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "游戏窗口")
     btn := myGui.AddButton(
         _GroupBoxRowPos(1) " w80 vGameWindow.CheckBtn", "检查进程")
-    btn.OnEvent("Click", (*) => TryAndCatch(GameWindow_CheckBtn_Click))
+    callback := TryAndCatch.Bind(GameWindow_CheckBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     myGui.AddText("yp w150 r4 vGameWindow.Status", "")
     btn := myGui.AddButton(
         _GroupBoxRowPos(2) " w80 vGameWindow.ActivateBtn", "打开游戏窗口")
-    btn.OnEvent("Click", (*) => TryAndCatch(GameWindow_ActivateBtn_Click))
+    callback := TryAndCatch.Bind(GameWindow_ActivateBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "像素信息：")
     myGui.AddEdit("yp hp w146 r1 vGameWindow.PixelInfo ReadOnly 0x200", "")
     chk := myGui.AddCheckbox("yp hp vGameWindow.PixelInfoUpdateChk", "刷新")
-    chk.OnEvent("Click", (*) => GameWindow_PixelInfoUpdateChk_Click())
+    chk.OnEvent("Click", GameWindow_PixelInfoUpdateChk_Click)
 }
 
 _CreateSectionTeleportationGate(firstSection := false) {
@@ -112,20 +119,26 @@ _CreateSectionTeleportationGate(firstSection := false) {
     myGui.AddText("yp hp 0x200", "列")
     btn := myGui.AddButton(
         _GroupBoxRowPos(2) " vTeleportationGate.OneWayBtn", "单程")
-    btn.OnEvent("Click", (*) => TryAndCatch(
-        TeleportationGate_OneWayBtn_Click))
+    callback := TryAndCatch.Bind(TeleportationGate_OneWayBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vTeleportationGate.ReturnTripBtn", "往返")
-    btn.OnEvent(
-        "Click", (*) => TryAndCatch(TeleportationGate_ReturnTripBtn_Click))
+    callback := TryAndCatch.Bind(TeleportationGate_ReturnTripBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionSaveLoad(firstSection := false) {
     totalRows := 1
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "存档")
     btn := myGui.AddButton(_GroupBoxRowPos(1) " vSaveLoad.SaveBtn", "保存云")
-    btn.OnEvent("Click", (*) => TryAndCatch(SaveLoad_SaveBtn_Click))
+    callback := TryAndCatch.Bind(SaveLoad_SaveBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vSaveLoad.LoadBtn", "加载云")
-    btn.OnEvent("Click", (*) => TryAndCatch(SaveLoad_LoadBtn_Click))
+    callback := TryAndCatch.Bind(SaveLoad_LoadBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionLongCape(firstSection := false) {
@@ -141,9 +154,13 @@ _CreateSectionLongCape(firstSection := false) {
     myGui.AddEdit("xp+110 yp hp w50", "30")
     myGui.AddUpDown("vLongCape.SelectInterval Range1-5000 0x80", 250)
     btn := myGui.AddButton(_GroupBoxRowPos(4) " vLongCape.BuyBtn", "批量购买")
-    btn.OnEvent("Click", (*) => TryAndCatch(LongCape_BuyBtn_Click))
+    callback := TryAndCatch.Bind(LongCape_BuyBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vLongCape.SelectBtn", "批量选择")
-    btn.OnEvent("Click", (*) => TryAndCatch(LongCape_SelectBtn_Click))
+    callback := TryAndCatch.Bind(LongCape_SelectBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionMiniGame(firstSection := false) {
@@ -166,10 +183,13 @@ _CreateSectionMiniGame(firstSection := false) {
     myGui.AddUpDown("vMiniGame.SpinInterval Range0-1000 0x80", 0)
     btn := myGui.AddButton(
         _GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
-    btn.OnEvent("Click", (*) => TryAndCatch(MiniGame_SingleActionBtn_Click))
+    callback := TryAndCatch.Bind(MiniGame_SingleActionBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vMiniGame.ContinuousActionBtn", "连续操作")
-    btn.OnEvent("Click", (*) => TryAndCatch(
-        MiniGame_ContinuousActionBtn_Click))
+    callback := TryAndCatch.Bind(MiniGame_ContinuousActionBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionTreasureGrove(firstSection := false) {
@@ -177,25 +197,31 @@ _CreateSectionTreasureGrove(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "扭蛋迷宫树")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "年代选择：向")
     myGui.AddDropDownList(
-        "yp w36 Choose2 vTreasureGrove.YearMoveDirDdl", ["上", "下"])
+        "yp w36 Choose2 AltSubmit vTreasureGrove.YearMoveDir", ["上", "下"])
     myGui.AddEdit("yp w36")
     myGui.AddUpDown("vTreasureGrove.YearMoveCount Range1-10 0x80", 1)
     btn := myGui.AddButton(
         _GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
-    btn.OnEvent("Click", (*) => TryAndCatch(TreasureGrove_ReplantBtn_Click))
+    callback := TryAndCatch.Bind(TreasureGrove_ReplantBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vTreasureGrove.NextReplantBtn", "下一次重新种植")
-    btn.OnEvent("Click", (*) => TryAndCatch(
-        TreasureGrove_NextReplantBtn_Click))
+    callback := TryAndCatch.Bind(TreasureGrove_NextReplantBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionWeaponAging(firstSection := false) {
     totalRows := 1
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "武器熟成")
     btn := myGui.AddButton(_GroupBoxRowPos(1) " vWeaponAging.AgeBtn", "熟成")
-    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_AgeBtn_Click))
+    callback := TryAndCatch.Bind(WeaponAging_AgeBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vWeaponAging.LoadAndAgeBtn", "SL并熟成")
-    btn.OnEvent("Click", (*) => TryAndCatch(WeaponAging_LoadAndAgeBtn_Click
-    ))
+    callback := TryAndCatch.Bind(WeaponAging_LoadAndAgeBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionOnline(firstSection := false) {
@@ -203,7 +229,7 @@ _CreateSectionOnline(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "招募目的地：")
     myGui.AddDropDownList(
-        "yp w100 Choose1 vOnline.DestinationDdl",
+        "yp w100 Choose1 AltSubmit vOnline.Destination",
         ["皆可", "环岛冒险", "探索大陆", "扭蛋迷宫树"])
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "关键词：")
     myGui.AddEdit("yp hp w60 vOnline.Keyword", "")
@@ -211,25 +237,37 @@ _CreateSectionOnline(firstSection := false) {
     myGui.AddEdit("yp hp w60 vOnline.Password", "")
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "作为房主：")
     btn := myGui.AddButton("yp vOnline.RecruitBtn", "招募")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_RecruitBtn_Click))
+    callback := TryAndCatch.Bind(Online_RecruitBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vOnline.HeadOutBtn", "出发")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_HeadOutBtn_Click))
+    callback := TryAndCatch.Bind(Online_HeadOutBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vOnline.EndBtn", "结束")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_EndBtn_Click))
+    callback := TryAndCatch.Bind(Online_EndBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "作为队友：")
     btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_JoinBtn_Click))
+    callback := TryAndCatch.Bind(Online_JoinBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vOnline.LeaveBtn", "离开")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_LeaveBtn_Click))
+    callback := TryAndCatch.Bind(Online_LeaveBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vOnline.RejoinBtn", "离开并重新加入")
-    btn.OnEvent("Click", (*) => TryAndCatch(Online_RejoinBtn_Click))
+    callback := TryAndCatch.Bind(Online_RejoinBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionMysteryBox(firstSection := false) {
     totalRows := 2
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "盲盒")
     myGui.AddDropDownList(
-        _GroupBoxRowPos(1) " w110 Choose1 vMysteryBox.ShopDdl",
+        _GroupBoxRowPos(1) " w110 Choose1 AltSubmit vMysteryBox.Shop",
         ["女神草交易所", "女神果实交易所"])
     myGui.AddText("yp hp 0x200", " -> 其他类别 -> 第")
     myGui.AddEdit("yp hp w40")
@@ -239,9 +277,13 @@ _CreateSectionMysteryBox(firstSection := false) {
     myGui.AddEdit("yp hp w50")
     myGui.AddUpDown("vMysteryBox.BuyCount Range1-999 0x80", 1)
     btn := myGui.AddButton("yp vMysteryBox.BuyBtn", "购买")
-    btn.OnEvent("Click", (*) => TryAndCatch(MysteryBox_BuyBtn_Click))
+    callback := TryAndCatch.Bind(MysteryBox_BuyBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vMysteryBox.LoadAndBuyBtn", "SL并购买")
-    btn.OnEvent("Click", (*) => TryAndCatch(MysteryBox_LoadAndBuyBtn_Click))
+    callback := TryAndCatch.Bind(MysteryBox_LoadAndBuyBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionMimic(firstSection := false) {
@@ -265,11 +307,15 @@ _CreateSectionMimic(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(6) " h22 0x200", "重复击杀数量：")
     myGui.AddEdit("xp+140 yp hp w50")
     myGui.AddUpDown("vMimic.KillCount Range1-99 0x80", 1)
-    btn := myGui.AddButton(_GroupBoxRowPos(7) " vMimic.TestSkillBtn",
-    "测试技能")
-    btn.OnEvent("Click", (*) => TryAndCatch(Mimic_TestSkillBtn_Click))
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(7) " vMimic.TestSkillBtn", "测试技能")
+    callback := TryAndCatch.Bind(Mimic_TestSkillBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vMimic.RefreshAndKillBtn", "刷新并击杀")
-    btn.OnEvent("Click", (*) => TryAndCatch(Mimic_RefreshAndKillBtn_Click))
+    callback := TryAndCatch.Bind(Mimic_RefreshAndKillBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionLegendary(firstSection := false) {
@@ -283,9 +329,13 @@ _CreateSectionLegendary(firstSection := false) {
     myGui.AddCheckbox("yp hp vLegendary.IncludePotatoChk", "豆")
     btn := myGui.AddButton(
         _GroupBoxRowPos(2) " vLegendary.CheckMapBtn", "检查地图")
-    btn.OnEvent("Click", (*) => TryAndCatch(Legendary_CheckMapBtn_Click))
+    callback := TryAndCatch.Bind(Legendary_CheckMapBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vLegendary.RefreshMapBtn", "刷新等级")
-    btn.OnEvent("Click", (*) => TryAndCatch(Legendary_RefreshMapBtn_Click))
+    callback := TryAndCatch.Bind(Legendary_RefreshMapBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
     myGui.AddCheckbox("yp hp vLegendary.AutoCheckChk", "刷新后自动检查")
 }
 
@@ -298,9 +348,11 @@ _CreateSectionFarming(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "等待时间（秒）：")
     myGui.AddEdit("xp+140 yp w50 hp")
     myGui.AddUpDown("vFarming.HarvestWaitDelay Range1-999 0x80", 30)
-    btn := myGui.AddButton(_GroupBoxRowPos(3) " vFarming.HarvestBtn",
-    "重复收获")
-    btn.OnEvent("Click", (*) => TryAndCatch(Farming_HarvestBtn_Click))
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(3) " vFarming.HarvestBtn", "重复收获")
+    callback := TryAndCatch.Bind(Farming_HarvestBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
 }
 
 _CreateSectionScriptWindow(firstSection := false) {
@@ -308,7 +360,7 @@ _CreateSectionScriptWindow(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "窗口")
     chk := myGui.AddCheckbox(
         _GroupBoxRowPos(1) " h22 vScriptControl.AlwaysOnTopChk", "置顶")
-    chk.OnEvent("Click", (*) => ScriptControl_AlwaysOnTopChk_Click())
+    chk.OnEvent("Click", ScriptControl_AlwaysOnTopChk_Click)
     chk := myGui.AddCheckbox("yp hp vScriptControl.RememberWindowPos", "记住最后位置"
     )
     chk := myGui.AddCheckbox("yp hp vScriptControl.RememberTabIndex", "记住最后标签页"
@@ -323,36 +375,60 @@ _CreateSectionScriptNotification(firstSection := false) {
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "运行结果")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "成功时：")
     MyGui.AddRadio("yp hp vScriptControl.SuccessNoChk", "不提醒")
-    chk := myGui.AddRadio("yp hp Checked vScriptControl.SuccessSoundChk",
-        "音效")
-    chk.OnEvent("Click", (*) => ScriptControl_SuccessSoundChk_Click())
+    chk := myGui.AddRadio(
+        "yp hp Checked vScriptControl.SuccessSoundChk", "音效")
+    chk.OnEvent("Click", ScriptControl_SuccessSoundChk_Click)
     chk := myGui.AddRadio("yp hp vScriptControl.SuccessMsgBoxChk", "弹窗")
-    chk.OnEvent("Click", (*) => ScriptControl_SuccessMsgBoxChk_Click())
+    chk.OnEvent("Click", ScriptControl_SuccessMsgBoxChk_Click)
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "失败时：")
     MyGui.AddRadio("yp hp vScriptControl.FailureNoChk", "不提醒")
-    chk := myGui.AddRadio("yp hp Checked vScriptControl.FailureSoundChk",
-        "音效")
-    chk.OnEvent("Click", (*) => ScriptControl_FailureSoundChk_Click())
+    chk := myGui.AddRadio(
+        "yp hp Checked vScriptControl.FailureSoundChk", "音效")
+    chk.OnEvent("Click", ScriptControl_FailureSoundChk_Click)
     chk := myGui.AddRadio("yp hp vScriptControl.FailureMsgBoxChk", "弹窗")
-    chk.OnEvent("Click", (*) => ScriptControl_FailureMsgBoxChk_Click())
+    chk.OnEvent("Click", ScriptControl_FailureMsgBoxChk_Click)
 }
 
-_CreateSectionScriptHotkey(firstSection := false) {
-    totalRows := 5
-    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "快捷键")
+_CreateSectionScriptPresetHotkey(firstSection := false) {
+    totalRows := 1
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "预设快捷键")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "暂停：")
-    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.PauseHotkey", "F3"
-    )
-    hk.OnEvent("Change", (*) => ScriptControl_PauseHotkey_Change())
-    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "退出：")
-    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.ExitHotkey", "F4")
-    hk.OnEvent("Change", (*) => ScriptControl_ExitHotkey_Change())
-    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "重置：")
-    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.ResetHotkey", "F5"
-    )
-    hk.OnEvent("Change", (*) => ScriptControl_ResetHotkey_Change())
-    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "自定义：")
-    hk := myGui.AddHotkey("yp hp Disabled vScriptControl.CustomHotkey",
-        "F6")
-    hk.OnEvent("Change", (*) => ScriptControl_ResetHotkey_Change())
+    hk := myGui.AddHotkey(
+        "yp hp w40 Disabled vScriptControl.PauseHotkey", "F3")
+    myGui.AddText("yp hp 0x200", "退出：")
+    hk := myGui.AddHotkey(
+        "yp hp w40 Disabled vScriptControl.ExitHotkey", "F4")
+    myGui.AddText("yp hp 0x200", "重置：")
+    hk := myGui.AddHotkey(
+        "yp hp w40 Disabled vScriptControl.ReloadHotkey", "F5")
+}
+
+_CreateSectionScriptCustomHotkey(firstSection := false) {
+    totalRows := HotkeyMaxNum
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "自定义快捷键")
+    loop totalRows {
+        hotkeyIndex := A_Index
+        prefix := "ScriptControl.CustomHotkey" hotkeyIndex
+        myGui.AddText(
+            _GroupBoxRowPos(hotkeyIndex) " w10 h22 0x200", hotkeyIndex)
+        myGui.AddEdit("yp hp w120 Disabled v" prefix "ActionName", "无")
+        myGui.AddHotkey("yp hp w80 Disabled v" prefix "KeyName", "")
+        btn := myGui.AddButton("yp hp v" prefix "Btn", "更改")
+        btn.OnEvent("Click", ScriptControl_CustomHotkeyBtn_Click.Bind(prefix))
+    }
+}
+
+_CreateSectionScriptVersion(firstSection := false) {
+    totalRows := 1
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "版本信息")
+    myGui.AddText(
+        _GroupBoxRowPos(1) " h22 0x200", "当前版本：" ScriptControlVersion)
+    btn := myGui.AddButton("yp hp", "查看最新版本")
+    btn.OnEvent("Click", Run.Bind(ScriptControlLatestReleaseURL))
+}
+
+_AddBtnToHotkeyList(btn, function) {
+    actionName := myGui["MainTab"].Text "-" btn.Text
+    HotkeyActionNameList.Push(actionName)
+    HotkeyAction2Function[actionName] := function
 }

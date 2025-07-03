@@ -92,7 +92,7 @@ _OnlineRecruit() {
     WaitUntilColorMatch(
         _OnlineRecruitDestinationPixel[1], _OnlineRecruitDestinationPixel[2],
         _OnlineRecruitDestinationPixel[3], "设置目的地")
-    destination := myGui["Online.DestinationDdl"].Value
+    destination := myGui["Online.Destination"].Value
     loop (destination - 1) {
         MySend("d", , 200)
     }

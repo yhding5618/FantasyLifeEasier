@@ -18,7 +18,7 @@ PlayFailureSound() {
  * @param {Boolean} force 是否强制显示（默认false）
  */
 ShowSuccessMsgBox(text, force := false) {
-    if (myGui["ScriptControl.SuccessMsgBoxChk"].Value || force) {
+    if (force || myGui["ScriptControl.SuccessMsgBoxChk"].Value) {
         MsgBox(text, MainTitle, "Iconi")
     }
 }
@@ -30,7 +30,7 @@ ShowSuccessMsgBox(text, force := false) {
  * @param {Boolean} force 是否强制显示（默认false）
  */
 ShowFailureMsgBox(text, e, force := false) {
-    if (myGui["ScriptControl.FailureMsgBoxChk"].Value || force) {
+    if (force || myGui["ScriptControl.FailureMsgBoxChk"].Value) {
         eFileName := StrSplit(e.File, "\")[-1]
         eText := Format(
             "{1}: {2}`nFunction: {3}`nLocation: {4}:{5}`nStack:`n{6}"
@@ -67,7 +67,7 @@ MySend(singleKey, pressDelay := 30, postDelay := 0) {
  * @description 运行函数并捕获异常，如果函数执行成功则播放成功音效，否则弹出错误信息并播放失败音效
  * @param {Func} function  
  */
-TryAndCatch(function) {
+TryAndCatch(function, args*) {
     if (Type(function) != "Func") {
         throw TypeError("参数必须是函数对象")
     }
@@ -316,7 +316,7 @@ LoadConfig() {
         section := sp[1]
         key := sp[2]
         if (SubStr(key, -6) == "Hotkey") {
-            ; 如果是热键配置，直接跳过
+            ; 如果是预设快捷键，直接跳过
             continue
         }
         try {
@@ -330,22 +330,22 @@ LoadConfig() {
 }
 
 SaveConfig() {
-    config := myGui.Submit(0)
-    FileMove("main.ini", "main.ini.old", 1)  ; 备份旧配置文件
-    for name, currentValue in config.OwnProps() {
-        sp := StrSplit(name, ".", , 2)
-        if (sp.Length < 2) {
-            continue
+    config := myGui.Submit()
+    try {
+        for name, currentValue in config.OwnProps() {
+            sp := StrSplit(name, ".", , 2)
+            if (sp.Length < 2) {
+                continue
+            }
+            section := sp[1]
+            key := sp[2]
+            IniWrite(currentValue, "main.ini.new", section, key)
         }
-        section := sp[1]
-        key := sp[2]
-        if (SubStr(key, -3) == "Ddl") {
-            ; 处理特殊情况，DropDownList需要保存Value而不是Text
-            currentValue := myGui[name].Value
-        }
-        IniWrite(currentValue, "main.ini", section, key)
+    } catch Error as e {
+        ShowFailureMsgBox("保存配置失败: " e.Message, e)
+        return
     }
-    FileDelete("main.ini.old")  ; 删除备份文件
+    FileMove("main.ini.new", "main.ini", 1)  ; 替换旧配置文件
 }
 
 SaveAndExit() {

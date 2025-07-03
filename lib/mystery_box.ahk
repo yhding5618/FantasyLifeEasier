@@ -28,7 +28,7 @@ MysteryBox_LoadAndBuyBtn_Click() {
 _MysteryBoxShopCoinPixel := [1591, 65, "0xFBE003"]  ; 商店界面金币像素
 
 _MysteryBoxBuy() {
-    shop := myGui["MysteryBox.ShopDdl"].Value
+    shop := myGui["MysteryBox.Shop"].Value
     itemIndex := myGui["MysteryBox.ItemIndex"].Value
     buyCount := myGui["MysteryBox.BuyCount"].Value
     MySend("f")
