@@ -17,7 +17,7 @@ GameWindowPixelInfoUpdateToogle() {
     GameWindow_PixelInfoUpdateChk_Click()
 }
 
-GameWindow_PixelInfoUpdateChk_Click(*) {
+GameWindow_PixelInfoUpdateChk_Click() {
     if (myGui["GameWindow.PixelInfoUpdateChk"].Value) {
         SetTimer(GameWindowPixelInfoUpdate, 100)
         GameWindowPixelInfoUpdate()

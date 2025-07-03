@@ -7,7 +7,7 @@ Legendary_CheckMapBtn_Click() {
     LegendaryCheckMap()
 }
 
-Legendary_RefreshMapBtn_Click(*) {
+Legendary_RefreshMapBtn_Click() {
     MySend("Escape", , 500)  ; 退出地图
     LegendaryRefreshMap()
     if (myGui["Legendary.AutoCheckChk"].Value) {

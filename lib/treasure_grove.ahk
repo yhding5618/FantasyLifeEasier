@@ -18,7 +18,6 @@ TreasureGrove_NextReplantBtn_Click() {
 _TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos  ; 3个选项时发光位置
 _TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos  ; 5个选项时发光位置
 _TreasureGroveGlowColor := UtilsOptionListGlowColor  ; 发光颜色
-_TreasureGroveContinueSpacePixel := UtilsConversationSpacePixel  ; 继续按钮像素
 ; 迷宫树地图共10行11列，奇数行只有奇数列有效，偶数行只有偶数列有效（从1开始计数）
 _TreasureGroveRoomZeroPos := [424, 272]  ; 迷宫树地图(1,1)房间的中心位置
 _TreasureGroveRoomSize := 72  ; 迷宫树房间大小
@@ -70,11 +69,7 @@ _TreasureGroveReplant() {
         UtilsWindowYes1Pos[1], UtilsWindowYes1Pos[2],
         UtilsWindowButtonColor, "确认重新种植“是”按钮")
     MySend("Space")
-    WaitUntilColorMatch(
-        _TreasureGroveContinueSpacePixel[1],
-        _TreasureGroveContinueSpacePixel[2],
-        _TreasureGroveContinueSpacePixel[3],
-        "继续按钮", , , 200, 100)
+    WaitUntilConversationSpace()
     MySend("Space")
 }
 

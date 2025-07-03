@@ -42,8 +42,7 @@ SaveToCloud() {
         _SaveLoadCloudCheckPos[1], _SaveLoadCloudCheckPos[2],
         _SaveLoadCloudCheckedColor, 2
     ) {
-        color := PixelGetColor(_SaveLoadCloudCheckPos*)
-        throw ValueError("共享存档无法选择[" color "]")
+        throw ValueError("共享存档无法选择")
     }
     UpdateStatusBar("确认保存")
     Sleep(200)  ; 等待界面稳定
