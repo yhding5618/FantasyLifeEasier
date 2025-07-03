@@ -17,8 +17,8 @@ _SaveLoadEpicAccountTextPos := [720, 500]  ; Epic账户绑定OK文字位置
 _SaveLoadSaveDoneTextPos := [921, 524]  ; 保存覆盖完毕OK文字位置
 _SaveLoadLoadDoneTextPos := [921, 381]  ; 加载覆盖完毕OK文字位置
 _SaveLoadTextColor := "0x88613B"  ; 文字颜色
-_SaveLoadLogoPixel := [1202, 348, "0xFFE000"]  ; 标题幻想生活"i"图标
-_SaveLoadXBtnPixel := [1357, 964, "0x75674E"]  ; 标题[X]共享存档确认
+_SaveLoadLogoPixel := [955, 332, "0xF9BD00"]  ; 标题界面幻想生活i图标
+_SaveLoadXBtnPixel := [1357, 964, "0x75674E"]  ; 标题界面[X]共享存档确认
 
 SaveToCloud() {
     OpenMenu()
@@ -89,7 +89,7 @@ LoadFromCloud() {
     MySend("Space")  ; 确认返回
     WaitUntilColorMatch(
         _SaveLoadLogoPixel[1], _SaveLoadLogoPixel[2],
-        _SaveLoadLogoPixel[3], "标题界面加载", , , 1000, 60)
+        _SaveLoadLogoPixel[3], "标题界面加载", 30, , 1000, 60)
     Sleep(1000)  ; 等待界面稳定
     MySend("Space")  ; 任意键继续
     WaitUntilColorMatch(
