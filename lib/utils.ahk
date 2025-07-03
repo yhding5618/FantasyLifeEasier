@@ -15,33 +15,27 @@ PlayFailureSound() {
 /**
  * @description 显示成功消息框
  * @param {String} text 文本
+ * @param {Boolean} force 是否强制显示（默认false）
  */
-ShowSuccessMsgBox(text, title := "Fantasy Life Easier") {
-    if (myGui["ScriptControl.SuccessMsgBoxChk"].Value) {
-        MsgBox(text, title, "Iconi")
+ShowSuccessMsgBox(text, force := false) {
+    if (myGui["ScriptControl.SuccessMsgBoxChk"].Value || force) {
+        MsgBox(text, MainTitle, "Iconi")
     }
-}
-
-/**
- * @description 显示警告消息框
- * @param {String} text 文本
- */
-ShowWarningMsgBox(text, title := "Fantasy Life Easier") {
-    MsgBox(text, title, "Icon!")
 }
 
 /**
  * @description 显示错误消息框
  * @param {String} text 文本
  * @param {Error} e 错误对象
+ * @param {Boolean} force 是否强制显示（默认false）
  */
-ShowFailureMsgBox(text, e, title := "Fantasy Life Easier") {
-    if (myGui["ScriptControl.FailureMsgBoxChk"].Value) {
+ShowFailureMsgBox(text, e, force := false) {
+    if (myGui["ScriptControl.FailureMsgBoxChk"].Value || force) {
         eFileName := StrSplit(e.File, "\")[-1]
         eText := Format(
             "{1}: {2}`nFunction: {3}`nLocation: {4}:{5}`nStack:`n{6}"
             , type(e), e.Message, e.What, eFileName, e.Line, e.Stack)
-        MsgBox(text '`n' eText, title, "IconX")
+        MsgBox(text '`n' eText, MainTitle, "IconX")
     }
 }
 
@@ -260,9 +254,11 @@ WaitUntilSavingIcon() {
 UtilsWindowYes1Pos := [706, 885]
 ; 高位“否”按钮位置，用于：离开房间，确认重新种植
 UtilsWindowNo1Pos := [1218, 885]
-; 中位“是”按钮位置，用于：注意返回标题，注意加载覆盖，确认退出房间，确认解散房间
+; 中位“是”按钮位置，用于：注意返回标题，注意加载覆盖，
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间
 UtilsWindowYes2Pos := [706, 940]
-; 中位“否”按钮位置，用于：注意返回标题，注意加载覆盖，确认退出房间，确认解散房间
+; 中位“否”按钮位置，用于：注意返回标题，注意加载覆盖，
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间
 UtilsWindowNo2Pos := [1218, 940]
 ; 低位“是”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowYes3Pos := [706, 960]
@@ -278,17 +274,34 @@ UtilsWindowOK1Pos := [965, 835]
 UtilsWindowOK2Pos := [965, 885]
 ; 超高位“OK”按钮位置，用于：商店选择购买数量
 UtilsWindowOK3Pos := [965, 750]
-; 超高位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
+; 超低位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
 UtilsWindowOK4Pos := [965, 895]
+; 极低位“OK”按钮位置，用于：房间搜索错误
+UtilsWindowOK5Pos := [965, 940]
 ; 按钮背景颜色
 UtilsWindowButtonColor := "0x88FF74"
-; 右侧三选项时首选项位置
+; 右侧二短选项时首选项位置，用于：在线选择出发
+UtilsOptionListTopIn2GlowPos := [1351, 477]
+; 右侧三选项时首选项位置，用于：迷宫树对话
 UtilsOptionListTopIn3GlowPos := [1293, 403]
-; 右侧五选项时首选项位置
+; 右侧五选项时首选项位置，用于：迷宫树对话
 UtilsOptionListTopIn5GlowPos := [1293, 283]
-; 右侧选项发光颜色
+; 右侧选项发光颜色，用于：迷宫树对话
 UtilsOptionListGlowColor := "0xAFF258"
-UtilsConversationSpacePixel := [1688, 976, "0x93805B"]  ; 继续对话空格键像素
+; 交互按键背景颜色
+UtilsKeyBackgroundColor := "0x93805B"
+; 继续对话空格键像素
+UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
+
+/**
+ * @description 等待对话界面交互空格键加载完成
+ */
+WaitUntilConversationSpace() {
+    WaitUntilColorMatch(
+        UtilsConversationSpacePixel[1], UtilsConversationSpacePixel[2],
+        UtilsConversationSpacePixel[3], "空格按钮")
+    Sleep(500)  ; 等待对话界面稳定
+}
 
 LoadConfig() {
     if !FileExist("main.ini") {

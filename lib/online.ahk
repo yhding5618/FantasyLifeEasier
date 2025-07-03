@@ -4,32 +4,32 @@ _JoinDebugID := 1
 
 Online_RecruitBtn_Click() {
     _OnlineCheckInput()
-    _TalkToOnlineCounter()
+    _TalkToColm()
     _OnlineRecruit()
 }
 
-Online_ExitBtn_Click() {
-    _OnlineExit()
+Online_HeadOutBtn_Click() {
+    _OnlineHeadOutAsHost()
 }
 
-Online_DismissBtn_Click() {
-    _OnlineDismiss()
+Online_EndBtn_Click() {
+    _OnlineEndAsHost()
 }
 
 Online_JoinBtn_Click() {
     _OnlineCheckInput()
-    _TalkToOnlineCounter()
+    _TalkToColm()
     _OnlineJoin()
 }
 
 Online_LeaveBtn_Click() {
-    _OnlineLeave()
+    _OnlineLeaveAsMember()
 }
 
 Online_RejoinBtn_Click() {
     _OnlineCheckInput()
-    _OnlineLeave()
-    _TalkToOnlineCounter()
+    _OnlineLeaveAsMember()
+    _TalkToColm()
     _OnlineJoin()
 }
 
@@ -45,7 +45,7 @@ _OnlineCounterInternetPixel := [703, 933, SelectedTextColor]  ; 感叹号确认�
 _OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]  ; 标题“多人联机”像素
 _OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]  ; 按钮“招募！”像素
 _OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]  ; 标题“设置目的地”像素
-_OnlineCounterPixel := [1012, 413, "0xFFF8E4"]  ; 联机柜台"F"位置
+_OnlineCounterPixel := [1012, 413, UtilsKeyBackgroundColor]  ; 联机柜台"F"位置
 _OnlineRecruitTripLogoPos := [960, 600]  ; 啼普加载中图标位置
 _OnlineRecruitTripLogoColor := "0x8A703E"  ; 啼普加载中图标颜色
 _OnlineJoinDestinationLogoPos := [67, 85]  ; 小蓝人位置
@@ -54,11 +54,14 @@ _OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]  ; 蓝天背景像素
 _OnlineJoiningSkyPos := [1000, 140]  ; 蓝天背景位置
 _OnlineJoinDoneColor := "0x1595D7"  ; 蓝天背景颜色
 
-_TalkToOnlineCounter() {
+/**
+ * @description: 前进到联机柜台并与科隆对话
+ */
+_TalkToColm() {
     MyPress("w")
     WaitUntilColorMatch(
         _OnlineCounterPixel[1], _OnlineCounterPixel[2],
-        _OnlineCounterPixel[3], "联机柜台", , , , 100)
+        _OnlineCounterPixel[3], "联机柜台", 20, 3, , 100)
     MyRelease("w")
     UpdateStatusBar("开始对话")
     MySend("f")
@@ -160,13 +163,17 @@ _OnlineJoin() {
     Sleep(500)  ; 等待界面稳定
     counter := 0
     while (true) {
-        color := PixelGetColor(
-            _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2])
-        MyToolTip(color,
+        if SearchColorMatch(
             _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2],
-            _JoinDebugID + 2, DebugOnline)
-        if (color == _OnlineJoinDestinationLogoColor) {
+            _OnlineJoinDestinationLogoColor, 2
+        ) {
+            UpdateStatusBar("已找到目标房间")
             break
+        }
+        if SearchColorMatch(
+            UtilsWindowOK5Pos[1], UtilsWindowOK5Pos[2], UtilsWindowButtonColor
+        ) {
+            throw ValueError("房间搜索错误，请检查关键词或密码")
         }
         counter++
         UpdateStatusBar("正在搜索..." counter)
@@ -195,57 +202,72 @@ _OnlineJoin() {
         _OnlineJoiningSkyPixel[3], "加入", , , 1000, 60)
 }
 
-_OnlineExitIconColor := "0x3C4C44"  ; 退出房间图标中心颜色
-_OnlineDismissIconColor := "0x9D9640"  ; 解散房间图标中心颜色
-_OnlineLeaveIconColor := _OnlineDismissIconColor  ; 离开房间图标中心颜色
+_OnlineHeadOutAsHost() {
+    MySend("u")
+    WaitUntilConversationSpace()
+    MySend("Space")
+    WaitUntilColorMatch(
+        UtilsOptionListTopIn2GlowPos[1], UtilsOptionListTopIn2GlowPos[2],
+        UtilsOptionListGlowColor, "对话界面")
+    Sleep(300)  ; 等待对话界面稳定
+    MySend("Space")  ; 选择“出发”选项
+    WaitUntilColorMatch(
+        UtilsWindowYes2Pos[1], UtilsWindowYes2Pos[2],
+        UtilsWindowButtonColor, "确认出发“是”")
+    Sleep(300)
+    MySend("Space")  ; 确认出发
+}
 
-_OnlineExit() {
-    myGui["StatusBar"].Text := "退出房间"
+; 菜单退出图标（石洞）中心颜色，用于：结束（迷宫树）
+_OnlineEndCaveIconColor := "0x3C4C44"
+; 菜单退出图标（山峰）中心颜色，用于：结束探索（大陆），（房主）解散房间，（成员）离开房间
+_OnlineEndMountainIconColor := "0x9D9640"
+
+_OnlineEndAsHost() {
+    UpdateStatusBar("退出房间")
     pos := OpenMenuAndMoveToIcon(2, 3, 4)  ; [1246, 794]
-    if !SearchColorMatch(pos[1], pos[2], _OnlineExitIconColor, 2) {
-        color := PixelGetColor(pos[1], pos[2])
-        throw ValueError("退出房间图标颜色不匹配[" color "]")
+    loop 10 {
+        isCave := SearchColorMatch(
+            pos[1], pos[2], _OnlineEndCaveIconColor, 2)
+        isMountain := SearchColorMatch(
+            pos[1], pos[2], _OnlineEndMountainIconColor, 2)
+        if (isCave || isMountain) {
+            break
+        }
+        UpdateStatusBar("等待退出图标颜色匹配")
+        Sleep(100)
+    }
+    if (!isCave && !isMountain) {
+        throw ValueError("退出图标颜色不匹配")
     }
     MySend("Space")  ; 点击退出房间图标
     WaitUntilColorMatch(
         UtilsWindowNo2Pos[1], UtilsWindowNo2Pos[2],
         UtilsWindowButtonColor, "退出房间“否”")
+    Sleep(500)  ; 等待界面稳定
     MySend("a")  ; 移动到“是”按钮
     WaitUntilColorMatch(
         UtilsWindowYes2Pos[1], UtilsWindowYes2Pos[2],
         UtilsWindowButtonColor, "退出房间“是”")
     Sleep(500)  ; 等待确认按钮稳定
     MySend("Space")  ; 确认退出
-    myGui["StatusBar"].Text := "已退出房间"
+    UpdateStatusBar("已退出")
 }
 
-_OnlineDismiss() {
-    myGui["StatusBar"].Text := "解散房间"
+_OnlineLeaveAsMember() {
+    UpdateStatusBar("离开房间")
     pos := OpenMenuAndMoveToIcon(2, 3, 4)  ; [1246, 794]
-    if !SearchColorMatch(pos[1], pos[2], _OnlineDismissIconColor, 2) {
-        color := PixelGetColor(pos[1], pos[2])
-        throw ValueError("解散房间图标颜色不匹配[" color "]")
+    loop 10 {
+        isMountain := SearchColorMatch(
+            pos[1], pos[2], _OnlineEndMountainIconColor, 2)
+        if (isMountain) {
+            break
+        }
+        UpdateStatusBar("等待离开图标颜色匹配")
+        Sleep(100)
     }
-    MySend("Space")  ; 点击解散房间图标
-    WaitUntilColorMatch(
-        UtilsWindowNo2Pos[1], UtilsWindowNo2Pos[2],
-        UtilsWindowButtonColor, "解散房间“否”")
-    MySend("a")  ; 移动到“是”按钮
-    WaitUntilColorMatch(
-        UtilsWindowYes2Pos[1], UtilsWindowYes2Pos[2],
-        UtilsWindowButtonColor, "解散房间“是”")
-    Sleep(500)  ; 等待确认按钮稳定
-    MySend("Space")  ; 确认解散
-    WaitUntilSavingIcon()
-    myGui["StatusBar"].Text := "已解散房间"
-}
-
-_OnlineLeave() {
-    myGui["StatusBar"].Text := "离开房间"
-    pos := OpenMenuAndMoveToIcon(2, 3, 4)  ; [1246, 794]
-    if !SearchColorMatch(pos[1], pos[2], _OnlineLeaveIconColor, 2) {
-        color := PixelGetColor(pos[1], pos[2])
-        throw ValueError("离开房间图标颜色不匹配[" color "]")
+    if (!isMountain) {
+        throw ValueError("离开图标颜色不匹配")
     }
     MySend("Space")  ; 点击离开房间图标
     WaitUntilColorMatch(
@@ -254,5 +276,5 @@ _OnlineLeave() {
     Sleep(500)  ; 等待确认按钮稳定
     MySend("Space")  ; 确认离开
     WaitUntilSavingIcon()
-    myGui["StatusBar"].Text := "已离开房间"
+    UpdateStatusBar("已离开")
 }
