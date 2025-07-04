@@ -307,6 +307,17 @@ WaitUntilConversationSpace() {
     Sleep(500)  ; 等待对话界面稳定
 }
 
+UtilsMapPixel := [1635, 74, "0x0373FF"]  ; 地图右上角标记logo
+/**
+ * @description 检测是否在地图界面
+ * @return {Boolean} 如果在地图界面返回true，否则返回false
+ */
+UIIsInMap() {
+    found := SearchColorMatch(
+        UtilsMapPixel[1], UtilsMapPixel[2], UtilsMapPixel[3], 20)
+    return found
+}
+
 LoadConfig() {
     if !FileExist("main.ini") {
         return

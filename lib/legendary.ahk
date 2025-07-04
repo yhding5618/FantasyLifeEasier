@@ -4,10 +4,16 @@ DebugLegendary := false
 _MapDebugID := 5
 
 Legendary_CheckMapBtn_Click() {
+    if (!UIIsInMap()) {
+        throw ValueError("当前不在地图界面")
+    }
     LegendaryCheckMap()
 }
 
 Legendary_RefreshMapBtn_Click() {
+    if (!UIIsInMap()) {
+        throw ValueError("当前不在地图界面")
+    }
     MySend("Escape", , 500)  ; 退出地图
     LegendaryRefreshMap()
     if (myGui["Legendary.AutoCheckChk"].Value) {
