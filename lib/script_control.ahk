@@ -79,11 +79,15 @@ ScriptControlRegisterAllHotkeys() {
     }
 }
 
-ScriptControlCheckHotkeyExist(keyName) {
+ScriptControlCheckHotkeyExist(thisPrefix, keyName) {
+    hotkeyIndex := Integer(SubStr(thisPrefix, -1))
     if (keyName == "") {
         return false  ; 空快捷键视为不存在
     }
     loop HotkeyMaxNum {
+        if (A_Index == hotkeyIndex) {
+            continue  ; 跳过当前快捷键
+        }
         prefix := "ScriptControl.CustomHotkey" A_Index
         if (myGui[prefix "KeyName"].Value == keyName) {
             return true  ; 找到匹配的快捷键
@@ -96,7 +100,7 @@ ScriptControlRegisterHotkey(prefix, newActionName, oldKeyName) {
     actionValid := HotkeyAction2Function.Has(newActionName)
     keyValid := oldKeyName != ""
     if actionValid && keyValid {
-        Hotkey(oldKeyName, HotkeyAction2Function[newActionName])
+        Hotkey(oldKeyName, HotkeyAction2Function[newActionName], "On")
         myGui[prefix "ActionName"].Text := newActionName
         myGui[prefix "KeyName"].Value := oldKeyName
     } else {  ; 其他所有情况都视为无效
@@ -113,7 +117,7 @@ ScriptControlUpdateHotkey(hkGui, prefix) {
     hkGui.Opt("OwnDialogs")
     ;; 检查新的快捷键是否已存在
     try {
-        if ScriptControlCheckHotkeyExist(newKeyName) {
+        if ScriptControlCheckHotkeyExist(prefix, newKeyName) {
             throw ValueError("快捷键已存在，请选择其他快捷键")
         }
         ;; 先禁用旧的快捷键
