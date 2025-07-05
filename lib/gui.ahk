@@ -259,7 +259,8 @@ _CreateSectionOnline(firstSection := false) {
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton(
-        _GroupBoxRowPos(4) " xs+76 h22 vOnline.EndLoadRecruitBtn", "结束并SL重新招募")
+        _GroupBoxRowPos(4) " xs+76 h22 vOnline.EndLoadRecruitBtn",
+        "结束并SL重新招募")
     callback := TryAndCatch.Bind(Online_EndLoadRecruitBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)

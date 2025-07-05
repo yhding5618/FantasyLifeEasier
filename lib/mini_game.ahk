@@ -20,6 +20,7 @@ MiniGame_ContinuousActionBtn_Click() {
         }
     }
     AppendStatusBar("，结束于工作台" station)
+    WaitUntilConversationSpace()  ; 等待“道具制作完成”
 }
 
 /**
