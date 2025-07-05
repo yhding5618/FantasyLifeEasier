@@ -96,6 +96,116 @@ TryAndCatch(function, args*) {
 }
 
 /**
+ * @description 获取指定像素的颜色
+ * @param {Integer} x 像素X坐标
+ * @param {Integer} y 像素Y坐标
+ * @return {String} 返回像素颜色字符串（例如 "0xFF0000"）
+ */
+UtilsGetColor(x, y) {
+    return PixelGetColor(x, y)
+}
+
+/**
+ * @description 对比两个颜色是否匹配
+ * @param {String} color1 匹配颜色字符串（例如 "0xFF0000"）
+ * @param {String} color2 基准颜色字符串（例如 "0xFF0000"）
+ * @param {Integer} colorVariation 颜色变化范围（默认10）
+ * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+ */
+UtilsMatchColorRGB(color1, color2, colorVariation := 10) {
+    rgb1 := Integer(color1)
+    rgb2 := Integer(color2)
+    rDiff := Abs((rgb1 & 0xFF0000) - (rgb2 & 0xFF0000)) >> 16
+    gDiff := Abs((rgb1 & 0x00FF00) - (rgb2 & 0x00FF00)) >> 8
+    bDiff := Abs((rgb1 & 0x0000FF) - (rgb2 & 0x0000FF))
+    match := rDiff <= colorVariation &&
+        gDiff <= colorVariation &&
+        bDiff <= colorVariation
+    return match
+}
+
+/**
+ * @description 将RGB颜色转换为HSV颜色
+ * @param {String} color RGB颜色字符串（例如 "0xFF0000"）
+ * @return {Object} 返回包含H、S、V的对象
+ */
+UtilsRGB2HSV(color) {
+    rgb := Integer(color)
+    r := ((rgb & 0xFF0000) >> 16) / 255.0
+    g := ((rgb & 0x00FF00) >> 8) / 255.0
+    b := (rgb & 0x0000FF) / 255.0
+    cMax := Max(r, g, b)
+    cMin := Min(r, g, b)
+    delta := cMax - cMin
+    if delta = 0 {
+        h := 0
+    } else if cMax = r {
+        h := Mod((g - b) / delta, 6)
+    } else if cMax = g {
+        h := (b - r) / delta + 2
+    } else {
+        h := (r - g) / delta + 4
+    }
+    h *= 60  ; 转换为度数
+    s := cMax = 0 ? 0 : (delta / cMax) * 100  ; 饱和度百分比
+    v := cMax * 100  ; 明度百分比
+    return [Round(h), Round(s), Round(v)]
+}
+
+; /**
+;  * @description 对比指定颜色的HSV值是否在给定范围内
+;  * @param {Array} hsv1 匹配颜色HSV
+;  * @param {Array} hsv2 基准颜色HSV
+;  * @param {Array} hsvVariation 匹配范围数组（默认[15, 15, 15]）
+;  * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+;  */
+; UtilsMatchColorHSV(hsv1, hsv2, hsvVariation := [15, 15, 15]) {
+;     hMatch := hsv1[1] >= hsv2[1] - hsvVariation[1] &&
+;         hsv1[1] <= hsv2[1] + hsvVariation[1]
+;     sMatch := hsv1[2] >= hsv2[2] - hsvVariation[2] &&
+;         hsv1[2] <= hsv2[2] + hsvVariation[2]
+;     vMatch := hsv1[3] >= hsv2[3] - hsvVariation[3] &&
+;         hsv1[3] <= hsv2[3] + hsvVariation[3]
+;     return (hMatch && sMatch && vMatch)
+; }
+
+/**
+ * @description 对比指定颜色的HSV值是否在给定范围内
+ * @param {String} color1 匹配颜色RGB字符串
+ * @param {(String|Array)} color2 基准颜色RGB字符串或HSV数组
+ * @param {(Integer|Array)} hsvVar 颜色变化范围（默认10）
+ * @param {Boolean} debug 是否启用调试模式（默认false）
+ * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+ */
+UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
+    hsv1 := UtilsRGB2HSV(color1)
+    if (Type(color2) = "String") {
+        hsv2 := UtilsRGB2HSV(color2)
+    } else {
+        hsv2 := color2
+    }
+    if (Type(hsvVar) = "Integer") {
+        hVar := hsvVar
+        sVar := hsvVar * 2
+        vVar := hsvVar * 3
+    } else {
+        hVar := hsvVar[1]
+        sVar := hsvVar[2]
+        vVar := hsvVar[3]
+    }
+    hMatch := hsv1[1] >= hsv2[1] - hVar && hsv1[1] <= hsv2[1] + hVar
+    sMatch := hsv1[2] >= hsv2[2] - sVar && hsv1[2] <= hsv2[2] + sVar
+    vMatch := hsv1[3] >= hsv2[3] - vVar && hsv1[3] <= hsv2[3] + vVar
+    if (debug) {
+        MsgBox(
+            "HSV1: " hsv1[1] ", " hsv1[2] ", " hsv1[3] "`n"
+            "HSV2: " hsv2[1] ", " hsv2[2] ", " hsv2[3]
+        )
+    }
+    return (hMatch && sMatch && vMatch)
+}
+
+/**
  * @description 对比指定像素的颜色
  * @param {Integer} x 像素X坐标
  * @param {Integer} y 像素Y坐标
@@ -167,6 +277,22 @@ WaitUntilColorNotMatch(x, y, color, title,
         count++
     }
     throw TimeoutError(title "颜色消失超时")
+}
+
+UtilsOCRFromRect(x, y, w, h) {
+    if (Type(OCR) != "Class") {
+        throw TypeError("OCR类未正确加载")
+    }
+    WinGetClientPos(&gx, &gy, , , GameWindowTitle)
+    result := OCR.FromRect(x + gx, y + gy, w, h, "zh-CN", {
+        scale: 1.0,
+        grayscale: true,
+        invertcolors: false,
+        rotate: 0
+    })
+    result.Highlight(result.Lines[1])
+    MyToolTip(result.Text, x, y + h, 20, true)
+    return result
 }
 
 WaitUntilPixelSearch(

@@ -1,27 +1,108 @@
 #Requires AutoHotkey v2.0
 
-DebugTreasureGrove := false
+DebugTreasureGrove := true
 _ReplantDebugID := 1
 
 TreasureGrove_ReplantBtn_Click() {
     MySend("f")
     _TreasureGroveReplant()
-    _TreasureGroveCheckBoss()
+    _TreasureGroveCheckAllRooms()
 }
 
 TreasureGrove_NextReplantBtn_Click() {
     MySend("Escape")
     _TreasureGroveReplant()
-    _TreasureGroveCheckBoss()
+    _TreasureGroveCheckAllRooms()
 }
 
-_TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos  ; 3个选项时发光位置
-_TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos  ; 5个选项时发光位置
-_TreasureGroveGlowColor := UtilsOptionListGlowColor  ; 发光颜色
-; 迷宫树地图共10行11列，奇数行只有奇数列有效，偶数行只有偶数列有效（从1开始计数）
-_TreasureGroveRoomZeroPos := [424, 272]  ; 迷宫树地图(1,1)房间的中心位置
-_TreasureGroveRoomSize := 72  ; 迷宫树房间大小
-_TreasureGroveBossGlowColor := "0xDA7054"  ; 迷宫树关底boss发光颜色
+TreasureGrove_CheckRoomBtn_Click() {
+    _TreasureGroveCheckAllRooms()
+}
+
+; 3个选项时发光位置
+_TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos
+; 5个选项时发光位置
+_TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos
+; 发光颜色
+_TreasureGroveGlowColor := UtilsOptionListGlowColor
+; 迷宫树“路线图”logo像素
+_TreasureGroveLogoPixel := [119, 58, "0xF7E1B2"]
+; 迷宫树地图共10行（不包括起点层）
+; 奇数行有6列，偶数行只有5列且向右偏移1个房间
+; 迷宫树地图(1,1)房间的中心位置（从1开始计数）
+_TreasureGroveRoom11Pos := [424, 272]
+; 迷宫树房间大小
+; 房间纵向间隔为1个房间大小
+; 房间横向间隔为2个房间大小
+_TreasureGroveRoomSize := 72
+; 空房间颜色
+_TreasureGroveEmptyHSVMax := [42, 64, 47]
+_TreasureGroveEmptyHSVMin := [21, 48, 36]
+_TreasureGroveEmptyHSV := [  ; [31, 56, 41]
+    (_TreasureGroveEmptyHSVMax[1] + _TreasureGroveEmptyHSVMin[1]) // 2,
+    (_TreasureGroveEmptyHSVMax[2] + _TreasureGroveEmptyHSVMin[2]) // 2,
+    (_TreasureGroveEmptyHSVMax[3] + _TreasureGroveEmptyHSVMin[3]) // 2
+]
+_TreasureGroveEmptyHSVVar := [  ; [11, 9, 6]
+    (_TreasureGroveEmptyHSVMax[1] - _TreasureGroveEmptyHSVMin[1]) // 2 + 1,
+    (_TreasureGroveEmptyHSVMax[2] - _TreasureGroveEmptyHSVMin[2]) // 2 + 1,
+    (_TreasureGroveEmptyHSVMax[3] - _TreasureGroveEmptyHSVMin[3]) // 2 + 1
+]
+_TreasureGroveEmptyColor := "0x6B5531"
+; 怪物层颜色
+_TreasureGroveMonsterColor := "0xA75AE6"  ; (4,2) (5,2)
+; 采矿层颜色
+_TreasureGroveMiningColor := "0xCCC3B8"  ; (4,4)
+; 伐木层颜色
+_TreasureGroveLoggingColor := "0xBFF2B0"  ; (4,3)
+; 钓鱼层颜色
+_TreasureGroveFishingColor := "0xA3CCFF"  ; (5,3) (5,4)
+; 收获层颜色
+_TreasureGroveHarvestingColor := "0xFFA957"  ; (4,4) (5,4)
+; 怪物小屋颜色
+_TreasureGroveSpecialMonsterRoomColor := "0x583514"
+; 熟成祭坛颜色
+_TreasureGroveAgingAltarColor := "0x8CF1CA"
+; 惊魂器颜色
+_TreasureGroveStrangelingColor := "0x03CCC0"
+; 宝物库颜色
+_TreasureGroveTreasureColor := "0xB1B9C4"
+; 怪物Boss颜色
+_TreasureGroveBossMonsterColor := "0xEC036D"
+; 普通房间颜色
+_TreasureGroveNormalRoomColor := Map(
+    "怪物", _TreasureGroveMonsterColor,
+    "采矿", _TreasureGroveMiningColor,
+    "伐木", _TreasureGroveLoggingColor,
+    "钓鱼", _TreasureGroveFishingColor,
+    "收获", _TreasureGroveHarvestingColor,
+)
+; 特殊房间颜色
+_TreasureGroveSpecialRoomColor := Map(
+    "怪物小屋", _TreasureGroveSpecialMonsterRoomColor,
+    "熟成祭坛", _TreasureGroveAgingAltarColor,
+    "惊魂器", _TreasureGroveStrangelingColor,
+    "宝物库", _TreasureGroveTreasureColor
+)
+; Boss颜色
+_TreasureGroveBossColor := Map(
+    "怪物", _TreasureGroveBossMonsterColor,
+    "采矿", _TreasureGroveMiningColor,
+    "伐木", _TreasureGroveLoggingColor,
+    "钓鱼", _TreasureGroveFishingColor,
+    "收获", _TreasureGroveHarvestingColor
+)
+; ; Boss名字OCR范围，[x, y, w, h]，包括整个边缘虚化的Boss图片
+; _TreasureGroveBossNameOCR := [1250, 350, 590, 350]
+; Boss名字OCR范围，[x, y, w, h]，只包括Boss名字和等级
+_TreasureGroveBossNameOCR := [1250, 580, 590, 120]
+_TreasureGroveBossTypeName := Map(
+    "怪物", [""],  ; 怪物Boss
+    "采矿", [""],  ; 采矿Boss
+    "伐木", [""],  ; 伐木Boss
+    "钓鱼", [""],  ; 钓鱼Boss
+    "收获", [""]  ; 收获Boss
+)
 
 _TreasureGroveReplant() {
     UpdateStatusBar("种植")
@@ -73,38 +154,131 @@ _TreasureGroveReplant() {
     MySend("Space")
 }
 
-_TreasureGroveCheckBoss() {
-    count := 0
-    timeoutCount := 50
-    while (count < timeoutCount) {
-        bossAreaLeft := _TreasureGroveRoomZeroPos[1]
-        bossAreaRight := _TreasureGroveRoomZeroPos[1] +
-            _TreasureGroveRoomSize * 10
-        bossAreaTop := _TreasureGroveRoomZeroPos[2] +
-            _TreasureGroveRoomSize * 9 - _TreasureGroveRoomSize // 2
-        bossAreaBottom := _TreasureGroveRoomZeroPos[2] +
-            _TreasureGroveRoomSize * 10 + _TreasureGroveRoomSize // 2
-        found := PixelSearch(&xf, &yf,
-            bossAreaLeft, bossAreaTop,
-            bossAreaRight, bossAreaBottom,
-            _TreasureGroveBossGlowColor, 10)
-        if (found) {
-            UpdateStatusBar("检测到迷宫树关底boss")
-            MouseGetPos(&xm, &ym)
-            MouseMove(xf, yf)
-            ; 缓慢移动鼠标触发boss信息
-            loop 25 {
-                MouseMove(1, 1, 100, "R")
-                Sleep(4)
+/**
+ * @description 检查地图上所有房间
+ */
+_TreasureGroveCheckAllRooms() {
+    UpdateStatusBar("检查所有房间")
+    WaitUntilColorMatch(
+        _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
+        _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
+    loop 10 {  ; 遍历10行，包括第10行（Boss房间）
+        row := A_Index
+        loop 6 {  ; 遍历6个房间
+            col := A_Index
+            if (Mod(row, 2) == 0 && col == 6) {
+                continue  ; 偶数行只有5个房间
             }
-            MouseMove(xm, ym)  ; 恢复鼠标位置
-            break
+            roomType := _TreasureGroveCheckSingleRoom(row, col)
         }
-        UpdateStatusBar("等待迷宫树关底boss..." count "/" timeoutCount)
-        Sleep(100)
-        count++
     }
-    if (count >= timeoutCount) {
-        throw TimeoutError("“迷宫树关底boss”等待超时")
+}
+
+/**
+ * @description 检查单个房间类型
+ * @param row 行号（从1开始计数）
+ * @param col 列号（从1开始计数）
+ */
+_TreasureGroveCheckSingleRoom(row, col) {
+    static debugId := 1
+    static hsvMax := [0, 0, 0]
+    static hsvMin := [360, 100, 100]
+    isBoss := row == 10
+    x := _TreasureGroveRoom11Pos[1] +
+        _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
+    y := _TreasureGroveRoom11Pos[2] +
+        _TreasureGroveRoomSize * (row - 1)
+    color := UtilsGetColor(x, y)
+    hsv := UtilsRGB2HSV(color)
+    roomType := ""
+    if UtilsMatchColorHSV(
+        color, _TreasureGroveEmptyHSV, _TreasureGroveEmptyHSVVar
+    ) {
+        ; MyToolTip("空", x, y, debugId, DebugTreasureGrove)
+        ; debugId := debugId == 20 ? 1 : debugId + 1
+        return "空"
     }
+    if isBoss {
+        ; 匹配Boss房间颜色
+        for key, value in _TreasureGroveBossColor {
+            if UtilsMatchColorHSV(color, value) {
+                roomType := key
+                break
+            }
+        }
+        if roomType != "" {
+            MyToolTip(roomType, x, y, debugId, DebugTreasureGrove)
+            debugId := debugId == 20 ? 1 : debugId + 1
+            _TreasureGroveIdentifyBoss(x, y, roomType)
+            return roomType
+        }
+    } else {
+        ; 匹配特殊房间颜色
+        for key, value in _TreasureGroveSpecialRoomColor {
+            if UtilsMatchColorHSV(color, value) {
+                roomType := key
+                break
+            }
+        }
+        if roomType != "" {
+            MyToolTip(roomType, x, y, debugId, DebugTreasureGrove)
+            debugId := debugId == 20 ? 1 : debugId + 1
+            return roomType
+        }
+        ; 匹配普通房间颜色
+        for key, value in _TreasureGroveNormalRoomColor {
+            if UtilsMatchColorHSV(color, value) {
+                roomType := key
+                break
+            }
+        }
+        if roomType != "" {
+            ; MyToolTip(roomType, x, y, debugId, DebugTreasureGrove)
+            ; debugId := debugId == 20 ? 1 : debugId + 1
+            return roomType
+        }
+    }
+    MyToolTip(color "`n" hsv[1] ", " hsv[2] ", " hsv[3],
+        x, y, debugId, DebugTreasureGrove)
+    throw ValueError("未知的房间类型" color)
+}
+
+_TreasureGroveIdentifyBoss(x, y, bossType) {
+    ; 缓慢移动鼠标激活boss信息
+    MouseGetPos(&xm, &ym)
+    MouseMove(x, y)
+    loop 10 {
+        MouseMove(1, 1, 100, "R")
+        Sleep(1)
+    }
+    MouseMove(xm, ym)  ; 恢复鼠标位置
+    Sleep(500)  ; 等待界面稳定
+    ; OCR识别Boss名字
+    try {
+        result := UtilsOCRFromRect(_TreasureGroveBossNameOCR*)
+        if result.Lines.Length != 2 {
+            throw ValueError("无法解析OCR结果：`n" result.Text)
+        }
+        bossName := StrReplace(result.Lines[1].Text, " ")
+        nameMatch := false
+        for idx, value in _TreasureGroveBossTypeName[bossType] {
+            if (value == bossName) {
+                nameMatch := true
+                break
+            }
+        }
+        ; if !nameMatch {
+        ;     throw ValueError("未知的Boss名字：" bossName)
+        ; }
+        bossLevel := StrSplit(result.Lines[2].Text, " ")
+        if (bossLevel.Length != 2 ||
+            bossLevel[1] != "Lv" ||
+            !IsInteger(bossLevel[2])
+        ) {
+            throw ValueError("无法解析Boss等级：" result.Lines[2].Text)
+        }
+    } catch Error as e {
+        throw ValueError("OCR识别Boss名字失败：" e.Message)
+    }
+    UpdateStatusBar("检测到" bossLevel[2] "级Boss：" bossName)
 }
