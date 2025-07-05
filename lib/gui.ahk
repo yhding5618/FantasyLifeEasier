@@ -235,7 +235,7 @@ _CreateSectionWeaponAging(firstSection := false) {
 }
 
 _CreateSectionOnline(firstSection := false) {
-    totalRows := 4
+    totalRows := 5
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "联机房间")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "招募目的地：")
     myGui.AddDropDownList(
@@ -246,7 +246,7 @@ _CreateSectionOnline(firstSection := false) {
     myGui.AddText("yp hp 0x200", "密码：")
     myGui.AddEdit("yp hp w60 vOnline.Password", "")
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "作为房主：")
-    btn := myGui.AddButton("yp vOnline.RecruitBtn", "招募")
+    btn := myGui.AddButton("xs+76 yp vOnline.RecruitBtn", "招募")
     callback := TryAndCatch.Bind(Online_RecruitBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
@@ -258,7 +258,12 @@ _CreateSectionOnline(firstSection := false) {
     callback := TryAndCatch.Bind(Online_EndBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
-    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "作为成员：")
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(4) " xs+76 h22 vOnline.EndLoadRecruitBtn", "结束并SL重新招募")
+    callback := TryAndCatch.Bind(Online_EndLoadRecruitBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
+    myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "作为成员：")
     btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
     callback := TryAndCatch.Bind(Online_JoinBtn_Click)
     btn.OnEvent("Click", callback)
@@ -371,10 +376,10 @@ _CreateSectionScriptWindow(firstSection := false) {
     chk := myGui.AddCheckbox(
         _GroupBoxRowPos(1) " h22 vScriptControl.AlwaysOnTopChk", "置顶")
     chk.OnEvent("Click", ScriptControl_AlwaysOnTopChk_Click)
-    chk := myGui.AddCheckbox("yp hp vScriptControl.RememberWindowPos", "记住最后位置"
-    )
-    chk := myGui.AddCheckbox("yp hp vScriptControl.RememberTabIndex", "记住最后标签页"
-    )
+    chk := myGui.AddCheckbox(
+        "yp hp vScriptControl.RememberWindowPos", "记住最后位置")
+    chk := myGui.AddCheckbox(
+        "yp hp vScriptControl.RememberTabIndex", "记住最后标签页")
     myGui.AddEdit("yp w0 hp Hidden Number vScriptControl.WindowPosX", -1)
     myGui.AddEdit("yp w0 hp Hidden Number vScriptControl.WindowPosY", -1)
     myGui.AddEdit("yp w0 hp Hidden Number vScriptControl.TabIndex", 1)

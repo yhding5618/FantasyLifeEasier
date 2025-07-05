@@ -16,6 +16,16 @@ Online_EndBtn_Click() {
     _OnlineEndAsHost()
 }
 
+Online_EndLoadRecruitBtn_Click() {
+    _OnlineEndAsHost()
+    Sleep(1000)
+    LoadFromCloud()
+    Sleep(1000)
+    _TalkToColm()
+    Sleep(1000)
+    _OnlineRecruit()
+}
+
 Online_JoinBtn_Click() {
     _OnlineCheckInput()
     _TalkToColm()
@@ -251,6 +261,7 @@ _OnlineEndAsHost() {
         UtilsWindowButtonColor, "退出房间“是”")
     Sleep(500)  ; 等待确认按钮稳定
     MySend("Space")  ; 确认退出
+    WaitUntilSavingIcon()
     UpdateStatusBar("已退出")
 }
 
