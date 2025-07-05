@@ -157,6 +157,10 @@ _TreasureGroveReplant() {
  */
 _TreasureGroveCheckAllRooms() {
     UpdateStatusBar("检查所有房间")
+    targetSpecialRoom := myGui["TreasureGrove.TargetSpecialRoom"].Text
+    targetBossName := myGui["TreasureGrove.TargetBossName"].Text
+    targetSRMatch := false
+    targetBNMatch := false
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
         _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
@@ -168,14 +172,35 @@ _TreasureGroveCheckAllRooms() {
                 continue  ; 偶数行只有5个房间
             }
             roomType := _TreasureGroveCheckSingleRoom(row, col)
+            if (_TreasureGroveSpecialRoomColor.Has(roomType)) {
+                if (
+                    (targetSpecialRoom == "全部") ||
+                    (targetSpecialRoom == roomType)
+                ) {
+                    targetSRMatch := true
+                }
+            }
+            if (row == 10) {
+                bossName := roomType
+                if (
+                    (targetBossName == "") ||
+                    (targetBossName == bossName)
+                ) {
+                    targetBNMatch := true
+                }
+            }
         }
+    }
+    if (targetSRMatch || targetBNMatch) {
+        ShowSuccessMsgBox("找到目标房间", true)
     }
 }
 
 /**
  * @description 检查单个房间类型
- * @param row 行号（从1开始计数）
- * @param col 列号（从1开始计数）
+ * @param {Integer} row 行号（从1开始计数）
+ * @param {Integer} col 列号（从1开始计数）
+ * @return {String}  房间类型串或Boss名字
  */
 _TreasureGroveCheckSingleRoom(row, col) {
     static debugId := 1
@@ -207,8 +232,8 @@ _TreasureGroveCheckSingleRoom(row, col) {
         if roomType != "" {
             MyToolTip(roomType, x, y, debugId, DebugTreasureGrove)
             debugId := debugId == 20 ? 1 : debugId + 1
-            _TreasureGroveIdentifyBoss(x, y, roomType)
-            return roomType
+            bossName := _TreasureGroveIdentifyBoss(x, y, roomType)
+            return bossName
         }
     } else {
         ; 匹配特殊房间颜色
@@ -269,4 +294,5 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
         throw ValueError("OCR识别Boss名字失败：" e.Message)
     }
     UpdateStatusBar("检测到" bossType "Boss：" bossName)
+    return bossName
 }

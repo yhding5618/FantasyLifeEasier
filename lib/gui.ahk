@@ -193,25 +193,30 @@ _CreateSectionMiniGame(firstSection := false) {
 }
 
 _CreateSectionTreasureGrove(firstSection := false) {
-    totalRows := 3
+    totalRows := 4
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "扭蛋迷宫树")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "年代选择：向")
     myGui.AddDropDownList(
         "yp w36 Choose2 AltSubmit vTreasureGrove.YearMoveDir", ["上", "下"])
     myGui.AddEdit("yp w36")
     myGui.AddUpDown("vTreasureGrove.YearMoveCount Range1-10 0x80", 1)
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "检查特殊房：")
+    myGui.AddDropDownList(
+        "yp w70 Choose1 AltSubmit vTreasureGrove.TargetSpecialRoom",
+        ["全部", "怪物小屋", "熟成祭坛", "惊魂器", "宝物库"])
+    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "检查Boss：")
+    myGui.AddEdit("yp hp w150 0x200 vTreasureGrove.TargetBossName")
     btn := myGui.AddButton(
-        _GroupBoxRowPos(2) " vTreasureGrove.ReplantBtn", "重新种植")
+        _GroupBoxRowPos(4) " vTreasureGrove.ReplantBtn", "重新种植")
     callback := TryAndCatch.Bind(TreasureGrove_ReplantBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
+    btn := myGui.AddButton("yp vTreasureGrove.CheckRoomBtn", "手动检查地图")
+    callback := TryAndCatch.Bind(TreasureGrove_CheckRoomBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton("yp vTreasureGrove.NextReplantBtn", "下一次重新种植")
     callback := TryAndCatch.Bind(TreasureGrove_NextReplantBtn_Click)
-    btn.OnEvent("Click", callback)
-    _AddBtnToHotkeyList(btn, callback)
-    btn := myGui.AddButton(
-        _GroupBoxRowPos(3) " vTreasureGrove.CheckRoomBtn", "检查房间")
-    callback := TryAndCatch.Bind(TreasureGrove_CheckRoomBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
 }

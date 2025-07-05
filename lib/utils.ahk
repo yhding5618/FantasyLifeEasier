@@ -319,8 +319,8 @@ UtilsOCRFromRegion(x, y, w, h, color) {
             p := scan0 + (ih * stride) + (iw * 4)
             argb := NumGet(p, 0, "UInt")
             rgb := Format("0x{:X}", argb & 0x00FFFFFF)
-            match := UtilsMatchColorHSV(rgb, color)
-            c := match ? "0x000000" : "0xFFFFFF"
+            match := UtilsMatchColorHSV(rgb, color, 8)
+            c := match ? "0xFF0000" : "0x00FFFF"
             NumPut('UInt', c, p)
         }
     }
