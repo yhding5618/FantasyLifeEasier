@@ -20,7 +20,14 @@ MiniGame_ContinuousActionBtn_Click() {
         }
     }
     AppendStatusBar("，结束于工作台" station)
-    WaitUntilConversationSpace()  ; 等待“道具制作完成”
+    WaitUntilConversationSpace(500, 40)  ; 等待“道具制作完成”
+    UpdateStatusBar("制作完成")
+    _MiniGameIdentifyNewSkills()
+}
+
+MiniGame_CheckSkillBtn_Click() {
+    UpdateStatusBar("检查技能")
+    _MiniGameIdentifyNewSkills()
 }
 
 /**
@@ -38,6 +45,20 @@ _MiniGameDoNextAction(&station, &done) {
     }
     action := _MiniGameGoNextStation(&station)
     _MiniGameDoAction(action)
+}
+
+_MiniGameNewSkillsOCR := [
+    1268, 347, 360, 160, "0x6B3B0D", 20]
+
+_MiniGameIdentifyNewSkills() {
+    result := UtilsOCRFromRegionEnhanced(_MiniGameNewSkillsOCR*)
+    targetSkill := myGui["MiniGame.TargetSkill"].Text
+    for index, line in result.Lines {
+        newSkill := StrReplace(line.Text, " ")
+        if (newSkill == targetSkill) {
+            ShowSuccessMsgBox("识别到新技能：" newSkill, true)
+        }
+    }
 }
 
 _MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置

@@ -279,7 +279,15 @@ WaitUntilColorNotMatch(x, y, color, title,
     throw TimeoutError(title "颜色消失超时")
 }
 
-UtilsOCRFromRect(x, y, w, h) {
+/**
+ * @description 从指定区域获取Bitmap对象并进行标准OCR识别
+ * @param {Integer} x 区域左上角X坐标
+ * @param {Integer} y 区域左上角Y坐标
+ * @param {Integer} w 区域宽度
+ * @param {Integer} h 区域高度
+ * @return {OCR.Result} 返回OCR识别结果对象
+ */
+UtilsOCRFromRegion(x, y, w, h) {
     if (Type(OCR) != "Class") {
         throw TypeError("OCR类未正确加载")
     }
@@ -290,21 +298,21 @@ UtilsOCRFromRect(x, y, w, h) {
         invertcolors: false,
         rotate: 0
     })
-    result.Highlight(result.Lines[1])
     MyToolTip(result.Text, x, y + h, 20, true)
     return result
 }
 
 /**
- * @description 从指定区域获取Bitmap对象并进行OCR识别
+ * @description 从指定区域获取Bitmap对象并进行颜色增强OCR识别
  * @param {Integer} x 区域左上角X坐标
  * @param {Integer} y 区域左上角Y坐标
  * @param {Integer} w 区域宽度
  * @param {Integer} h 区域高度
  * @param {String} color 字体颜色
+ * @param {Integer} hsvVar HSV颜色变化范围（默认8）
  * @return {OCR.Result} 返回OCR识别结果对象
  */
-UtilsOCRFromRegion(x, y, w, h, color) {
+UtilsOCRFromRegionEnhanced(x, y, w, h, color, hsvVar := 8) {
     if !pToken := Gdip_Startup() {
         throw Error("Gdi+启动失败")
     }
@@ -319,7 +327,7 @@ UtilsOCRFromRegion(x, y, w, h, color) {
             p := scan0 + (ih * stride) + (iw * 4)
             argb := NumGet(p, 0, "UInt")
             rgb := Format("0x{:X}", argb & 0x00FFFFFF)
-            match := UtilsMatchColorHSV(rgb, color, 8)
+            match := UtilsMatchColorHSV(rgb, color, hsvVar)
             c := match ? "0xFF0000" : "0x00FFFF"
             NumPut('UInt', c, p)
         }
@@ -327,6 +335,7 @@ UtilsOCRFromRegion(x, y, w, h, color) {
     Gdip_UnlockBits(pBitmap, &bitmapData)
     Gdip_SaveBitmapToFile(pBitmap, "ocr.png")
     result := OCR.FromBitmap(pBitmap, "zh-CN")
+    MyToolTip(result.Text, x, y + h, 20, true)
     Gdip_DisposeImage(pBitmap)
     Gdip_Shutdown(pToken)
     return result
@@ -463,10 +472,10 @@ UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
 /**
  * @description 等待对话界面交互空格键加载完成
  */
-WaitUntilConversationSpace() {
+WaitUntilConversationSpace(interval := 100, timeoutCount := 50) {
     WaitUntilColorMatch(
         UtilsConversationSpacePixel[1], UtilsConversationSpacePixel[2],
-        UtilsConversationSpacePixel[3], "空格按钮")
+        UtilsConversationSpacePixel[3], "空格按钮", interval, timeoutCount)
     Sleep(500)  ; 等待对话界面稳定
 }
 

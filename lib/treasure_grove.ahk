@@ -278,7 +278,7 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
     Sleep(500)  ; 等待界面稳定
     ; OCR识别Boss名字
     try {
-        result := UtilsOCRFromRegion(_TreasureGroveBossNameOCR*)
+        result := UtilsOCRFromRegionEnhanced(_TreasureGroveBossNameOCR*)
         if result.Lines.Length != 1 {
             throw ValueError("无法解析OCR结果：`n" result.Text)
         }
