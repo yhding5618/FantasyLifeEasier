@@ -295,6 +295,43 @@ UtilsOCRFromRect(x, y, w, h) {
     return result
 }
 
+/**
+ * @description 从指定区域获取Bitmap对象并进行OCR识别
+ * @param {Integer} x 区域左上角X坐标
+ * @param {Integer} y 区域左上角Y坐标
+ * @param {Integer} w 区域宽度
+ * @param {Integer} h 区域高度
+ * @param {String} color 字体颜色
+ * @return {OCR.Result} 返回OCR识别结果对象
+ */
+UtilsOCRFromRegion(x, y, w, h, color) {
+    if !pToken := Gdip_Startup() {
+        throw Error("Gdi+启动失败")
+    }
+    WinGetClientPos(&gx, &gy, , , GameWindowTitle)
+    region := (gx + x) "|" (gy + y) "|" w "|" h  ; x|y|w|h
+    pBitmap := Gdip_BitmapFromScreen(region)
+    E := Gdip_LockBits(pBitmap, 0, 0, w, h, &stride, &scan0, &bitmapData)
+    loop w {
+        iw := A_Index - 1
+        loop h {
+            ih := A_Index - 1
+            p := scan0 + (ih * stride) + (iw * 4)
+            argb := NumGet(p, 0, "UInt")
+            rgb := Format("0x{:X}", argb & 0x00FFFFFF)
+            match := UtilsMatchColorHSV(rgb, color)
+            c := match ? "0x000000" : "0xFFFFFF"
+            NumPut('UInt', c, p)
+        }
+    }
+    Gdip_UnlockBits(pBitmap, &bitmapData)
+    Gdip_SaveBitmapToFile(pBitmap, "ocr.png")
+    result := OCR.FromBitmap(pBitmap, "zh-CN")
+    Gdip_DisposeImage(pBitmap)
+    Gdip_Shutdown(pToken)
+    return result
+}
+
 WaitUntilPixelSearch(
     x, y, color,
     range := 10, colorVariation := 0,

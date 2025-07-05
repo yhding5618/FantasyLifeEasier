@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugTreasureGrove := true
+DebugTreasureGrove := false
 _ReplantDebugID := 1
 
 TreasureGrove_ReplantBtn_Click() {
@@ -92,10 +92,8 @@ _TreasureGroveBossColor := Map(
     "钓鱼", _TreasureGroveFishingColor,
     "收获", _TreasureGroveHarvestingColor
 )
-; ; Boss名字OCR范围，[x, y, w, h]，包括整个边缘虚化的Boss图片
-; _TreasureGroveBossNameOCR := [1250, 350, 590, 350]
-; Boss名字OCR范围，[x, y, w, h]，只包括Boss名字和等级
-_TreasureGroveBossNameOCR := [1250, 580, 590, 120]
+; Boss名字OCR范围和颜色，[x, y, w, h]，只包括Boss名字
+_TreasureGroveBossNameOCR := [1300, 600, 500, 40, "0xF2EAD8"]
 _TreasureGroveBossTypeName := Map(
     "怪物", [""],  ; 怪物Boss
     "采矿", [""],  ; 采矿Boss
@@ -255,11 +253,11 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
     Sleep(500)  ; 等待界面稳定
     ; OCR识别Boss名字
     try {
-        result := UtilsOCRFromRect(_TreasureGroveBossNameOCR*)
-        if result.Lines.Length != 2 {
+        result := UtilsOCRFromRegion(_TreasureGroveBossNameOCR*)
+        if result.Lines.Length != 1 {
             throw ValueError("无法解析OCR结果：`n" result.Text)
         }
-        bossName := StrReplace(result.Lines[1].Text, " ")
+        bossName := StrReplace(result.Text, " ")
         nameMatch := false
         for idx, value in _TreasureGroveBossTypeName[bossType] {
             if (value == bossName) {
@@ -267,18 +265,8 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
                 break
             }
         }
-        ; if !nameMatch {
-        ;     throw ValueError("未知的Boss名字：" bossName)
-        ; }
-        bossLevel := StrSplit(result.Lines[2].Text, " ")
-        if (bossLevel.Length != 2 ||
-            bossLevel[1] != "Lv" ||
-            !IsInteger(bossLevel[2])
-        ) {
-            throw ValueError("无法解析Boss等级：" result.Lines[2].Text)
-        }
     } catch Error as e {
         throw ValueError("OCR识别Boss名字失败：" e.Message)
     }
-    UpdateStatusBar("检测到" bossLevel[2] "级Boss：" bossName)
+    UpdateStatusBar("检测到" bossType "Boss：" bossName)
 }
