@@ -210,14 +210,19 @@ UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
  * @param {Integer} x 像素X坐标
  * @param {Integer} y 像素Y坐标
  * @param {String} color 期望的像素颜色
- * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {(Integer|Array)} pixelRange 像素匹配范围，Integer表示正方形范围，Array表示[X, Y]（默认5）
  * @param {Integer} colorVariation 颜色变化范围（默认10）
  * @return {Integer} 如果当前像素颜色与期望颜色匹配则返回true，否则返回false
  */
 SearchColorMatch(x, y, color, pixelRange := 5, colorVariation := 10) {
+    if (Type(pixelRange) == "Integer") {
+        pixelRange := [pixelRange, pixelRange]
+    } else if (Type(pixelRange) != "Array" || pixelRange.Length != 2) {
+        throw ValueError("pixelRange必须是整数或包含两个整数的数组")
+    }
     return PixelSearch(&xf, &yf,
-        x - pixelRange, y - pixelRange,
-        x + pixelRange, y + pixelRange,
+        x - pixelRange[1], y - pixelRange[2],
+        x + pixelRange[1], y + pixelRange[2],
         color, colorVariation)
 }
 

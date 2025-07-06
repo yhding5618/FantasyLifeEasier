@@ -164,7 +164,7 @@ _CreateSectionLongCape(firstSection := false) {
 }
 
 _CreateSectionMiniGame(firstSection := false) {
-    totalRows := 7
+    totalRows := 8
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "小游戏")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "连按次数：")
     myGui.AddEdit("xp+110 yp hp w50", "10")
@@ -196,6 +196,11 @@ _CreateSectionMiniGame(firstSection := false) {
         ["光属性伤害提升", "暗属性伤害提升", "（可以自定义）"])
     btn := myGui.AddButton("yp vMiniGame.CheckSkillBtn", "检查技能")
     callback := TryAndCatch.Bind(MiniGame_CheckSkillBtn_Click)
+    btn.OnEvent("Click", callback)
+    _AddBtnToHotkeyList(btn, callback)
+    btn := myGui.AddButton(
+        _GroupBoxRowPos(8) " vMiniGame.AutoCraftAgainBtn", "自动再次制作")
+    callback := TryAndCatch.Bind(MiniGame_AutoCraftAgainBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
 }
