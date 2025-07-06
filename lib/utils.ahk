@@ -475,7 +475,7 @@ UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
 WaitUntilConversationSpace(interval := 100, timeoutCount := 50) {
     WaitUntilColorMatch(
         UtilsConversationSpacePixel[1], UtilsConversationSpacePixel[2],
-        UtilsConversationSpacePixel[3], "空格按钮", interval, timeoutCount)
+        UtilsConversationSpacePixel[3], "空格按钮", , , interval, timeoutCount)
     Sleep(500)  ; 等待对话界面稳定
 }
 
