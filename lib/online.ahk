@@ -237,9 +237,9 @@ _OnlineEndAsHost() {
     UpdateStatusBar("退出房间")
     pos := OpenMenuAndMoveToIcon(2, 3, 4)  ; [1246, 794]
     loop 10 {
-        isCave := SearchColorMatch(
+        isCave := SearchColorMatch(  ; 离开
             pos[1], pos[2], _OnlineEndCaveIconColor, 2)
-        isMountain := SearchColorMatch(
+        isMountain := SearchColorMatch(  ; 解散
             pos[1], pos[2], _OnlineEndMountainIconColor, 2)
         if (isCave || isMountain) {
             break
@@ -261,7 +261,9 @@ _OnlineEndAsHost() {
         UtilsWindowButtonColor, "退出房间“是”")
     Sleep(500)  ; 等待确认按钮稳定
     MySend("Space")  ; 确认退出
-    WaitUntilSavingIcon()
+    if (isMountain) {
+        WaitUntilSavingIcon()
+    }
     UpdateStatusBar("已退出")
 }
 
