@@ -39,8 +39,8 @@ _LegendaryQuestList := [
 ]
 
 LegendaryCheckMap() {
-    posRange := 10
-    colorRange := 10
+    posRange := 20
+    colorRange := 15
     foundQuestList := []
     anyIncludedAndFound := false
     for index, quest in _LegendaryQuestList {
