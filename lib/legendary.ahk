@@ -64,7 +64,7 @@ LegendaryCheckMap() {
     if (!anyIncludedAndFound) {
         UpdateStatusBar("未找到任何传奇任务")
     }
-    if (foundQuestList.Length == 1) {
+    else if (foundQuestList.Length == 1) {
         UpdateStatusBar("在" _LegendaryQuestList[foundQuestList[1]][1] "找到传奇任务")
     }
     else {
@@ -73,7 +73,6 @@ LegendaryCheckMap() {
 }
 
 _LegendaryText1Pos := [1327, 337]  ; "区域"位置
-_LegendaryText2Pos := [975, 913]  ; "OK"位置
 _LegendaryTextColor := "0xF8F0DC"  ; "区域"颜色
 _LegendaryLevelPos := [151, 295]  ; 等级标识位置
 _LegendaryLevelLockedColor := "0x978056"  ; 等级标识未解锁颜色
@@ -107,18 +106,15 @@ LegendaryRefreshMap() {
         } else {
             throw ValueError("等级检测异常")
         }
-        MySend("e", , 500)  ; 切换等级
+        MySend("e", , 100)  ; 切换等级
         count++
         if (count == maxCount) {
             throw ValueError("未找到可选择的等级")
         }
     }
-    MySend("Space")  ; 确认选择
-    WaitUntilColorMatch(
-        _LegendaryText2Pos[1], _LegendaryText2Pos[2],
-        _LegendaryTextColor, "确认区域")
+    MySend("Space", , 500)  ; 确认选择
     MySend("Space", , 1000)  ; 确认切换
     MySend("Escape", , 500)  ; 退出对话
-    MySend("m")  ; 打开地图
+    MySend("m", , 800)  ; 打开地图并等待地图加载
     UpdateStatusBar("地图刷新完成")
 }
