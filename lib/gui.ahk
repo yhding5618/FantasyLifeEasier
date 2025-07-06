@@ -203,6 +203,7 @@ _CreateSectionMiniGame(firstSection := false) {
     callback := TryAndCatch.Bind(MiniGame_AutoCraftAgainBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
+    chk := myGui.AddCheckbox("yp hp 0x200 vMiniGame.AutoCaptureChk", "自动截图")
 }
 
 _CreateSectionTreasureGrove(firstSection := false) {

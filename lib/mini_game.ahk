@@ -35,7 +35,9 @@ MiniGame_AutoCraftAgainBtn_Click() {
         MiniGame_ContinuousActionBtn_Click()
         count++
         UpdateStatusBar("已完成制作 " count " 次")
-        MySend("F12", , 500)  ; 截图
+        if myGui["MiniGame.AutoCaptureChk"].Value {
+            MySend("F12", , 500)  ; 截图
+        }
         MySend("Space", , 3000)  ; 确认制作完成
         MySend("s", , 500)  ; 选择再次制作
         MySend("Space", , 500)  ; 确认再次制作
