@@ -256,6 +256,42 @@ WaitUntilColorMatch(x, y, color, title,
 }
 
 /**
+ * @description 等待两个指定像素颜色的其中一个出现
+ * @param {Array} pos1 第一个像素位置数组 [x, y]
+ * @param {String} color1 第一个像素颜色
+ * @param {Array} pos2 第二个像素位置数组 [x, y]
+ * @param {String} color2 第二个像素颜色
+ * @param {String} title 窗口标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5)
+ * @param {Integer} colorVariation 颜色变化范围（默认10）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认100）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认50）
+ * @returns {Integer} 返回匹配的像素索引（1或2）
+ */
+WaitUntil2ColorMatch(pos1, color1, pos2, color2, title,
+    pixelRange := 5, colorVariation := 10,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        match1 := SearchColorMatch(
+            pos1[1], pos1[2], color1, pixelRange, colorVariation)
+        match2 := SearchColorMatch(
+            pos2[1], pos2[2], color2, pixelRange, colorVariation)
+        if (match1 ^ match2) {
+            match := match1 ? 1 : 2
+            UpdateStatusBar("检测到" title "结束[" match "]"
+            )
+            return match
+        }
+        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        Sleep(interval)
+        count++
+    }
+    throw TimeoutError(title "颜色匹配超时")
+}
+
+/**
  * @description 等待指定像素颜色消失
  * @param {Integer} x 像素X坐标
  * @param {Integer} y 像素Y坐标
@@ -418,13 +454,13 @@ OpenMenuAndMoveToIcon(page, row, col) {
     return [x, y]
 }
 
-WaitUntilSavingIcon() {
+WaitUntilSavingIcon(interval := 100, timeoutCount := 500) {
     count := 0
     savingIconPos := [85, 370]  ; 保存中图标位置
     savingIconColor := "0xFFDC7E"  ; 保存中图标颜色
     WaitUntilColorMatch(
         savingIconPos[1], savingIconPos[2],
-        savingIconColor, "保存中图标", 5, , 100, 500)
+        savingIconColor, "保存中图标", 5, , interval, timeoutCount)
 }
 
 ; 高位“是”按钮位置，用于：离开房间，确认重新种植
@@ -432,10 +468,10 @@ UtilsWindowYes1Pos := [706, 885]
 ; 高位“否”按钮位置，用于：离开房间，确认重新种植
 UtilsWindowNo1Pos := [1218, 885]
 ; 中位“是”按钮位置，用于：注意返回标题，注意加载覆盖，
-; 确认在线出发探险，确认在线退出房间，确认在线解散房间
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowYes2Pos := [706, 940]
 ; 中位“否”按钮位置，用于：注意返回标题，注意加载覆盖，
-; 确认在线出发探险，确认在线退出房间，确认在线解散房间
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowNo2Pos := [1218, 940]
 ; 低位“是”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowYes3Pos := [706, 960]
@@ -462,12 +498,14 @@ UtilsWindowOK5Pos := [965, 940]
 ; 按钮背景颜色
 UtilsWindowButtonColor := "0x88FF74"
 ; 右侧二短选项时首选项位置，用于：在线选择出发
-UtilsOptionListTopIn2GlowPos := [1351, 477]
-; 右侧三选项时首选项位置，用于：迷宫树对话
+UtilsShortOptionListTopIn2GlowPos := [1351, 477]
+; 右侧二选项时首选项位置，用于：科隆对话
+UtilsOptionListTopIn2GlowPos := [1293, 436]
+; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话
 UtilsOptionListTopIn3GlowPos := [1293, 403]
 ; 右侧五选项时首选项位置，用于：迷宫树对话
 UtilsOptionListTopIn5GlowPos := [1293, 283]
-; 右侧选项发光颜色，用于：迷宫树对话
+; 右侧选项发光颜色，用于：大部分对话选项
 UtilsOptionListGlowColor := "0xAFF258"
 ; 交互按键背景颜色
 UtilsKeyBackgroundColor := "0x93805B"
@@ -482,6 +520,37 @@ WaitUntilConversationSpace(interval := 100, timeoutCount := 50) {
         UtilsConversationSpacePixel[1], UtilsConversationSpacePixel[2],
         UtilsConversationSpacePixel[3], "空格按钮", , , interval, timeoutCount)
     Sleep(500)  ; 等待对话界面稳定
+}
+
+/**
+ * @description 等待指定按钮加载完成
+ * @param {Integer} x 按钮X坐标
+ * @param {Integer} y 按钮Y坐标
+ * @param {String} title 按钮标题
+ * @param {Integer} pixelRange 像素匹配范围（默认20)
+ * @param {Integer} colorVariation 颜色变化范围（默认3）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认100）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认50）
+ */
+WaitUntilButton(
+    x, y, title,
+    pixelRange := 20, colorVariation := 3,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        found := SearchColorMatch(
+            x, y, UtilsKeyBackgroundColor,
+            pixelRange, colorVariation)
+        if (found) {
+            UpdateStatusBar("检测到" title "按钮加载完成")
+            return
+        }
+        UpdateStatusBar("等待" title "按钮加载完成..." count "/" timeoutCount)
+        Sleep(interval)
+        count++
+    }
+    throw TimeoutError(title "按钮加载超时")
 }
 
 UtilsMapPixel := [1635, 74, "0x0373FF"]  ; 地图右上角标记logo

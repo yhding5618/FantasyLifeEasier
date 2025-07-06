@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugTreasureGrove := false
+DebugTreasureGrove := true
 _ReplantDebugID := 1
 
 TreasureGrove_ReplantBtn_Click() {
@@ -204,8 +204,6 @@ _TreasureGroveCheckAllRooms() {
  */
 _TreasureGroveCheckSingleRoom(row, col) {
     static debugId := 1
-    static hsvMax := [0, 0, 0]
-    static hsvMin := [360, 100, 100]
     isBoss := row == 10
     x := _TreasureGroveRoom11Pos[1] +
         _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
@@ -295,4 +293,56 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
     }
     UpdateStatusBar("检测到" bossType "Boss：" bossName)
     return bossName
+}
+
+TreasureGroveFindAgingAltar() {
+    WaitUntilColorMatch(
+        _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
+        _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
+    UpdateStatusBar("寻找熟成祭坛")
+    loop 9 {  ; 遍历9行
+        row := A_Index
+        loop 6 {  ; 遍历6个房间
+            col := A_Index
+            try {
+                roomType := _TreasureGroveCheckSingleRoom(row, col)
+            } catch {
+                continue
+            }
+            if (roomType == "熟成祭坛") {
+                UpdateStatusBar("找到熟成祭坛")
+                x := _TreasureGroveRoom11Pos[1] +
+                    _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
+                y := _TreasureGroveRoom11Pos[2] +
+                    _TreasureGroveRoomSize * (row - 1)
+                return [x, y]
+            }
+        }
+    }
+    throw ValueError("未找到熟成祭坛")
+}
+
+TreasureGroveFindBoss() {
+    WaitUntilColorMatch(
+        _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
+        _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
+    UpdateStatusBar("寻找Boss房间")
+    row := 10  ; Boss房间在第10行
+    loop 6 {  ; 遍历6个房间
+        col := A_Index
+        try {
+            roomType := _TreasureGroveCheckSingleRoom(row, col)
+        } catch {
+            continue
+        }
+        if (roomType != "空") {
+            UpdateStatusBar("找到Boss房间：" roomType)
+            x := _TreasureGroveRoom11Pos[1] +
+                _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
+            y := _TreasureGroveRoom11Pos[2] +
+                _TreasureGroveRoomSize * (row - 1)
+            return [x, y]
+        }
+    }
+    throw ValueError("未找到Boss房间")
 }
