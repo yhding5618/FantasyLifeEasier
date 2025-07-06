@@ -527,7 +527,7 @@ WaitUntilConversationSpace(interval := 100, timeoutCount := 50) {
  * @param {Integer} x 按钮X坐标
  * @param {Integer} y 按钮Y坐标
  * @param {String} title 按钮标题
- * @param {Integer} pixelRange 像素匹配范围（默认20)
+ * @param {(Integer|Array)} pixelRange 像素匹配范围，Integer表示正方形范围，Array表示[X, Y]（默认20）
  * @param {Integer} colorVariation 颜色变化范围（默认3）
  * @param {Integer} interval 检查间隔时间（毫秒，默认100）
  * @param {Integer} timeoutCount 超时时间（检查次数，默认50）

@@ -20,9 +20,7 @@ Online_EndLoadRecruitBtn_Click() {
     count := 1
     while (true) {
         MyToolTip("第" count "车", 0, 0, 1, DebugOnline)
-        if (count != 1) {
-            LoadFromCloud()  ; 第一次之后每次重新加载云
-        }
+        LoadFromCloud()
         _TalkToColm()  ; 与科隆对话
         _OnlineRecruit()  ; 开始招募
         _OnlineWaitForBaseCampUI()  ; 等待加载营地界面
@@ -98,12 +96,12 @@ _TalkToColm() {
     if (match == 2) {  ; 三选项时向下一次
         MySend("s", , 200)
     }
-    Sleep(100)
+    Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
         _OnlineCounterInternetPixel[1], _OnlineCounterInternetPixel[2],
         _OnlineCounterInternetPixel[3], "确认连接")
-    Sleep(100)
+    Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
         _OnlineCounterMultiplayerPixel[1], _OnlineCounterMultiplayerPixel[2],
@@ -112,7 +110,7 @@ _TalkToColm() {
 
 _OnlineRecruit() {
     UpdateStatusBar("选择招募")
-    Sleep(100)
+    Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
         _OnlineRecruitButtonPixel[1], _OnlineRecruitButtonPixel[2],
@@ -249,16 +247,28 @@ _OnlineHeadOutAsHost() {
     MySend("Space")  ; 确认出发
 }
 
-; 迷宫内交互[F]位置
-_OnlineGroveInteractButtonPos := [1017, 500]
+; 迷宫内交互[F]位置（先是y=500，视角自动调整后变400）
+_OnlineGroveInteractButton1Pos := [1017, 500]
+_OnlineGroveInteractButton2Pos := [1017, 400]
 
 _OnlineFinishAgingAndBoss() {
     WaitUntilSavingIcon()  ; 等待保存图标出现（界面加载完成）
-    _OnlineMoveForwardUntilInteract("传送阵")  ; 到传送阵
+    _OnlineMoveForwardUntilInteract("传送阵", 6)  ; 到传送阵
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindAgingAltar()
     MouseMove(pos[1], pos[2])
-    MouseClick()
+    loop (4 * 3) {
+        if Mod(A_Index, 4) == 1 {
+            MouseMove(80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 2 {
+            MouseMove(-80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 3 {
+            MouseMove(-80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 0 {
+            MouseMove(80, -80, 100, "R")
+        }
+        Sleep(1)
+    }
     Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
@@ -267,18 +277,31 @@ _OnlineFinishAgingAndBoss() {
     Sleep(500)
     MySend("Space")
     WaitUntilSavingIcon()
-    _OnlineMoveForwardUntilInteract("熟成祭坛")  ; 到熟成祭坛
-    MySend("a", 500)
+    ; _OnlineMoveForwardUntilInteract("熟成祭坛", 8)  ; 到熟成祭坛
+    ; MySend("a", 500)
+    ; MySend("w", 500)
+    ; MySend("d", 500)
+    ; MySend("w", 500)  ; 绕过熟成祭坛
+    MySend("a", 250)
     MySend("w", 500)
-    MySend("d", 500)
-    MySend("w", 1000)  ; 绕过熟成祭坛
-    _OnlineMoveForwardUntilInteract("传送阵")  ; 到传送阵
+    _OnlineMoveForwardUntilInteract("传送阵", 15)  ; 到传送阵
     UpdateStatusBar("已暂停，等待队友完成熟成后按F3继续")
-    Pause()
+    MySend("F3")
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindBoss()
     MouseMove(pos[1], pos[2])
-    MouseClick()
+    loop (4 * 3) {
+        if Mod(A_Index, 4) == 1 {
+            MouseMove(80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 2 {
+            MouseMove(-80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 3 {
+            MouseMove(-80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 0 {
+            MouseMove(80, -80, 100, "R")
+        }
+        Sleep(1)
+    }
     Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
@@ -286,31 +309,41 @@ _OnlineFinishAgingAndBoss() {
         UtilsWindowButtonColor, "确认楼层“是”")
     Sleep(500)
     MySend("Space")
-    WaitUntilSavingIcon()
-    UpdateStatusBar("已暂停等待队友完成Boss战")
     Sleep(5000)
     count := 0
     timeoutCount := 300
     while (count < timeoutCount) {
         try {
-            WaitUntilSavingIcon(100, 1000)  ;一次等10秒
+            WaitUntilConversationSpace(100, 1000)  ;一次等10秒
         } catch {
             UpdateStatusBar("等待Boss战... " count "/" timeoutCount)
             count++
-        } else {
-            UpdateStatusBar("已完成Boss战")
-            return
+            continue
         }
+        UpdateStatusBar("已完成Boss战")
+        break
     }
-    throw TimeoutError("等待Boss战结束超时")
+    if (count >= timeoutCount) {
+        throw TimeoutError("等待Boss战结束超时")
+    }
+    MySend(1000)
+    MySend("Space", , 1000)
+    WaitUntilConversationSpace()
+    MySend("Space", , 1000)
+    _OnlineWaitForBaseCampUI()
 }
 
-_OnlineMoveForwardUntilInteract(title) {
+_OnlineMoveForwardUntilInteract(title, count) {
     UpdateStatusBar("前进到" title "交互[F]")
     MyPress("w")
+    loop count {
+        UpdateStatusBar("转" count)
+        MySend("r", , 650)
+    }
     try {
-        WaitUntilButton(
-            _OnlineGroveInteractButtonPos[1], _OnlineGroveInteractButtonPos[2],
+        WaitUntilButton(  ; 同时检测y=400和y=500的交互按钮
+            _OnlineGroveInteractButton1Pos[1], _OnlineGroveInteractButton1Pos[2
+            ],
             "迷宫内" title "交互[F]", , , 100, 300)
     } catch {
         MyRelease("w")
@@ -355,6 +388,11 @@ _OnlineEndAsHost() {
     MySend("Space")  ; 确认退出
     if (isMountain) {
         WaitUntilSavingIcon()
+    }
+    if (isCave) {
+        WaitUntilButton(
+            _OnlineHeadOutButtonPos[1], _OnlineHeadOutButtonPos[2],
+            "联机出发[U]", , , 100, 500)
     }
     UpdateStatusBar("已退出")
 }

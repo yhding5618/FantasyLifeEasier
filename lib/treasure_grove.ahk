@@ -328,21 +328,20 @@ TreasureGroveFindBoss() {
         _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
     UpdateStatusBar("寻找Boss房间")
     row := 10  ; Boss房间在第10行
-    loop 6 {  ; 遍历6个房间
+    loop 5 {  ; 遍历5个房间
         col := A_Index
-        try {
-            roomType := _TreasureGroveCheckSingleRoom(row, col)
-        } catch {
-            continue
+        x := _TreasureGroveRoom11Pos[1] +
+            _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
+        y := _TreasureGroveRoom11Pos[2] +
+            _TreasureGroveRoomSize * (row - 1)
+        color := UtilsGetColor(x, y)
+        if UtilsMatchColorHSV(
+            color, _TreasureGroveEmptyHSV, _TreasureGroveEmptyHSVVar
+        ) {
+            continue  ; 跳过空房间
         }
-        if (roomType != "空") {
-            UpdateStatusBar("找到Boss房间：" roomType)
-            x := _TreasureGroveRoom11Pos[1] +
-                _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
-            y := _TreasureGroveRoom11Pos[2] +
-                _TreasureGroveRoomSize * (row - 1)
-            return [x, y]
-        }
+        UpdateStatusBar("找到Boss房间")
+        return [x, y]
     }
     throw ValueError("未找到Boss房间")
 }
