@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugTreasureGrove := true
+DebugTreasureGrove := false
 _ReplantDebugID := 1
 
 TreasureGrove_ReplantBtn_Click() {
@@ -158,7 +158,8 @@ _TreasureGroveReplant() {
 _TreasureGroveCheckAllRooms() {
     UpdateStatusBar("检查所有房间")
     targetSpecialRoom := myGui["TreasureGrove.TargetSpecialRoom"].Text
-    targetBossName := myGui["TreasureGrove.TargetBossName"].Text
+    ; targetBossName := myGui["TreasureGrove.TargetBossName"].Text
+    targetBossName := ""
     targetSRMatch := false
     targetBNMatch := false
     WaitUntilColorMatch(
@@ -191,7 +192,7 @@ _TreasureGroveCheckAllRooms() {
             }
         }
     }
-    if (targetSRMatch || targetBNMatch) {
+    if (targetSRMatch) {
         ShowSuccessMsgBox("找到目标房间", true)
     }
 }
@@ -277,9 +278,6 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
     ; OCR识别Boss名字
     try {
         result := UtilsOCRFromRegionEnhanced(_TreasureGroveBossNameOCR*)
-        if result.Lines.Length != 1 {
-            throw ValueError("无法解析OCR结果：`n" result.Text)
-        }
         bossName := StrReplace(result.Text, " ")
         nameMatch := false
         for idx, value in _TreasureGroveBossTypeName[bossType] {
@@ -289,12 +287,17 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
             }
         }
     } catch Error as e {
-        throw ValueError("OCR识别Boss名字失败：" e.Message)
+        ; throw ValueError("OCR识别Boss名字失败：" e.Message)
+        bossName := "未知Boss"
     }
     UpdateStatusBar("检测到" bossType "Boss：" bossName)
     return bossName
 }
 
+/**
+ * @description 寻找熟成祭坛在地图中的位置，目前仅用于自动循环熟成车
+ * @return {Array} [x, y] 祭坛位置坐标
+ */
 TreasureGroveFindAgingAltar() {
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
@@ -322,6 +325,10 @@ TreasureGroveFindAgingAltar() {
     throw ValueError("未找到熟成祭坛")
 }
 
+/**
+ * @description 寻找Boss房间在地图中的位置，目前仅用于自动循环熟成车
+ * @return {Array} [x, y] Boss房间位置坐标
+ */
 TreasureGroveFindBoss() {
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],

@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugMiniGame := true
+DebugMiniGame := false
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
@@ -98,11 +98,12 @@ _MiniGameNewSkillsOCR := [
 
 _MiniGameIdentifyNewSkills() {
     result := UtilsOCRFromRegionEnhanced(_MiniGameNewSkillsOCR*)
-    targetSkill := myGui["MiniGame.TargetSkill"].Text
+    ; targetSkill := myGui["MiniGame.TargetSkill"].Text
+    targetSkill := ""
     for index, line in result.Lines {
         newSkill := StrReplace(line.Text, " ")
         if (newSkill == targetSkill) {
-            ShowSuccessMsgBox("识别到新技能：" newSkill, true)
+            ShowSuccessMsgBox("识别到新技能：" newSkill)
         }
     }
 }
