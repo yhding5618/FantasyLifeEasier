@@ -96,18 +96,137 @@ TryAndCatch(function, args*) {
 }
 
 /**
+ * @description 获取指定像素的颜色
+ * @param {Integer} x 像素X坐标
+ * @param {Integer} y 像素Y坐标
+ * @return {String} 返回像素颜色字符串（例如 "0xFF0000"）
+ */
+UtilsGetColor(x, y) {
+    return PixelGetColor(x, y)
+}
+
+/**
+ * @description 对比两个颜色是否匹配
+ * @param {String} color1 匹配颜色字符串（例如 "0xFF0000"）
+ * @param {String} color2 基准颜色字符串（例如 "0xFF0000"）
+ * @param {Integer} colorVariation 颜色变化范围（默认10）
+ * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+ */
+UtilsMatchColorRGB(color1, color2, colorVariation := 10) {
+    rgb1 := Integer(color1)
+    rgb2 := Integer(color2)
+    rDiff := Abs((rgb1 & 0xFF0000) - (rgb2 & 0xFF0000)) >> 16
+    gDiff := Abs((rgb1 & 0x00FF00) - (rgb2 & 0x00FF00)) >> 8
+    bDiff := Abs((rgb1 & 0x0000FF) - (rgb2 & 0x0000FF))
+    match := rDiff <= colorVariation &&
+        gDiff <= colorVariation &&
+        bDiff <= colorVariation
+    return match
+}
+
+/**
+ * @description 将RGB颜色转换为HSV颜色
+ * @param {String} color RGB颜色字符串（例如 "0xFF0000"）
+ * @return {Object} 返回包含H、S、V的对象
+ */
+UtilsRGB2HSV(color) {
+    rgb := Integer(color)
+    r := ((rgb & 0xFF0000) >> 16) / 255.0
+    g := ((rgb & 0x00FF00) >> 8) / 255.0
+    b := (rgb & 0x0000FF) / 255.0
+    cMax := Max(r, g, b)
+    cMin := Min(r, g, b)
+    delta := cMax - cMin
+    if delta = 0 {
+        h := 0
+    } else if cMax = r {
+        h := Mod((g - b) / delta, 6)
+    } else if cMax = g {
+        h := (b - r) / delta + 2
+    } else {
+        h := (r - g) / delta + 4
+    }
+    h *= 60  ; 转换为度数
+    s := cMax = 0 ? 0 : (delta / cMax) * 100  ; 饱和度百分比
+    v := cMax * 100  ; 明度百分比
+    return [Round(h), Round(s), Round(v)]
+}
+
+; /**
+;  * @description 对比指定颜色的HSV值是否在给定范围内
+;  * @param {Array} hsv1 匹配颜色HSV
+;  * @param {Array} hsv2 基准颜色HSV
+;  * @param {Array} hsvVariation 匹配范围数组（默认[15, 15, 15]）
+;  * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+;  */
+; UtilsMatchColorHSV(hsv1, hsv2, hsvVariation := [15, 15, 15]) {
+;     hMatch := hsv1[1] >= hsv2[1] - hsvVariation[1] &&
+;         hsv1[1] <= hsv2[1] + hsvVariation[1]
+;     sMatch := hsv1[2] >= hsv2[2] - hsvVariation[2] &&
+;         hsv1[2] <= hsv2[2] + hsvVariation[2]
+;     vMatch := hsv1[3] >= hsv2[3] - hsvVariation[3] &&
+;         hsv1[3] <= hsv2[3] + hsvVariation[3]
+;     return (hMatch && sMatch && vMatch)
+; }
+
+/**
+ * @description 对比指定颜色的HSV值是否在给定范围内
+ * @param {(String|Array)} color1 匹配颜色RGB字符串或HSV数组
+ * @param {(String|Array)} color2 基准颜色RGB字符串或HSV数组
+ * @param {(Integer|Array)} hsvVar 颜色变化范围（默认10）
+ * @param {Boolean} debug 是否启用调试模式（默认false）
+ * @return {Boolean} 如果颜色匹配则返回true，否则返回false
+ */
+UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
+    if (Type(color1) = "String") {
+        hsv1 := UtilsRGB2HSV(color1)
+    } else {
+        hsv1 := color1
+    }
+    if (Type(color2) = "String") {
+        hsv2 := UtilsRGB2HSV(color2)
+    } else {
+        hsv2 := color2
+    }
+    if (Type(hsvVar) = "Integer") {
+        hVar := hsvVar
+        sVar := hsvVar * 2
+        vVar := hsvVar * 3
+    } else {
+        hVar := hsvVar[1]
+        sVar := hsvVar[2]
+        vVar := hsvVar[3]
+    }
+    hMatch := hsv1[1] >= hsv2[1] - hVar && hsv1[1] <= hsv2[1] + hVar
+    sMatch := hsv1[2] >= hsv2[2] - sVar && hsv1[2] <= hsv2[2] + sVar
+    vMatch := hsv1[3] >= hsv2[3] - vVar && hsv1[3] <= hsv2[3] + vVar
+    if (debug) {
+        MsgBox(
+            "HSV1: " hsv1[1] ", " hsv1[2] ", " hsv1[3] "`n"
+            "HSV2: " hsv2[1] ", " hsv2[2] ", " hsv2[3]
+        )
+    }
+    return (hMatch && sMatch && vMatch)
+}
+
+/**
  * @description 对比指定像素的颜色
  * @param {Integer} x 像素X坐标
  * @param {Integer} y 像素Y坐标
  * @param {String} color 期望的像素颜色
- * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {(Integer|Array)} pixelRange 像素匹配范围，Integer表示正方形范围，Array表示[X, Y]（默认5）
  * @param {Integer} colorVariation 颜色变化范围（默认10）
  * @return {Integer} 如果当前像素颜色与期望颜色匹配则返回true，否则返回false
  */
 SearchColorMatch(x, y, color, pixelRange := 5, colorVariation := 10) {
+    if (Type(pixelRange) == "Integer") {
+        pixelRange := [pixelRange, pixelRange]
+    } else if (Type(pixelRange) != "Array" || pixelRange.Length != 2) {
+        throw ValueError("pixelRange必须是整数或包含两个整数的数组")
+    }
     return PixelSearch(&xf, &yf,
-        x - pixelRange, y - pixelRange,
-        x + pixelRange, y + pixelRange,
+        x - pixelRange[1], y - pixelRange[2],
+        x + pixelRange[1], y + pixelRange[2],
         color, colorVariation)
 }
 
@@ -132,6 +251,42 @@ WaitUntilColorMatch(x, y, color, title,
         if (match) {
             UpdateStatusBar("检测到" title "结束[" color "]")
             return
+        }
+        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        Sleep(interval)
+        count++
+    }
+    throw TimeoutError(title "颜色匹配超时")
+}
+
+/**
+ * @description 等待两个指定像素颜色的其中一个出现
+ * @param {Array} pos1 第一个像素位置数组 [x, y]
+ * @param {String} color1 第一个像素颜色
+ * @param {Array} pos2 第二个像素位置数组 [x, y]
+ * @param {String} color2 第二个像素颜色
+ * @param {String} title 窗口标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5)
+ * @param {Integer} colorVariation 颜色变化范围（默认10）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认100）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认50）
+ * @returns {Integer} 返回匹配的像素索引（1或2）
+ */
+WaitUntil2ColorMatch(pos1, color1, pos2, color2, title,
+    pixelRange := 5, colorVariation := 10,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        match1 := SearchColorMatch(
+            pos1[1], pos1[2], color1, pixelRange, colorVariation)
+        match2 := SearchColorMatch(
+            pos2[1], pos2[2], color2, pixelRange, colorVariation)
+        if (match1 ^ match2) {
+            match := match1 ? 1 : 2
+            UpdateStatusBar("检测到" title "结束[" match "]"
+            )
+            return match
         }
         UpdateStatusBar("等待" title "..." count "/" timeoutCount)
         Sleep(interval)
@@ -167,6 +322,68 @@ WaitUntilColorNotMatch(x, y, color, title,
         count++
     }
     throw TimeoutError(title "颜色消失超时")
+}
+
+/**
+ * @description 从指定区域获取Bitmap对象并进行标准OCR识别
+ * @param {Integer} x 区域左上角X坐标
+ * @param {Integer} y 区域左上角Y坐标
+ * @param {Integer} w 区域宽度
+ * @param {Integer} h 区域高度
+ * @return {OCR.Result} 返回OCR识别结果对象
+ */
+UtilsOCRFromRegion(x, y, w, h) {
+    if (Type(OCR) != "Class") {
+        throw TypeError("OCR类未正确加载")
+    }
+    WinGetClientPos(&gx, &gy, , , GameWindowTitle)
+    result := OCR.FromRect(x + gx, y + gy, w, h, "zh-CN", {
+        scale: 1.0,
+        grayscale: true,
+        invertcolors: false,
+        rotate: 0
+    })
+    MyToolTip(result.Text, x, y + h, 20)
+    return result
+}
+
+/**
+ * @description 从指定区域获取Bitmap对象并进行颜色增强OCR识别
+ * @param {Integer} x 区域左上角X坐标
+ * @param {Integer} y 区域左上角Y坐标
+ * @param {Integer} w 区域宽度
+ * @param {Integer} h 区域高度
+ * @param {String} color 字体颜色
+ * @param {Integer} hsvVar HSV颜色变化范围（默认8）
+ * @return {OCR.Result} 返回OCR识别结果对象
+ */
+UtilsOCRFromRegionEnhanced(x, y, w, h, color, hsvVar := 8) {
+    if !pToken := Gdip_Startup() {
+        throw Error("Gdi+启动失败")
+    }
+    WinGetClientPos(&gx, &gy, , , GameWindowTitle)
+    region := (gx + x) "|" (gy + y) "|" w "|" h  ; x|y|w|h
+    pBitmap := Gdip_BitmapFromScreen(region)
+    E := Gdip_LockBits(pBitmap, 0, 0, w, h, &stride, &scan0, &bitmapData)
+    loop w {
+        iw := A_Index - 1
+        loop h {
+            ih := A_Index - 1
+            p := scan0 + (ih * stride) + (iw * 4)
+            argb := NumGet(p, 0, "UInt")
+            rgb := Format("0x{:X}", argb & 0x00FFFFFF)
+            match := UtilsMatchColorHSV(rgb, color, hsvVar)
+            c := match ? "0xFF0000" : "0x00FFFF"
+            NumPut('UInt', c, p)
+        }
+    }
+    Gdip_UnlockBits(pBitmap, &bitmapData)
+    Gdip_SaveBitmapToFile(pBitmap, "ocr.png")
+    result := OCR.FromBitmap(pBitmap, "zh-CN")
+    MyToolTip(result.Text, x, y + h, 20)
+    Gdip_DisposeImage(pBitmap)
+    Gdip_Shutdown(pToken)
+    return result
 }
 
 WaitUntilPixelSearch(
@@ -241,13 +458,13 @@ OpenMenuAndMoveToIcon(page, row, col) {
     return [x, y]
 }
 
-WaitUntilSavingIcon() {
+WaitUntilSavingIcon(interval := 100, timeoutCount := 500) {
     count := 0
     savingIconPos := [85, 370]  ; 保存中图标位置
     savingIconColor := "0xFFDC7E"  ; 保存中图标颜色
     WaitUntilColorMatch(
         savingIconPos[1], savingIconPos[2],
-        savingIconColor, "保存中图标", 5, , 100, 500)
+        savingIconColor, "保存中图标", 5, , interval, timeoutCount)
 }
 
 ; 高位“是”按钮位置，用于：离开房间，确认重新种植
@@ -255,10 +472,10 @@ UtilsWindowYes1Pos := [706, 885]
 ; 高位“否”按钮位置，用于：离开房间，确认重新种植
 UtilsWindowNo1Pos := [1218, 885]
 ; 中位“是”按钮位置，用于：注意返回标题，注意加载覆盖，
-; 确认在线出发探险，确认在线退出房间，确认在线解散房间
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowYes2Pos := [706, 940]
 ; 中位“否”按钮位置，用于：注意返回标题，注意加载覆盖，
-; 确认在线出发探险，确认在线退出房间，确认在线解散房间
+; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowNo2Pos := [1218, 940]
 ; 低位“是”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowYes3Pos := [706, 960]
@@ -285,12 +502,14 @@ UtilsWindowOK5Pos := [965, 940]
 ; 按钮背景颜色
 UtilsWindowButtonColor := "0x88FF74"
 ; 右侧二短选项时首选项位置，用于：在线选择出发
-UtilsOptionListTopIn2GlowPos := [1351, 477]
-; 右侧三选项时首选项位置，用于：迷宫树对话
+UtilsShortOptionListTopIn2GlowPos := [1351, 477]
+; 右侧二选项时首选项位置，用于：科隆对话
+UtilsOptionListTopIn2GlowPos := [1293, 436]
+; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话
 UtilsOptionListTopIn3GlowPos := [1293, 403]
 ; 右侧五选项时首选项位置，用于：迷宫树对话
 UtilsOptionListTopIn5GlowPos := [1293, 283]
-; 右侧选项发光颜色，用于：迷宫树对话
+; 右侧选项发光颜色，用于：大部分对话选项
 UtilsOptionListGlowColor := "0xAFF258"
 ; 交互按键背景颜色
 UtilsKeyBackgroundColor := "0x93805B"
@@ -300,11 +519,53 @@ UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
 /**
  * @description 等待对话界面交互空格键加载完成
  */
-WaitUntilConversationSpace() {
+WaitUntilConversationSpace(interval := 100, timeoutCount := 50) {
     WaitUntilColorMatch(
         UtilsConversationSpacePixel[1], UtilsConversationSpacePixel[2],
-        UtilsConversationSpacePixel[3], "空格按钮")
+        UtilsConversationSpacePixel[3], "空格按钮", , , interval, timeoutCount)
     Sleep(500)  ; 等待对话界面稳定
+}
+
+/**
+ * @description 等待指定按钮加载完成
+ * @param {Integer} x 按钮X坐标
+ * @param {Integer} y 按钮Y坐标
+ * @param {String} title 按钮标题
+ * @param {(Integer|Array)} pixelRange 像素匹配范围，Integer表示正方形范围，Array表示[X, Y]（默认20）
+ * @param {Integer} colorVariation 颜色变化范围（默认3）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认100）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认50）
+ */
+WaitUntilButton(
+    x, y, title,
+    pixelRange := 20, colorVariation := 3,
+    interval := 100, timeoutCount := 50
+) {
+    count := 0
+    while (count < timeoutCount) {
+        found := SearchColorMatch(
+            x, y, UtilsKeyBackgroundColor,
+            pixelRange, colorVariation)
+        if (found) {
+            UpdateStatusBar("检测到" title "按钮加载完成")
+            return
+        }
+        UpdateStatusBar("等待" title "按钮加载完成..." count "/" timeoutCount)
+        Sleep(interval)
+        count++
+    }
+    throw TimeoutError(title "按钮加载超时")
+}
+
+UtilsMapPixel := [1635, 74, "0x0373FF"]  ; 地图右上角标记logo
+/**
+ * @description 检测是否在地图界面
+ * @return {Boolean} 如果在地图界面返回true，否则返回false
+ */
+UIIsInMap() {
+    found := SearchColorMatch(
+        UtilsMapPixel[1], UtilsMapPixel[2], UtilsMapPixel[3], 20)
+    return found
 }
 
 LoadConfig() {

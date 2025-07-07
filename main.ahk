@@ -15,6 +15,9 @@
 #Include "lib/legendary.ahk"
 #Include "lib/harvest.ahk"
 #Include "lib/script_control.ahk"
+; 外部库
+#Include "lib/external/Gdip_All.ahk"
+#Include "lib/external/OCR.ahk"
 
 ProcessSetPriority("High")
 CoordMode("Pixel", "Client")

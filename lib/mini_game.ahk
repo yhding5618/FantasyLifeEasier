@@ -20,6 +20,28 @@ MiniGame_ContinuousActionBtn_Click() {
         }
     }
     AppendStatusBar("，结束于工作台" station)
+    _MiniGameWaitForComplete()
+    _MiniGameIdentifyNewSkills()
+}
+
+MiniGame_CheckSkillBtn_Click() {
+    UpdateStatusBar("检查技能")
+    _MiniGameIdentifyNewSkills()
+}
+
+MiniGame_AutoCraftAgainBtn_Click() {
+    count := 0
+    while (true) {
+        MiniGame_ContinuousActionBtn_Click()
+        count++
+        UpdateStatusBar("已完成制作 " count " 次")
+        if myGui["MiniGame.AutoCaptureChk"].Value {
+            MySend("F12", , 500)  ; 截图
+        }
+        MySend("Space", , 3000)  ; 确认制作完成
+        MySend("s", , 500)  ; 选择再次制作
+        MySend("Space", , 500)  ; 确认再次制作
+    }
 }
 
 /**
@@ -39,18 +61,67 @@ _MiniGameDoNextAction(&station, &done) {
     _MiniGameDoAction(action)
 }
 
+; 制作完成横幅像素
+_MiniGameCompleteBanner1Pixel := [960, 160, "0xE88536"]
+_MiniGameCompleteBanner2Pixel := [960, 170, "0xFFE7BC"]
+_MiniGameCompleteBanner3Pixel := [960, 180, "0xA94F0D"]
+
+/**
+ * @description 等待制作完成
+ * @throws TimeoutError 如果等待超时
+ */
+_MiniGameWaitForComplete() {
+    count := 0
+    timeoutCount := 20
+    while (count < timeoutCount) {
+        notComplete := true
+        notComplete &= !SearchColorMatch(_MiniGameCompleteBanner1Pixel*)
+        notComplete &= !SearchColorMatch(_MiniGameCompleteBanner2Pixel*)
+        notComplete &= !SearchColorMatch(_MiniGameCompleteBanner3Pixel*)
+        if (notComplete) {
+            UpdateStatusBar("等待制作完成..." count "/" timeoutCount)
+            Sleep(1000)
+            count++
+        } else {
+            UpdateStatusBar("制作完成")
+            break
+        }
+    }
+    if (count >= timeoutCount) {
+        throw TimeoutError("等待制作完成超时")
+    }
+    WaitUntilConversationSpace()
+}
+
+_MiniGameNewSkillsOCR := [
+    1268, 347, 360, 160, "0x6B3B0D", 20]
+
+_MiniGameIdentifyNewSkills() {
+    result := UtilsOCRFromRegionEnhanced(_MiniGameNewSkillsOCR*)
+    ; targetSkill := myGui["MiniGame.TargetSkill"].Text
+    targetSkill := ""
+    for index, line in result.Lines {
+        newSkill := StrReplace(line.Text, " ")
+        if (newSkill == targetSkill) {
+            ShowSuccessMsgBox("识别到新技能：" newSkill)
+        }
+    }
+}
+
 _MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置
 _MiniGameTimerBackgroundColor := "0x6B3B0D"  ; 顶部倒计时框背景颜色
 _MiniGameTimerBackgroundPixel := [1000, 54, "0x6B3B0D"]  ; 顶部倒计时框背景像素
 _MiniGameIconPosX := [890, 960, 1030]  ; 顶部制作图标位置X坐标（左，中，右）
 _MiniGameIconPosY := 78  ; 顶部制作图标位置Y坐标
 _MiniGameIconBackgroundColor := "0x8C4609"  ; 顶部制作图标背景颜色
-_MiniGameMousePosX := [562, 962, 1362]  ; 鼠标图标滚轮位置X坐标（左，中，右）
-_MiniGameMousePosY := [324, 504]  ; 鼠标图标滚轮位置Y坐标（上，下）
-_MiniGameMouseLeftOffsetX := -20  ; 鼠标左键相对滚轮位置X偏移
-_MiniGameMouseTextOffsetX := 18  ; 鼠标上方文字相对滚轮位置X偏移
-_MiniGameMouseTextOffsetY := -92  ; 鼠标上方文字相对滚轮位置Y偏移
-_MiniGameActionTapColor := "0xFFC8C4"  ; 鼠标左键粉色
+_MiniGameMousePosX := [562, 962, 1362]  ; 鼠标中心位置X坐标（左，中，右）
+_MiniGameMousePosY := [324, 504]  ; 鼠标中心位置Y坐标（上，下）
+_MiniGameMouseLeftOffsetX := -20  ; 鼠标左键相对中心位置X偏移
+_MiniGameMouseMiddleOffsetY := 20  ; 鼠标中键相对中心位置Y偏移
+_MiniGameMouseTextOffsetX := 18  ; 鼠标上方文字相对中心位置X偏移
+_MiniGameMouseTextOffsetY := -92  ; 鼠标上方文字相对中心位置Y偏移
+_MiniGameActionMouseLeftColor := "0xFFC8C4"  ; 鼠标左键粉色
+_MiniGameActionMouseMiddleColor := "0x311D09"  ; 鼠标中键黑色
 _MiniGameActionMashColor := "0xFFB190"  ; “连按”红色
 _MiniGameActionHoldColor := "0x96F485"  ; “长按”绿色
 _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
@@ -109,9 +180,13 @@ _MiniGameRecognizeUIType() {
 _MiniGameRecognizeAction(ix, iy) {
     x := _MiniGameMousePosX[ix]
     y := _MiniGameMousePosY[iy]
-    foundTap := SearchColorMatch(
+    foundMouseLeft := SearchColorMatch(
         x + _MiniGameMouseLeftOffsetX, y,
-        _MiniGameActionTapColor)
+        _MiniGameActionMouseLeftColor, [1, 10])
+    foundMouseMiddle := SearchColorMatch(
+        x, y + _MiniGameMouseMiddleOffsetY,
+        _MiniGameActionMouseMiddleColor, [1, 10])
+    foundMouse := foundMouseLeft && foundMouseMiddle
     foundMash := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionMashColor)
@@ -122,7 +197,7 @@ _MiniGameRecognizeAction(ix, iy) {
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionSpinColor)
     foundSpecial := foundMash || foundHold || foundSpin
-    if (foundTap && !foundSpecial) {
+    if (foundMouse && !foundSpecial) {
         MyToolTip("单击", x + 5, _MiniGameMousePosY[1] + 5,
             17 + ix, DebugMiniGame)
         return 1  ; 单击
