@@ -164,7 +164,7 @@ _CreateSectionLongCape(firstSection := false) {
 }
 
 _CreateSectionMiniGame(firstSection := false) {
-    totalRows := 7
+    totalRows := 8
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "小游戏")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "连按次数：")
     myGui.AddEdit("xp+110 yp hp w50", "10")
@@ -198,9 +198,12 @@ _CreateSectionMiniGame(firstSection := false) {
     ; callback := TryAndCatch.Bind(MiniGame_CheckSkillBtn_Click)
     ; btn.OnEvent("Click", callback)
     ; _AddBtnToHotkeyList(btn, callback)
+    myGui.AddText(_GroupBoxRowPos(7) " h22 0x200", "循环次数：")
+    myGui.AddEdit("yp hp w40")
+    myGui.AddUpDown("vMiniGame.LoopCraftAgainCount Range0-999 0x80", 10)
     btn := myGui.AddButton(
-        _GroupBoxRowPos(7) " vMiniGame.AutoCraftAgainBtn", "自动再次制作")
-    callback := TryAndCatch.Bind(MiniGame_AutoCraftAgainBtn_Click)
+        _GroupBoxRowPos(8) " vMiniGame.LoopCraftAgainBtn", "循环再次制作")
+    callback := TryAndCatch.Bind(MiniGame_LoopCraftAgainBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
     chk := myGui.AddCheckbox("yp hp 0x200 vMiniGame.AutoCaptureChk", "自动截图")

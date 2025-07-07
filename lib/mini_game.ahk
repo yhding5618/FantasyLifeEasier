@@ -29,16 +29,28 @@ MiniGame_CheckSkillBtn_Click() {
     _MiniGameIdentifyNewSkills()
 }
 
-MiniGame_AutoCraftAgainBtn_Click() {
+MiniGame_LoopCraftAgainBtn_Click() {
     count := 0
-    while (true) {
-        MiniGame_ContinuousActionBtn_Click()
+    maxCount := myGui["MiniGame.LoopCraftAgainCount"].Value
+    infiniteLoop := (maxCount == 0)  ; 0表示无限循环
+    while (count < maxCount) {
+        try {
+            MiniGame_ContinuousActionBtn_Click()
+        } catch Error as e {
+            text := "第" count + 1 " 次制作失败，已中止循环"
+            e.Message := text "，详情：" e.Message
+            throw e
+        }
         count++
         UpdateStatusBar("已完成制作 " count " 次")
         if myGui["MiniGame.AutoCaptureChk"].Value {
             MySend("F12", , 500)  ; 截图
         }
         MySend("Space", , 3000)  ; 确认制作完成
+        if (count >= maxCount && !infiniteLoop) {
+            UpdateStatusBar("循环完毕，已完成制作 " count " 次")
+            break
+        }
         MySend("s", , 500)  ; 选择再次制作
         MySend("Space", , 500)  ; 确认再次制作
     }
