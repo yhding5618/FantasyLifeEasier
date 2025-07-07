@@ -35,7 +35,7 @@ MiniGame_LoopCraftAgainBtn_Click() {
     count := 0
     maxCount := myGui["MiniGame.LoopCraftAgainCount"].Value
     infiniteLoop := (maxCount == 0)  ; 0表示无限循环
-    while (count < maxCount) {
+    while ((count < maxCount) || infiniteLoop) {
         try {
             MiniGame_ContinuousActionBtn_Click()
         } catch Error as e {
@@ -45,6 +45,7 @@ MiniGame_LoopCraftAgainBtn_Click() {
         }
         count++
         UpdateStatusBar("已完成制作 " count " 次")
+        Sleep(500)
         if myGui["MiniGame.AutoCaptureChk"].Value {
             MySend("F12", , 500)  ; 截图
         }
@@ -52,23 +53,25 @@ MiniGame_LoopCraftAgainBtn_Click() {
         match := WaitUntil2ColorMatch(
             _MiniGameRemakeSpacePos, UtilsKeyBackgroundColor,
             UtilsOptionListTopIn3GlowPos, UtilsOptionListGlowColor,
-            "新页面加载")
+            "新页面加载", , , , 100)
         if (match == 1) {
             ; 重新制作流程，先进入技能重置页面
             ; 等待手动选择后进入3选1“继续重制”页面，最多等待3分钟
             WaitUntilColorMatch(
                 UtilsOptionListTopIn3GlowPos[1],
                 UtilsOptionListTopIn3GlowPos[2],
-                UtilsOptionListGlowColor, "手动选择技能", , , 1000, 180)
+                UtilsOptionListGlowColor, "手动选择技能",
+                , , 100, 1800)
             UpdateStatusBar("进入“继续重制”菜单")
         } else {
             ; 再次制作流程，直接进入3选1“再次制作”页面
             UpdateStatusBar("进入“再次制作”菜单")
         }
-        if (count >= maxCount && !infiniteLoop) {
+        if (count == maxCount) {
             UpdateStatusBar("循环完毕，已完成制作 " count " 次")
             break
         }
+        Sleep(500)
         MySend("s", , 500)  ; 选择再次制作/继续重置
         MySend("Space", , 500)  ; 确认再次制作/继续重置
     }
