@@ -499,19 +499,19 @@ UtilsWindowOK3Pos := [965, 750]
 UtilsWindowOK4Pos := [965, 895]
 ; 极低位“OK”按钮位置，用于：房间搜索错误
 UtilsWindowOK5Pos := [965, 940]
-; 按钮背景颜色
+; “OK”“是”“否”按钮选中时的背景绿色
 UtilsWindowButtonColor := "0x88FF74"
 ; 右侧二短选项时首选项位置，用于：在线选择出发
 UtilsShortOptionListTopIn2GlowPos := [1351, 477]
 ; 右侧二选项时首选项位置，用于：科隆对话
 UtilsOptionListTopIn2GlowPos := [1293, 436]
-; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话
+; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话，制作完成后是否继续制作
 UtilsOptionListTopIn3GlowPos := [1293, 403]
 ; 右侧五选项时首选项位置，用于：迷宫树对话
 UtilsOptionListTopIn5GlowPos := [1293, 283]
-; 右侧选项发光颜色，用于：大部分对话选项
+; 右侧选项选中时的发光绿色，用于：大部分对话选项
 UtilsOptionListGlowColor := "0xAFF258"
-; 交互按键背景颜色
+; 交互按键背景灰色
 UtilsKeyBackgroundColor := "0x93805B"
 ; 继续对话空格键像素
 UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]

@@ -202,7 +202,7 @@ _CreateSectionMiniGame(firstSection := false) {
     myGui.AddEdit("yp hp w40")
     myGui.AddUpDown("vMiniGame.LoopCraftAgainCount Range0-999 0x80", 10)
     btn := myGui.AddButton(
-        _GroupBoxRowPos(8) " vMiniGame.LoopCraftAgainBtn", "循环再次制作")
+        _GroupBoxRowPos(8) " vMiniGame.LoopCraftAgainBtn", "循环再次制作/继续重制")
     callback := TryAndCatch.Bind(MiniGame_LoopCraftAgainBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)

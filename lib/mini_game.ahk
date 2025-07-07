@@ -21,13 +21,15 @@ MiniGame_ContinuousActionBtn_Click() {
     }
     AppendStatusBar("，结束于工作台" station)
     _MiniGameWaitForComplete()
-    _MiniGameIdentifyNewSkills()
+    ; _MiniGameIdentifyNewSkills()
 }
 
 MiniGame_CheckSkillBtn_Click() {
     UpdateStatusBar("检查技能")
     _MiniGameIdentifyNewSkills()
 }
+
+_MiniGameRemakeSpacePos := [924, 1015]  ; 重新制作后的“技能重置”界面下方空格位置
 
 MiniGame_LoopCraftAgainBtn_Click() {
     count := 0
@@ -46,13 +48,29 @@ MiniGame_LoopCraftAgainBtn_Click() {
         if myGui["MiniGame.AutoCaptureChk"].Value {
             MySend("F12", , 500)  ; 截图
         }
-        MySend("Space", , 3000)  ; 确认制作完成
+        MySend("Space")  ; 确认制作完成
+        match := WaitUntil2ColorMatch(
+            _MiniGameRemakeSpacePos, UtilsKeyBackgroundColor,
+            UtilsOptionListTopIn3GlowPos, UtilsOptionListGlowColor,
+            "新页面加载")
+        if (match == 1) {
+            ; 重新制作流程，先进入技能重置页面
+            ; 等待手动选择后进入3选1“继续重制”页面，最多等待3分钟
+            WaitUntilColorMatch(
+                UtilsOptionListTopIn3GlowPos[1],
+                UtilsOptionListTopIn3GlowPos[2],
+                UtilsOptionListGlowColor, "手动选择技能", , , 1000, 180)
+            UpdateStatusBar("进入“继续重制”菜单")
+        } else {
+            ; 再次制作流程，直接进入3选1“再次制作”页面
+            UpdateStatusBar("进入“再次制作”菜单")
+        }
         if (count >= maxCount && !infiniteLoop) {
             UpdateStatusBar("循环完毕，已完成制作 " count " 次")
             break
         }
-        MySend("s", , 500)  ; 选择再次制作
-        MySend("Space", , 500)  ; 确认再次制作
+        MySend("s", , 500)  ; 选择再次制作/继续重置
+        MySend("Space", , 500)  ; 确认再次制作/继续重置
     }
 }
 
@@ -103,6 +121,7 @@ _MiniGameWaitForComplete() {
         throw TimeoutError("等待制作完成超时")
     }
     WaitUntilConversationSpace()
+    UpdateStatusBar("检测到“道具制作完成”界面")
 }
 
 _MiniGameNewSkillsOCR := [
@@ -315,7 +334,8 @@ _MiniGameActionHold(delay) {
     MyRelease("Space")
 }
 
-_MiniGameActionSpin(count, interval, length := 150, sideNum := 12, speed := 100,
+_MiniGameActionSpin(count, interval, length := 150, sideNum := 12, speed :=
+    100,
     delay := 1) {
     Pi := 3.141592653589793
     MouseMove(960, 100, speed)  ; 鼠标复位
