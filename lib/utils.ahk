@@ -171,14 +171,18 @@ UtilsRGB2HSV(color) {
 
 /**
  * @description 对比指定颜色的HSV值是否在给定范围内
- * @param {String} color1 匹配颜色RGB字符串
+ * @param {(String|Array)} color1 匹配颜色RGB字符串或HSV数组
  * @param {(String|Array)} color2 基准颜色RGB字符串或HSV数组
  * @param {(Integer|Array)} hsvVar 颜色变化范围（默认10）
  * @param {Boolean} debug 是否启用调试模式（默认false）
  * @return {Boolean} 如果颜色匹配则返回true，否则返回false
  */
 UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
-    hsv1 := UtilsRGB2HSV(color1)
+    if (Type(color1) = "String") {
+        hsv1 := UtilsRGB2HSV(color1)
+    } else {
+        hsv1 := color1
+    }
     if (Type(color2) = "String") {
         hsv2 := UtilsRGB2HSV(color2)
     } else {
@@ -339,7 +343,7 @@ UtilsOCRFromRegion(x, y, w, h) {
         invertcolors: false,
         rotate: 0
     })
-    MyToolTip(result.Text, x, y + h, 20, true)
+    MyToolTip(result.Text, x, y + h, 20)
     return result
 }
 
@@ -376,7 +380,7 @@ UtilsOCRFromRegionEnhanced(x, y, w, h, color, hsvVar := 8) {
     Gdip_UnlockBits(pBitmap, &bitmapData)
     Gdip_SaveBitmapToFile(pBitmap, "ocr.png")
     result := OCR.FromBitmap(pBitmap, "zh-CN")
-    MyToolTip(result.Text, x, y + h, 20, true)
+    MyToolTip(result.Text, x, y + h, 20)
     Gdip_DisposeImage(pBitmap)
     Gdip_Shutdown(pToken)
     return result

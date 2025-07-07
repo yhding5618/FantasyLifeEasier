@@ -160,11 +160,12 @@ _TreasureGroveCheckAllRooms() {
     targetSpecialRoom := myGui["TreasureGrove.TargetSpecialRoom"].Text
     ; targetBossName := myGui["TreasureGrove.TargetBossName"].Text
     targetBossName := ""
-    targetSRMatch := false
-    targetBNMatch := false
+    matchedSpecialRoom := ""
+    matchedBossName := ""
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
         _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
+    UpdateStatusBar("正在检查房间")
     loop 10 {  ; 遍历10行，包括第10行（Boss房间）
         row := A_Index
         loop 6 {  ; 遍历6个房间
@@ -178,23 +179,32 @@ _TreasureGroveCheckAllRooms() {
                     (targetSpecialRoom == "全部") ||
                     (targetSpecialRoom == roomType)
                 ) {
-                    targetSRMatch := true
+                    matchedSpecialRoom := roomType
                 }
             }
-            if (row == 10) {
+            if (row == 10 && roomType != "空") {
                 bossName := roomType
                 if (
                     (targetBossName == "") ||
                     (targetBossName == bossName)
                 ) {
-                    targetBNMatch := true
+                    matchedBossName := bossName
                 }
             }
         }
     }
-    if (targetSRMatch) {
-        ShowSuccessMsgBox("找到目标房间", true)
+    text := "检查完成"
+    if (matchedSpecialRoom != "") {
+        text .= "，找到" matchedSpecialRoom
+    } else {
+        text .= "，特殊房间不匹配"
     }
+    if (matchedBossName != "") {
+        text .= "，Boss为" matchedBossName
+    } else {
+        text .= "，无Boss"
+    }
+    UpdateStatusBar(text)
 }
 
 /**
@@ -214,7 +224,7 @@ _TreasureGroveCheckSingleRoom(row, col) {
     hsv := UtilsRGB2HSV(color)
     roomType := ""
     if UtilsMatchColorHSV(
-        color, _TreasureGroveEmptyHSV, _TreasureGroveEmptyHSVVar
+        hsv, _TreasureGroveEmptyHSV, _TreasureGroveEmptyHSVVar
     ) {
         ; MyToolTip("空", x, y, debugId, DebugTreasureGrove)
         ; debugId := debugId == 20 ? 1 : debugId + 1
@@ -223,7 +233,7 @@ _TreasureGroveCheckSingleRoom(row, col) {
     if isBoss {
         ; 匹配Boss房间颜色
         for key, value in _TreasureGroveBossColor {
-            if UtilsMatchColorHSV(color, value) {
+            if UtilsMatchColorHSV(hsv, value) {
                 roomType := key
                 break
             }
@@ -237,7 +247,7 @@ _TreasureGroveCheckSingleRoom(row, col) {
     } else {
         ; 匹配特殊房间颜色
         for key, value in _TreasureGroveSpecialRoomColor {
-            if UtilsMatchColorHSV(color, value) {
+            if UtilsMatchColorHSV(hsv, value) {
                 roomType := key
                 break
             }
@@ -249,7 +259,7 @@ _TreasureGroveCheckSingleRoom(row, col) {
         }
         ; 匹配普通房间颜色
         for key, value in _TreasureGroveNormalRoomColor {
-            if UtilsMatchColorHSV(color, value) {
+            if UtilsMatchColorHSV(hsv, value) {
                 roomType := key
                 break
             }

@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-DebugOnline := true
+DebugOnline := false
 _JoinDebugID := 1
 
 Online_RecruitBtn_Click() {
@@ -341,7 +341,7 @@ _OnlineMoveForwardUntilInteract(title, count) {
         MySend("r", , 650)
     }
     try {
-        WaitUntilButton(  ; 同时检测y=400和y=500的交互按钮
+        WaitUntilButton(  ; 检测y=500的交互按钮
             _OnlineGroveInteractButton1Pos[1], _OnlineGroveInteractButton1Pos[2
             ],
             "迷宫内" title "交互[F]", , , 100, 300)

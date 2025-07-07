@@ -217,7 +217,7 @@ _CreateSectionTreasureGrove(firstSection := false) {
     myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "检查特殊房：")
     myGui.AddDropDownList(
         "yp w70 Choose1 AltSubmit vTreasureGrove.TargetSpecialRoom",
-        ["全部", "怪物小屋", "熟成祭坛", "惊魂器", "宝物库"])
+        ["全部", "不检查", "怪物小屋", "熟成祭坛", "惊魂器", "宝物库"])
     ; myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "检查Boss：")
     ; myGui.AddEdit("yp hp w150 0x200 vTreasureGrove.TargetBossName")
     btn := myGui.AddButton(
