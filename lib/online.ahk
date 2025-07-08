@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-DebugOnline := false
+DebugOnline := true
 _JoinDebugID := 1
 
 Online_RecruitBtn_Click() {
@@ -16,7 +16,8 @@ Online_EndBtn_Click() {
     _OnlineEndAsHost()
 }
 
-Online_EndLoadRecruitBtn_Click() {
+Online_LoopRecruitAgingBtn_Click() {
+    myGui["Online.Destination"].Value := 4
     count := 1
     while (true) {
         MyToolTip("第" count "车", 0, 0, 1, DebugOnline)
@@ -65,8 +66,6 @@ _OnlineRecruitTripLogoColor := "0x8A703E"  ; 啼普加载中图标颜色
 _OnlineJoinDestinationLogoPos := [67, 85]  ; 小蓝人位置
 _OnlineJoinDestinationLogoColor := "0x4289FF"  ; 小蓝人颜色
 _OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]  ; 蓝天背景像素
-_OnlineJoiningSkyPos := [1000, 140]  ; 蓝天背景位置
-_OnlineJoinDoneColor := "0x1595D7"  ; 蓝天背景颜色
 
 ; 联机出发[U]位置
 _OnlineHeadOutButtonPos := [339, 217]
@@ -225,7 +224,8 @@ _OnlineJoin() {
 }
 
 _OnlineHeadOutAsHost() {
-    MySend("u")
+    Sleep(500)
+    MySend("u", , 300)
     WaitUntilConversationSpace()
     MySend("Space")
     UtilsWaitUntilOptionListSelected(2, 1, 2, "对话界面")
@@ -241,55 +241,50 @@ _OnlineHeadOutAsHost() {
 ; 迷宫内交互[F]位置（先是y=500，视角自动调整后变400）
 _OnlineGroveInteractButton1Pos := [1017, 500]
 _OnlineGroveInteractButton2Pos := [1017, 400]
+; “探索完成！”文本位置X
+_OnlineFinishExploreTextPosX := [708, 863, 1027, 1170, 1281]
+; “探索完成！”文本位置Y
+_OnlineFinishExploreTextPosY := 190
+; “探索完成！”文本颜色
+_OnlineFinishExploreTextColor := "0xFFD707"
 
 _OnlineFinishAgingAndBoss() {
     WaitUntilSavingIcon()  ; 等待保存图标出现（界面加载完成）
-    _OnlineMoveForwardUntilInteract("传送阵", 6)  ; 到传送阵
+    ; 初始房内前进到传送阵
+    _OnlineMoveForwardUntilInteract("传送阵", 6)
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindAgingAltar()
-    MouseMove(pos[1], pos[2])
-    loop (4 * 3) {
-        if Mod(A_Index, 4) == 1 {
-            MouseMove(80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 2 {
-            MouseMove(-80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 3 {
-            MouseMove(-80, -80, 100, "R")
-        } else if Mod(A_Index, 4) == 0 {
-            MouseMove(80, -80, 100, "R")
-        }
-        Sleep(1)
-    }
-    Sleep(500)
-    MySend("Space")
-    WaitUntilColorMatch(
-        UtilsWindowYes2Pos[1], UtilsWindowYes2Pos[2],
-        UtilsWindowButtonColor, "确认楼层“是”")
-    Sleep(500)
-    MySend("Space")
+    _OnlineTreasureGroveMoveToFloor(pos)
     WaitUntilSavingIcon()
-    ; _OnlineMoveForwardUntilInteract("熟成祭坛", 8)  ; 到熟成祭坛
-    ; MySend("a", 500)
-    ; MySend("w", 500)
-    ; MySend("d", 500)
-    ; MySend("w", 500)  ; 绕过熟成祭坛
+    ; 熟成房内前进到传送阵
     MySend("a", 250)
     MySend("w", 500)
-    _OnlineMoveForwardUntilInteract("传送阵", 15)  ; 到传送阵
-    UpdateStatusBar("已暂停，等待队友完成熟成后按F3继续")
-    MySend("F3")
+    _OnlineMoveForwardUntilInteract("传送阵", 15)
+    MySend("d", 100)
+    _OnlineWaitUntilAllAging()  ; 等待所有成员完成熟成
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindBoss()
+    _OnlineTreasureGroveMoveToFloor(pos)
+    _OnlineWaitUntilAdventureComplete()
+    UpdateStatusBar("连续空格键跳过结算界面")
+    loop 20 {
+        MySend("Space", , 250)
+    }
+    Sleep(1000)
+    _OnlineWaitForBaseCampUI()
+}
+
+_OnlineTreasureGroveMoveToFloor(pos) {
     MouseMove(pos[1], pos[2])
     loop (4 * 3) {
         if Mod(A_Index, 4) == 1 {
-            MouseMove(80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 2 {
-            MouseMove(-80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 3 {
-            MouseMove(-80, -80, 100, "R")
-        } else if Mod(A_Index, 4) == 0 {
             MouseMove(80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 2 {
+            MouseMove(-80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 3 {
+            MouseMove(-80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 0 {
+            MouseMove(80, 80, 100, "R")
         }
         Sleep(1)
     }
@@ -300,28 +295,179 @@ _OnlineFinishAgingAndBoss() {
         UtilsWindowButtonColor, "确认楼层“是”")
     Sleep(500)
     MySend("Space")
-    Sleep(5000)
+}
+
+_OnlineWaitUntilAllAging() {
+    PlaySuccessSound()
+    qqMessage := "千熟全自动发车（试运营）"
+    if (myGui["Online.Keyword"].Text == myGui["Online.Keyword"].Text) {
+        qqMessage .= "，词密：" myGui["Online.Keyword"].Text
+    } else {
+        qqMessage .= "，词：" myGui["Online.Keyword"].Text
+        qqMessage .= "，密：" myGui["Online.Keyword"].Text
+    }
+    _OnlineSendQQMessage(qqMessage)
+    joinStatus := [false, false, false, false]
+    readyStatus := [false, false, false, false]
+    allReadyCount := 0
+    while (true) {
+        try {
+            WaitUntilColorNotMatch(
+                _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
+                _OnlineJoiningSkyPixel[3], "成员加入房间", , , 1000, 60)
+        } catch Error as e {
+            _OnlineSendQQMessage("成员加入房间超时，建议离开房间")
+            continue
+        }
+        changed := false  ; 重置状态变化标志
+        joinCount := _OnlineCheckMemberJoinStatus(&joinStatus, &changed)
+        readyCount := _OnlineCheckMemberPositionStatus(&readyStatus, &changed)
+        text := changed ? "状态变化" : "状态未变"
+        loop 3 {
+            index := A_Index + 1
+            text .= "，" index "P: " joinStatus[index] readyStatus[index]
+        }
+        UpdateStatusBar(text)
+        if (joinCount > 0 && readyCount == joinCount) {
+            if changed {
+                allReadyCount := 0  ; 状态变化后重置计数器
+                maxCount := 1 * (3 - readyCount)  ; 每少1人多等6个循环
+            }
+            text := readyCount "/" joinCount "人已就位"
+            if allReadyCount < maxCount {
+                _OnlineSendGameMessage(text "，"
+                    (maxCount - allReadyCount) * 10 "秒后出发")
+            } else {
+                _OnlineSendGameMessage(text "，" "现在出发")
+                break
+            }
+            allReadyCount += 1
+        } else {
+            if changed {
+                _OnlineSendGameMessage("更新状态："
+                    joinCount "人加入，" readyCount "人就位")
+            }
+        }
+        Sleep(10 * 1000)
+    }
+}
+
+_OnlineWaitUntilAdventureComplete() {
     count := 0
     timeoutCount := 300
     while (count < timeoutCount) {
-        try {
-            WaitUntilConversationSpace(100, 1000)  ;一次等10秒
-        } catch {
-            UpdateStatusBar("等待Boss战... " count "/" timeoutCount)
-            count++
-            continue
+        allTextMatch := true
+        for index, x in _OnlineFinishExploreTextPosX {
+            textMatch := SearchColorMatch(x, _OnlineFinishExploreTextPosY,
+                _OnlineFinishExploreTextColor)
+            allTextMatch := allTextMatch && textMatch
         }
-        UpdateStatusBar("已完成Boss战")
-        break
+        if (allTextMatch) {
+            UpdateStatusBar("已完成冒险")
+            break
+        }
+        count++
+        Sleep(1000)
+        UpdateStatusBar("等待冒险完成..." count "/" timeoutCount)
     }
     if (count >= timeoutCount) {
-        throw TimeoutError("等待Boss战结束超时")
+        throw TimeoutError("等待冒险完成超时")
     }
-    MySend(1000)
-    MySend("Space", , 1000)
-    WaitUntilConversationSpace()
-    MySend("Space", , 1000)
-    _OnlineWaitForBaseCampUI()
+}
+
+_OnlinePlayerPosX := 72
+_OnlinePlayerPosY := [
+    56,  ; 房主（左上角）
+    764,  ; 成员（左下角第一个）
+    892,  ; 成员（左下角第二个）
+    1020  ; 成员（左下角第三个）
+]
+_OnlinePlayerColor := [
+    "0xFF6950",  ; 1P颜色
+    "0x40A0FF",  ; 2P颜色
+    "0xFFC600",  ; 3P颜色
+    "0xE97DF3",  ; 4P颜色
+]
+
+/**
+ * @description: 检查成员的状态
+ * @param {VarRef} status - 成员状态数组
+ * @param {VarRef} changed - 成员状态变更标志
+ * @returns {Integer} 检测到的成员数量
+ */
+_OnlineCheckMemberJoinStatus(&status, &changed) {
+    count := 0
+    loop 3 {  ; 检测左下角3个位置
+        indexPos := A_Index + 1
+        posX := _OnlinePlayerPosX
+        posY := _OnlinePlayerPosY[indexPos]
+        posColor := UtilsGetColor(posX, posY)
+        loop 3 {  ; 检测2P-4P的3个颜色
+            indexPlayer := A_Index + 1
+            color := _OnlinePlayerColor[indexPlayer]
+            match := SearchColorMatch(posX, posY, color, 2, 5)
+            if (match) {
+                count++
+                break
+            }
+        }
+        if match {
+            MyToolTip(indexPlayer "P", posX + 3, posY + 3,
+                indexPos, DebugOnline)
+        } else {
+            MyToolTip(posColor, posX + 3, posY + 3,
+                indexPos, DebugOnline)
+        }
+        changed := changed || (status[indexPlayer] ^ match)
+        status[indexPlayer] := match
+    }
+    return count
+}
+
+_OnlineMiniMapCenterPos := [1700, 276]  ; 小地图中心位置
+_OnlineMiniMapRange := 116  ; 小地图半径
+_OnlineMiniMapWarpCircleRange := 44  ; 小地图传送阵房间半径
+
+/**
+ * @description: 检查成员是否在附近
+ * @param {VarRef} status - 成员状态数组
+ * @param {VarRef} changed - 成员状态变更标志
+ * @returns {Integer} 检测到的成员数量
+ */
+_OnlineCheckMemberPositionStatus(&status, &changed) {
+    count := 0
+    loop 3 {  ; 检测小地图
+        indexPlayer := A_Index + 1
+        match := SearchColorMatch(
+            _OnlineMiniMapCenterPos[1], _OnlineMiniMapCenterPos[2],
+            _OnlinePlayerColor[indexPlayer],
+            _OnlineMiniMapWarpCircleRange, 5)
+        changed := changed || (status[indexPlayer] ^ match)
+        status[indexPlayer] := match
+        if (match) {
+            count++
+        }
+    }
+    return count
+}
+
+_OnlineSendQQMessage(text) {
+    if (myGui["Online.SendQQMessageChk"].Value) {
+        WinActivate("ahk_exe QQ.exe")
+        MyPaste(text)
+        MySend("Enter")
+        GameWindowActivate()
+    }
+}
+
+_OnlineSendGameMessage(text) {
+    ; UpdateStatusBar("打开输入栏")
+    MySend("Enter", 200, 500)  ; 等待输入栏稳定
+    ; UpdateStatusBar("输入消息")
+    MyPaste(text)
+    Sleep(500)
+    ; UpdateStatusBar("发送消息")
+    MySend("Enter", 200, 500)  ; 等待消息发送完成
 }
 
 _OnlineMoveForwardUntilInteract(title, count) {
@@ -333,9 +479,9 @@ _OnlineMoveForwardUntilInteract(title, count) {
     }
     try {
         WaitUntilButton(  ; 检测y=500的交互按钮
-            _OnlineGroveInteractButton1Pos[1], _OnlineGroveInteractButton1Pos[2
-            ],
-            "迷宫内" title "交互[F]", , , 100, 300)
+            _OnlineGroveInteractButton1Pos[1],
+            _OnlineGroveInteractButton1Pos[2],
+            "迷宫内" title "交互[F]", [10, 40], , 50, 600)
     } catch {
         MyRelease("w")
         throw ValueError("迷宫内" title "交互[F]按钮未找到")

@@ -262,11 +262,13 @@ _CreateSectionOnline(firstSection := false) {
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
     btn := myGui.AddButton(
-        _GroupBoxRowPos(4) " xs+76 h22 vOnline.EndLoadRecruitBtn",
+        _GroupBoxRowPos(4) " xs+76 h22 vOnline.LoopRecruitAgingBtn",
         "自动循环熟成车")
-    callback := TryAndCatch.Bind(Online_EndLoadRecruitBtn_Click)
+    callback := TryAndCatch.Bind(Online_LoopRecruitAgingBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
+    chk := myGui.AddCheckbox(
+        "yp hp vOnline.SendQQMessageChk", "自动发送QQ")
     myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "作为成员：")
     btn := myGui.AddButton("yp vOnline.JoinBtn", "加入")
     callback := TryAndCatch.Bind(Online_JoinBtn_Click)

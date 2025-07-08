@@ -63,6 +63,17 @@ MySend(singleKey, pressDelay := 30, postDelay := 0) {
     }
 }
 
+MyPaste(text) {
+    oldClipboard := A_Clipboard
+    A_Clipboard := text
+    Sleep(200)  ; 等待剪贴板更新
+    MyPress("Ctrl")
+    MySend("v")
+    MyRelease("Ctrl")
+    Sleep(200)  ; 等待粘贴完成
+    A_Clipboard := oldClipboard
+}
+
 /**
  * @description 运行函数并捕获异常，如果函数执行成功则播放成功音效，否则弹出错误信息并播放失败音效
  * @param {Func} function  
@@ -497,7 +508,7 @@ UtilsWindowOK2Pos := [965, 885]
 UtilsWindowOK3Pos := [965, 750]
 ; 超低位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
 UtilsWindowOK4Pos := [965, 895]
-; 极低位“OK”按钮位置，用于：房间搜索错误
+; 极低位“OK”按钮位置，用于：房间搜索错误，消息发送错误
 UtilsWindowOK5Pos := [965, 940]
 ; “OK”“是”“否”按钮选中时的背景绿色
 UtilsWindowButtonColor := "0x88FF74"
