@@ -152,10 +152,12 @@ _MiniGameMousePosX := [562, 962, 1362]  ; 鼠标中心位置X坐标（左，中�
 _MiniGameMousePosY := [324, 504]  ; 鼠标中心位置Y坐标（上，下）
 _MiniGameMouseLeftOffsetX := -20  ; 鼠标左键相对中心位置X偏移
 _MiniGameMouseMiddleOffsetY := 20  ; 鼠标中键相对中心位置Y偏移
+_MiniGameMouseUpOffsetY := -30  ; 鼠标中键上方的白色位置Y偏移
 _MiniGameMouseTextOffsetX := 18  ; 鼠标上方文字相对中心位置X偏移
 _MiniGameMouseTextOffsetY := -92  ; 鼠标上方文字相对中心位置Y偏移
 _MiniGameActionMouseLeftColor := "0xFFC8C4"  ; 鼠标左键粉色
 _MiniGameActionMouseMiddleColor := "0x311D09"  ; 鼠标中键黑色
+_MiniGameActionMouseUpColor := "0xFFF8E4"  ; 鼠标中键上方的白色
 _MiniGameActionMashColor := "0xFFB190"  ; “连按”红色
 _MiniGameActionHoldColor := "0x96F485"  ; “长按”绿色
 _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
@@ -215,7 +217,7 @@ _MiniGameRecognizeAction(ix, iy) {
     x := _MiniGameMousePosX[ix]
     y := _MiniGameMousePosY[iy]
     toolTipX := x + 5
-    toolTipY := _MiniGameMousePosY[1] + 5
+    toolTipY := y + 5
     toolTipID := 17 + ix
     foundMouseMiddle := SearchColorMatch(
         x, y + _MiniGameMouseMiddleOffsetY,
@@ -227,6 +229,9 @@ _MiniGameRecognizeAction(ix, iy) {
     foundMouseLeft := SearchColorMatch(
         x + _MiniGameMouseLeftOffsetX, y,
         _MiniGameActionMouseLeftColor, [3, 20])  ; 鼠标有动画，纵向检测范围要大
+    foundMouseUp := SearchColorMatch(
+        x, y + _MiniGameMouseUpOffsetY,
+        _MiniGameActionMouseUpColor)  ; 鼠标中键上方的白色位置
     foundMashColor := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionMashColor)
@@ -236,28 +241,33 @@ _MiniGameRecognizeAction(ix, iy) {
     foundSpinColor := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionSpinColor)
-    if (  ; 单击：有鼠标左键，无特殊颜色
-        foundMouseLeft && !foundMashColor && !foundHoldColor && !foundSpinColor
+    if (  ; 单击：有鼠标左键，有上方白色，无特殊颜色
+        foundMouseLeft && foundMouseUp &&
+        !foundMashColor && !foundHoldColor && !foundSpinColor
     ) {
         MyToolTip("单击", toolTipX, toolTipY, toolTipID, DebugMiniGame)
         return 1
-    } else if (  ; 连按：有鼠标左键，特殊颜色只有连按
-        foundMouseLeft && foundMashColor && !foundHoldColor && !foundSpinColor
+    } else if (  ; 连按：有鼠标左键，无上方白色，特殊颜色只有连按
+        foundMouseLeft && !foundMouseUp &&
+        foundMashColor && !foundHoldColor && !foundSpinColor
     ) {
         MyToolTip("连按", toolTipX, toolTipY, toolTipID, DebugMiniGame)
         return 2
-    } else if (  ; 长按：有鼠标左键，特殊颜色只有长按
-        foundMouseLeft && !foundMashColor && foundHoldColor && !foundSpinColor
+    } else if (  ; 长按：有鼠标左键，无上方白色，特殊颜色只有长按
+        foundMouseLeft && !foundMouseUp &&
+        !foundMashColor && foundHoldColor && !foundSpinColor
     ) {
         MyToolTip("长按", toolTipX, toolTipY, toolTipID, DebugMiniGame)
         return 3
-    } else if (  ; 转动：无鼠标左键，特殊颜色只有转动
-        !foundMouseLeft && !foundMashColor && !foundHoldColor && foundSpinColor
+    } else if (  ; 转动：无鼠标左键，有上方白色，特殊颜色只有转动
+        !foundMouseLeft && foundMouseUp &&
+        !foundMashColor && !foundHoldColor && foundSpinColor
     ) {
         MyToolTip("转动", toolTipX, toolTipY, toolTipID, DebugMiniGame)
         return 4
-    } else {  ; 其他情况：未知操作，可能是鼠标中间误判
-        text := foundMouseLeft foundMashColor foundHoldColor foundSpinColor
+    } else {  ; 其他情况：未知操作，可能是鼠标中键误判
+        text := (foundMouseLeft foundMouseUp
+            foundMashColor foundHoldColor foundSpinColor)
         MyToolTip(text, toolTipX, toolTipY, toolTipID, DebugMiniGame)
         return 0  ; 未知操作
     }
@@ -281,7 +291,8 @@ _MiniGameGoNextStation(&station) {
             if (action > 0) {
                 nextStation := ix
                 nextAction := action
-                MyToolTip("next: " nextStation, 960, 800, 2, DebugMiniGame)
+                MyToolTip("next: " nextStation " " nextAction,
+                    960, 800, 2, DebugMiniGame)
             }
         }
         if (nextStation > 0) {
