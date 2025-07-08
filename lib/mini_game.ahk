@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-DebugMiniGame := false
+DebugMiniGame := true
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
@@ -41,6 +41,7 @@ MiniGame_LoopCraftAgainBtn_Click() {
         } catch Error as e {
             text := "第" count + 1 " 次制作失败，已中止循环"
             e.Message := text "，详情：" e.Message
+            MySend("F9", , 500)  ; 保存OBS录像
             throw e
         }
         count++
@@ -85,7 +86,6 @@ MiniGame_LoopCraftAgainBtn_Click() {
 _MiniGameDoNextAction(&station, &done) {
     uiType := _MiniGameWaitForUI()
     MyToolTip("uiType: " uiType, 0, 0, 1, DebugMiniGame)
-    MyToolTip("station: " station, 960, 800, 2, DebugMiniGame)
     if (uiType == 2) {
         done := true  ; 图标栏为空，直接返回
         return
@@ -186,7 +186,7 @@ _MiniGameRecognizeUIType() {
             iconEmpty[A_Index] := SearchColorMatch(
                 _MiniGameIconPosX[A_Index], _MiniGameIconPosY,
                 _MiniGameIconBackgroundColor, 1)
-            MyToolTip(iconEmpty[A_Index],
+            MyToolTip(!iconEmpty[A_Index],
                 _MiniGameIconPosX[A_Index] + 5, _MiniGameIconPosY + 5,
                 10 + A_Index, DebugMiniGame)
         }
@@ -209,48 +209,57 @@ _MiniGameRecognizeUIType() {
  * @description 识别工作台操作
  * @param {Integer} ix 工作台识别位置（1:左, 2:中, 3:右）
  * @param {Integer} iy 工作台识别高度（1:上, 2:下）
- * @returns {Integer} 操作类型（0:未知, 1:单击, 2:连按, 3:长按, 4:转动）
+ * @returns {Integer} 操作类型（0:无, 1:单击, 2:连按, 3:长按, 4:转动）
  */
 _MiniGameRecognizeAction(ix, iy) {
     x := _MiniGameMousePosX[ix]
     y := _MiniGameMousePosY[iy]
-    foundMouseLeft := SearchColorMatch(
-        x + _MiniGameMouseLeftOffsetX, y,
-        _MiniGameActionMouseLeftColor, [1, 10])
+    toolTipX := x + 5
+    toolTipY := _MiniGameMousePosY[1] + 5
+    toolTipID := 17 + ix
     foundMouseMiddle := SearchColorMatch(
         x, y + _MiniGameMouseMiddleOffsetY,
-        _MiniGameActionMouseMiddleColor, [1, 10])
-    foundMouse := foundMouseLeft && foundMouseMiddle
-    foundMash := SearchColorMatch(
+        _MiniGameActionMouseMiddleColor, [3, 20])  ; 鼠标有动画，纵向检测范围要大
+    if (!foundMouseMiddle) {  ; 没有鼠标中键一定是无操作
+        MyToolTip("无操作", toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 0
+    }
+    foundMouseLeft := SearchColorMatch(
+        x + _MiniGameMouseLeftOffsetX, y,
+        _MiniGameActionMouseLeftColor, [3, 20])  ; 鼠标有动画，纵向检测范围要大
+    foundMashColor := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionMashColor)
-    foundHold := SearchColorMatch(
+    foundHoldColor := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionHoldColor)
-    foundSpin := SearchColorMatch(
+    foundSpinColor := SearchColorMatch(
         x + _MiniGameMouseTextOffsetX, y + _MiniGameMouseTextOffsetY,
         _MiniGameActionSpinColor)
-    foundSpecial := foundMash || foundHold || foundSpin
-    if (foundMouse && !foundSpecial) {
-        MyToolTip("单击", x + 5, _MiniGameMousePosY[1] + 5,
-            17 + ix, DebugMiniGame)
-        return 1  ; 单击
-    } else if (foundMash) {
-        MyToolTip("连按", x + 5, _MiniGameMousePosY[1] + 5,
-            17 + ix, DebugMiniGame)
-        return 2  ; 连按
-    } else if (foundHold) {
-        MyToolTip("长按", x + 5, _MiniGameMousePosY[1] + 5,
-            17 + ix, DebugMiniGame)
-        return 3  ; 长按
-    } else if (foundSpin) {
-        MyToolTip("转动", x + 5, _MiniGameMousePosY[1] + 5,
-            17 + ix, DebugMiniGame)
-        return 4  ; 转动
-    } else {
-        MyToolTip("未知", x + 5, _MiniGameMousePosY[1] + 5,
-            17 + ix, DebugMiniGame)
-        return 0  ; 未知
+    if (  ; 单击：有鼠标左键，无特殊颜色
+        foundMouseLeft && !foundMashColor && !foundHoldColor && !foundSpinColor
+    ) {
+        MyToolTip("单击", toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 1
+    } else if (  ; 连按：有鼠标左键，特殊颜色只有连按
+        foundMouseLeft && foundMashColor && !foundHoldColor && !foundSpinColor
+    ) {
+        MyToolTip("连按", toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 2
+    } else if (  ; 长按：有鼠标左键，特殊颜色只有长按
+        foundMouseLeft && !foundMashColor && foundHoldColor && !foundSpinColor
+    ) {
+        MyToolTip("长按", toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 3
+    } else if (  ; 转动：无鼠标左键，特殊颜色只有转动
+        !foundMouseLeft && !foundMashColor && !foundHoldColor && foundSpinColor
+    ) {
+        MyToolTip("转动", toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 4
+    } else {  ; 其他情况：未知操作，可能是鼠标中间误判
+        text := foundMouseLeft foundMashColor foundHoldColor foundSpinColor
+        MyToolTip(text, toolTipX, toolTipY, toolTipID, DebugMiniGame)
+        return 0  ; 未知操作
     }
 }
 
@@ -261,6 +270,7 @@ _MiniGameRecognizeAction(ix, iy) {
  */
 _MiniGameGoNextStation(&station) {
     nextStation := 0  ; 初始化为未知
+    nextAction := 0
     count := 0
     timeoutCount := 25
     while (count < timeoutCount) {
@@ -270,30 +280,30 @@ _MiniGameGoNextStation(&station) {
             action := _MiniGameRecognizeAction(ix, iy)
             if (action > 0) {
                 nextStation := ix
-                break
+                nextAction := action
+                MyToolTip("next: " nextStation, 960, 800, 2, DebugMiniGame)
             }
         }
-        if (action > 0) {
-            break  ; 如果识别到操作，跳出循环
+        if (nextStation > 0) {
+            break  ; 如果识别到下一个工作台位置，跳出循环
         }
         Sleep(20)
         count++
     }
-    if (action == 0) {
+    if (nextAction == 0) {
         throw TimeoutError("工作台操作识别超时")
     }
     if (nextStation == station) {
-        return action  ; 当前工作台不需要移动，直接返回
+        return nextAction  ; 当前工作台不需要移动，直接返回
     }
     move := nextStation - station
-    UpdateStatusBar("移动到工作台" nextStation)
     key := move > 0 ? "d" : "a"
     loop (Abs(move)) {
         MySend(key)
         Sleep(50)  ; 移动间隔
     }
     station := nextStation
-    return action  ; 返回操作类型
+    return nextAction  ; 返回操作类型
 }
 
 _MiniGameActionTap() {
