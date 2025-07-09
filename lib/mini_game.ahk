@@ -317,12 +317,8 @@ _MiniGameGoNextStation(&station) {
     return nextAction  ; 返回操作类型
 }
 
-_MiniGameDoAction(action) {
-    mashCount := myGui["MiniGame.MashCount"].Value
-    mashInterval := myGui["MiniGame.MashInterval"].Value
-    holdDelay := myGui["MiniGame.HoldDelay"].Value
-    spinCount := myGui["MiniGame.SpinCount"].Value
-    spinInterval := myGui["MiniGame.spinInterval"].Value
+
+_MiniGameDoAction(action, &station) {
     switch (action) {
         case 1:  ; 单击
             UpdateStatusBar("单击")
