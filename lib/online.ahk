@@ -89,13 +89,7 @@ _TalkToColm() {
     MyRelease("w")
     UpdateStatusBar("开始对话")
     MySend("f")
-    match := WaitUntil2ColorMatch(
-        UtilsOptionListTopIn2GlowPos, UtilsOptionListGlowColor,
-        UtilsOptionListTopIn3GlowPos, UtilsOptionListGlowColor,
-        "科隆对话选项")
-    if (match == 2) {  ; 三选项时向下一次
-        MySend("s", , 200)
-    }
+    UtilsWaitUntilOptionListSelected(1, 1, 2, "科隆对话选项")
     Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
@@ -234,10 +228,7 @@ _OnlineHeadOutAsHost() {
     MySend("u")
     WaitUntilConversationSpace()
     MySend("Space")
-    WaitUntilColorMatch(
-        UtilsShortOptionListTopIn2GlowPos[1],
-        UtilsShortOptionListTopIn2GlowPos[2],
-        UtilsOptionListGlowColor, "对话界面")
+    UtilsWaitUntilOptionListSelected(2, 1, 2, "对话界面")
     Sleep(300)  ; 等待对话界面稳定
     MySend("Space")  ; 选择“出发”选项
     WaitUntilColorMatch(

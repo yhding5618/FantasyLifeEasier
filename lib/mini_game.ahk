@@ -53,28 +53,28 @@ MiniGame_LoopCraftAgainBtn_Click() {
         MySend("Space")  ; 确认制作完成
         match := WaitUntil2ColorMatch(
             _MiniGameRemakeSpacePos, UtilsKeyBackgroundColor,
-            UtilsOptionListTopIn3GlowPos, UtilsOptionListGlowColor,
-            "新页面加载", , , , 100)
+            UtilsGetOptionListPosition(1, 1, 3),
+            UtilsOptionListGlowColor, "新页面加载", , , , 100)
         if (match == 1) {
-            ; 重新制作流程，先进入技能重置页面
-            ; 等待手动选择后进入3选1“继续重制”页面，最多等待3分钟
-            WaitUntilColorMatch(
-                UtilsOptionListTopIn3GlowPos[1],
-                UtilsOptionListTopIn3GlowPos[2],
-                UtilsOptionListGlowColor, "手动选择技能",
-                , , 100, 1800)
-            UpdateStatusBar("进入“继续重制”菜单")
+            ; 重新制作流程
+            optionText := "继续重制"
+            ; 等待手动技能重置结束，最多等待3分钟
+            PlaySuccessSound()
+            UtilsWaitUntilOptionListSelected(1, 1, 3,
+                "手动技能重置", , , 100, 1800)
         } else {
-            ; 再次制作流程，直接进入3选1“再次制作”页面
-            UpdateStatusBar("进入“再次制作”菜单")
+            ; 普通制作流程，无需等待
+            optionText := "再次制作"
         }
         if (count == maxCount) {
             UpdateStatusBar("循环完毕，已完成制作 " count " 次")
             break
         }
-        Sleep(500)
-        MySend("s", , 500)  ; 选择再次制作/继续重置
-        MySend("Space", , 500)  ; 确认再次制作/继续重置
+        Sleep(500)  ; 等待页面稳定，防止s键被吞
+        MySend("s")  ; 下移光标
+        ; 如果材料不足选项不会变绿
+        UtilsWaitUntilOptionListSelected(1, 2, 3, "选中" optionText)
+        MySend("Space")  ; 确认再次制作/继续重制
     }
 }
 

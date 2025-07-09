@@ -14,9 +14,7 @@ MysteryBox_LoadAndBuyBtn_Click() {
         MySend("Space", , 1200)  ; 确认自动出售结果
     }
     MySend("Escape", , 700)  ; 关闭商店界面
-    WaitUntilColorMatch(
-        UtilsOptionListTopIn3GlowPos[1], UtilsOptionListTopIn3GlowPos[2],
-        UtilsOptionListGlowColor, "对话界面")
+    UtilsWaitUntilOptionListSelected(1, 1, 3, "对话界面")
     Sleep(300)  ; 等待对话界面稳定
     MySend("Escape", , 1000)  ; 关闭对话界面
     MySend("Space", , 800)  ; 加速对话
@@ -32,9 +30,7 @@ _MysteryBoxBuy() {
     itemIndex := myGui["MysteryBox.ItemIndex"].Value
     buyCount := myGui["MysteryBox.BuyCount"].Value
     MySend("f")
-    WaitUntilColorMatch(
-        UtilsOptionListTopIn3GlowPos[1], UtilsOptionListTopIn3GlowPos[2],
-        UtilsOptionListGlowColor, "“购买”选项")
+    UtilsWaitUntilOptionListSelected(1, 1, 3, "购买选项")
     Sleep(300)  ; 等待对话界面稳定
     UpdateStatusBar("选择“购买”")
     MySend("Space")  ; 选择“购买”

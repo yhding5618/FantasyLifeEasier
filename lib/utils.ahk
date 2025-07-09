@@ -501,20 +501,112 @@ UtilsWindowOK4Pos := [965, 895]
 UtilsWindowOK5Pos := [965, 940]
 ; “OK”“是”“否”按钮选中时的背景绿色
 UtilsWindowButtonColor := "0x88FF74"
-; 右侧二短选项时首选项位置，用于：在线选择出发
-UtilsShortOptionListTopIn2GlowPos := [1351, 477]
-; 右侧二选项时首选项位置，用于：科隆对话
-UtilsOptionListTopIn2GlowPos := [1293, 436]
-; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话，制作完成后是否继续制作
-UtilsOptionListTopIn3GlowPos := [1293, 403]
-; 右侧五选项时首选项位置，用于：迷宫树对话
-UtilsOptionListTopIn5GlowPos := [1293, 283]
+UtilsOptionListWidePosX := 1293  ; 宽边距选项列表X坐标
+UtilsOptionListNarrowPosX := 1351  ; 窄边距选项列表X坐标
+UtilsOptionList2WidePosY := 436  ; 2宽选项列表Y坐标
+UtilsOptionList2NarrowPosY := 477  ; 2窄选项列表Y坐标
+UtilsOptionList3PosY := 403  ; 3宽选项列表Y坐标
+UtilsOptionList5PosY := 283  ; 5宽选项列表Y坐标
+; 单个选项高度
+UtilsOptionListItemHeight := 80
 ; 右侧选项选中时的发光绿色，用于：大部分对话选项
-UtilsOptionListGlowColor := "0xAFF258"
+UtilsOptionListGlowColor := "0xA8F255"
 ; 交互按键背景灰色
 UtilsKeyBackgroundColor := "0x93805B"
 ; 继续对话空格键像素
 UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
+
+/**
+ * @description 返回选项列表检查点
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {String} title 选项标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ */
+UtilsGetOptionListPosition(marginType, index, total) {
+    switch (marginType) {
+        case 1:
+            x := UtilsOptionListWidePosX
+        case 2:
+            x := UtilsOptionListNarrowPosX
+        default:
+            throw ValueError("不支持的选项列表边距类型: " marginType)
+    }
+    switch (total) {
+        case 2:
+            ys := (marginType == 1) ?
+                UtilsOptionList2WidePosY :
+                UtilsOptionList2NarrowPosY
+        case 3:
+            ys := UtilsOptionList3PosY
+        case 5:
+            ys := UtilsOptionList5PosY
+        default:
+            throw ValueError("不支持的选项总数: " total)
+    }
+    y := ys + (index - 1) * UtilsOptionListItemHeight
+    return [x, y]
+}
+
+/**
+ * @description 检查选项列表是否被选中
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ */
+UtilsOptionListSelected(listType, index, total,
+    pixelRange := 5, colorVariation := 20
+) {
+    pos := UtilsGetOptionListPosition(listType, index, total)
+    return SearchColorMatch(
+        pos[1], pos[2], UtilsOptionListGlowColor,
+        pixelRange, colorVariation
+    )
+}
+
+/**
+ * @description 等待选项列表被选中的绿色加载完成
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {String} title 选项标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认50）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认100）
+ */
+UtilsWaitUntilOptionListSelected(listType, index, total, title,
+    pixelRange := 5, colorVariation := 20,
+    interval := 100, timeoutCount := 50
+) {
+    if (index < 1 || index > total) {
+        throw ValueError("选项索引必须在1到" total "之间")
+    }
+    pos := UtilsGetOptionListPosition(listType, index, total)
+    WaitUntilColorMatch(
+        pos[1], pos[2], UtilsOptionListGlowColor, title,
+        pixelRange, colorVariation, interval, timeoutCount
+    )
+}
 
 /**
  * @description 等待对话界面交互空格键加载完成

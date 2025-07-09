@@ -19,12 +19,6 @@ TreasureGrove_CheckRoomBtn_Click() {
     _TreasureGroveCheckAllRooms()
 }
 
-; 3个选项时发光位置
-_TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos
-; 5个选项时发光位置
-_TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos
-; 发光颜色
-_TreasureGroveGlowColor := UtilsOptionListGlowColor
 ; 迷宫树“路线图”logo像素
 _TreasureGroveLogoPixel := [119, 58, "0xF7E1B2"]
 ; 迷宫树地图共10行（不包括起点层）
@@ -107,14 +101,10 @@ _TreasureGroveReplant() {
     count := 0
     timeoutCount := 50
     while (count < timeoutCount) {
-        optionAtFirst := SearchColorMatch(  ; 3选1st
-            _TreasureGroveGlow1Pos[1], _TreasureGroveGlow1Pos[2],
-            _TreasureGroveGlowColor
-        )
-        optionAtThird := SearchColorMatch(  ; 5选3rd
-            _TreasureGroveGlow2Pos[1], _TreasureGroveGlow2Pos[2],
-            _TreasureGroveGlowColor
-        )
+        ; 当前未种植，“重新种植”选项在第一行
+        optionAtFirst := UtilsOptionListSelected(1, 1, 3)
+        ; 当前已种植，“重新种植”选项在第三行
+        optionAtThird := UtilsOptionListSelected(1, 1, 5)
         if (optionAtFirst ^ optionAtThird) {
             break
         }
