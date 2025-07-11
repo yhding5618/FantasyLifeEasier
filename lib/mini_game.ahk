@@ -80,7 +80,7 @@ MiniGame_LoopCraftAgainBtn_Click() {
 /**
  * @description 执行下一步操作
  * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
- * @returns {Boolean} `true`表示成功执行操作，`false`表示没有有效操作或无法识别操作类型
+ * @returns {Boolean} `true`: 操作成功, `false`: 无有效操作或无法识别操作类型
  */
 _MiniGameDoNextAction(&benchPos) {
     ; 找到下一个工作台位置
@@ -88,7 +88,7 @@ _MiniGameDoNextAction(&benchPos) {
     if benchPos == 0 {  ; 当前工作台位置未知
         nextBenchPos := _MiniGameInitBenchPos(&benchPos)
     } else {
-        nextBenchPos := _MiniGameFindNextBenchPos(&benchPos)
+        nextBenchPos := _MiniGameGetNextBenchPos(&benchPos)
     }
     MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
     if (benchPos == 0 || nextBenchPos == 0) {
@@ -98,7 +98,7 @@ _MiniGameDoNextAction(&benchPos) {
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
     ; 识别上部操作具体类型
-    action := _MiniGameRecognizeActionType(benchPos, 1)
+    action := _MiniGameGetActionType(benchPos, 1)
     MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
         UpdateStatusBar("无法识别当前工作台" benchPos "的操作类型")
@@ -179,14 +179,14 @@ _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
 
 /**
  * @description 等待制作界面出现
- * @returns {Integer} UI类型（1:有图标的制作界面, 2:图标栏全空的制作界面）
+ * @returns {Integer} 制作界面类型（1: 有图标, 2: 图标栏全空）
  * @throws TimeoutError 如果等待超时
  */
 _MiniGameWaitForUI() {
     count := 0
     timeoutCount := 300
     while (count < timeoutCount) {
-        uiType := _MiniGameRecognizeUIType()
+        uiType := _MiniGameGetUIType()
         if (uiType != 0) {  ; 非0为有效UI类型
             return uiType
         }
@@ -197,7 +197,11 @@ _MiniGameWaitForUI() {
     throw TimeoutError("等待制作界面超时")
 }
 
-_MiniGameRecognizeUIType() {
+/**
+ * @description 检测 UI 类型
+ * @returns {Integer} UI 类型（0: 非制作界面, 1: 制作界面, 2: 空界面）
+ */
+_MiniGameGetUIType() {
     foundTimer := SearchColorMatch(
         _MiniGameTimerBackgroundPixel[1], _MiniGameTimerBackgroundPixel[2],
         _MiniGameTimerBackgroundPixel[3]
@@ -228,14 +232,14 @@ _MiniGameRecognizeUIType() {
 }
 
 /**
- * @description 检查工作台是否有操作
- * @param {Integer} ix 工作台识别位置（1:左, 2:中, 3:右）
- * @param {Integer} iy 工作台识别高度（1:上, 2:下）
+ * @description 检查指定工作台是否有操作
+ * @param {Integer} targetPos 目标工作台位置（1:左, 2:中, 3:右）
+ * @param {Integer} targetHeight 目标操作高度（1:上, 2:下）
  * @returns {Boolean} 是否有操作
  */
-_MiniGameBenchPosHasAction(ix, iy) {
-    x := _MiniGameMousePosX[ix]
-    y := _MiniGameMousePosY[iy]
+_MiniGameIsHaveAction(targetPos, targetHeight) {
+    x := _MiniGameMousePosX[targetPos]
+    y := _MiniGameMousePosY[targetHeight]
     foundMouseMiddle := SearchColorMatch(
         x, y + _MiniGameMouseMiddleOffsetY,
         _MiniGameActionMouseMiddleColor, [3, 20])  ; 鼠标可能有动画，纵向检测范围要大
@@ -261,15 +265,15 @@ _MiniGameBenchPosHasAction(ix, iy) {
 }
 
 /**
- * @description 识别工作台操作类型
- * @param {Integer} ix 工作台识别位置（1:左, 2:中, 3:右）
- * @param {Integer} iy 工作台识别高度（1:上, 2:下）
+ * @description 识别指定工作台的操作类型
+ * @param {Integer} targetPos 目标工作台位置（1:左, 2:中, 3:右）
+ * @param {Integer} targetHeight 目标操作高度（1:上, 2:下）
  * @returns {Integer} 操作类型（0:未知, 1:单击, 2:连按, 3:长按, 4:转动）
  */
-_MiniGameRecognizeActionType(ix, iy) {
-    foundMashColor := _MiniGameVerifyActionType(ix, iy, 2)
-    foundHoldColor := _MiniGameVerifyActionType(ix, iy, 3)
-    foundSpinColor := _MiniGameVerifyActionType(ix, iy, 4)
+_MiniGameGetActionType(targetPos, targetHeight) {
+    foundMashColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 2)
+    foundHoldColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 3)
+    foundSpinColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 4)
     if (!foundMashColor && !foundHoldColor && !foundSpinColor) {
         actionType := 1  ; 单击：无特殊颜色
     } else if (foundMashColor && !foundHoldColor && !foundSpinColor) {
@@ -281,8 +285,8 @@ _MiniGameRecognizeActionType(ix, iy) {
     } else {
         actionType := 0  ; 未知：可能是鼠标图标误判
     }
-    toolTipX := 5 + _MiniGameMousePosX[ix] + _MiniGameMouseTextOffsetX
-    toolTipY := 5 + _MiniGameMousePosY[iy] + _MiniGameMouseTextOffsetY
+    toolTipX := 5 + _MiniGameMousePosX[targetPos] + _MiniGameMouseTextOffsetX
+    toolTipY := 5 + _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     text := (actionType != 0) ?
         "操作" actionType :
         "未知" (foundMashColor foundHoldColor foundSpinColor)
@@ -291,15 +295,15 @@ _MiniGameRecognizeActionType(ix, iy) {
 }
 
 /**
- * @description 验证工作台操作类型
- * @param {Integer} ix 工作台识别位置（1:左, 2:中, 3:右）
- * @param {Integer} iy 工作台识别高度（1:上, 2:下）
+ * @description 验证指定工作台的操作类型
+ * @param {Integer} targetPos 目标工作台位置（1:左, 2:中, 3:右）
+ * @param {Integer} targetHeight 目标操作高度（1:上, 2:下）
  * @param {Integer} action 操作类型（2:连按, 3:长按, 4:转动）
  * @returns {Boolean} 是否匹配操作类型
  */
-_MiniGameVerifyActionType(ix, iy, action) {
-    x := _MiniGameMousePosX[ix] + _MiniGameMouseTextOffsetX
-    y := _MiniGameMousePosY[iy] + _MiniGameMouseTextOffsetY
+_MiniGameIsActionCorrect(targetPos, targetHeight, action) {
+    x := _MiniGameMousePosX[targetPos] + _MiniGameMouseTextOffsetX
+    y := _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     switch (action) {
         case 2:  ; 连按
             textColor := _MiniGameActionMashColor
@@ -315,7 +319,7 @@ _MiniGameVerifyActionType(ix, iy, action) {
 }
 
 /**
- * @description 移动到指定方向
+ * @description 指定方向移动
  * @param {Integer} direction 方向（1:左, 2:右）
  * @param {Integer} count 移动次数
  */
@@ -328,17 +332,17 @@ _MiniGameMove(direction, count) {
 }
 
 /**
- * @description 移动到下一个工作台位置
+ * @description 移动到指定工作台位置
  * @param {VarRef} benchPos 当前工作台位置（1:左, 2:中, 3:右）
- * @param {Integer} nextBenchPos 下一个工作台位置（1:左, 2:中, 3:右）
+ * @param {Integer} targetPos 目标工作台位置（1:左, 2:中, 3:右）
  */
-_MiniGameMoveToBenchPos(&benchPos, nextBenchPos) {
-    if (benchPos == nextBenchPos) {
-        return  ; 不需要移动
+_MiniGameMoveToBenchPos(&benchPos, targetPos) {
+    if (benchPos == targetPos) {  ; 不需要移动
+        return
     }
-    move := nextBenchPos - benchPos
-    _MiniGameMove(1 + (move > 0), Abs(move))  ; 左移或右移
-    benchPos := nextBenchPos  ; 更新当前工作台位置
+    move := targetPos - benchPos
+    _MiniGameMove(1 + (move > 0), Abs(move))
+    benchPos := targetPos  ; 更新当前工作台位置
 }
 
 /**
@@ -347,11 +351,12 @@ _MiniGameMoveToBenchPos(&benchPos, nextBenchPos) {
  * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
 _MiniGameInitBenchPos(&benchPos) {
+    ; 确定操作位置
     loop 3 {
         ix := A_Index
         loop 2 {
             iy := A_Index
-            foundAction := _MiniGameBenchPosHasAction(ix, iy)
+            foundAction := _MiniGameIsHaveAction(ix, iy)
             if (foundAction) {
                 break
             }
@@ -376,7 +381,7 @@ _MiniGameInitBenchPos(&benchPos) {
             _MiniGameMove(2, 1)  ; 右移一次
     }
     ; 移动后检测操作是否移到上部
-    foundAction := _MiniGameBenchPosHasAction(ix, 1)
+    foundAction := _MiniGameIsHaveAction(ix, 1)
     if foundAction {
         benchPos := ix  ; ix即为当前工作台位置
         return ix  ; 提前返回
@@ -395,15 +400,15 @@ _MiniGameInitBenchPos(&benchPos) {
 }
 
 /**
- * @description 找到下一个工作台位置（当前位置为已知）
+ * @description 当位置为已知时，找到下一个工作台位置
  * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
  * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
-_MiniGameFindNextBenchPos(&benchPos) {
+_MiniGameGetNextBenchPos(&benchPos) {
     loop 3 {  ; 识别左中右工作台操作
         ix := A_Index
         iy := (benchPos == ix) ? 1 : 2  ; 如果是当前工作台需要识别上部操作
-        foundAction := _MiniGameBenchPosHasAction(ix, iy)
+        foundAction := _MiniGameIsHaveAction(ix, iy)
         if foundAction {
             return ix
         }
@@ -435,7 +440,7 @@ _MiniGameActionTap() {
 }
 
 _MiniGameActionMash(benchPos) {
-    while (_MiniGameVerifyActionType(benchPos, 1, 2)) {
+    while (_MiniGameIsActionCorrect(benchPos, 1, 2)) {
         loop 3 {
             MySend("Space")
             Sleep(75)
@@ -445,7 +450,7 @@ _MiniGameActionMash(benchPos) {
 
 _MiniGameActionHold(benchPos) {
     MyPress("Space")
-    while (_MiniGameVerifyActionType(benchPos, 1, 3)) {
+    while (_MiniGameIsActionCorrect(benchPos, 1, 3)) {
         Sleep(100)
     }
     MyRelease("Space")
@@ -456,7 +461,7 @@ _MiniGameActionSpin(benchPos) {
     posReset := [700, 300]
     posMove := [160, 90]
     speed := 100
-    while (_MiniGameVerifyActionType(benchPos, 1, 4)) {
+    while (_MiniGameIsActionCorrect(benchPos, 1, 4)) {
         MouseMove(posReset[1], posReset[2], speed)
         loop 5 {
             MouseMove(posMove[1], posMove[2], speed, "R")
