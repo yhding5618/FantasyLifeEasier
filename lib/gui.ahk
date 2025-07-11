@@ -164,25 +164,11 @@ _CreateSectionLongCape(firstSection := false) {
 }
 
 _CreateSectionMiniGame(firstSection := false) {
-    totalRows := 8
+    totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "小游戏")
-    myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "连按次数：")
-    myGui.AddEdit("xp+110 yp hp w50", "10")
-    myGui.AddUpDown("vMiniGame.MashCount Range1-99 0x80", 10)
-    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "连按间隔（毫秒）：")
-    myGui.AddEdit("xp+110 yp hp w50", "10")
-    myGui.AddUpDown("vMiniGame.MashInterval Range1-1000 0x80", 100)
-    myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "长按延迟（毫秒）：")
-    myGui.AddEdit("xp+110 yp hp w50")
-    myGui.AddUpDown("vMiniGame.HoldDelay Range1-5000 0x80", 1600)
-    myGui.AddText(_GroupBoxRowPos(4) " h22 0x200", "转动次数：")
-    myGui.AddEdit("xp+110 yp hp w50")
-    myGui.AddUpDown("vMiniGame.SpinCount Range1-99 0x80", 10)
-    myGui.AddText(_GroupBoxRowPos(5) " h22 0x200", "转动间隔（毫秒）：")
-    myGui.AddEdit("xp+110 yp hp w50", "100")
-    myGui.AddUpDown("vMiniGame.SpinInterval Range0-1000 0x80", 0)
+
     btn := myGui.AddButton(
-        _GroupBoxRowPos(6) " vMiniGame.SingleActionBtn", "单次操作")
+        _GroupBoxRowPos(1) " vMiniGame.SingleActionBtn", "单次操作")
     callback := TryAndCatch.Bind(MiniGame_SingleActionBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
@@ -190,7 +176,7 @@ _CreateSectionMiniGame(firstSection := false) {
     callback := TryAndCatch.Bind(MiniGame_ContinuousActionBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)
-    ; myGui.AddText(_GroupBoxRowPos(7) " h22 0x200", "检查词条：")
+    ; myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "检查词条：")
     ; myGui.AddComboBox(
     ;     "yp w120 Choose1 AltSubmit vMiniGame.TargetSkill",
     ;     ["光属性伤害提升", "暗属性伤害提升", "（可以自定义）"])
@@ -198,11 +184,11 @@ _CreateSectionMiniGame(firstSection := false) {
     ; callback := TryAndCatch.Bind(MiniGame_CheckSkillBtn_Click)
     ; btn.OnEvent("Click", callback)
     ; _AddBtnToHotkeyList(btn, callback)
-    myGui.AddText(_GroupBoxRowPos(7) " h22 0x200", "循环次数：")
+    myGui.AddText(_GroupBoxRowPos(2) " h22 0x200", "循环次数：")
     myGui.AddEdit("yp hp w40")
     myGui.AddUpDown("vMiniGame.LoopCraftAgainCount Range0-999 0x80", 10)
     btn := myGui.AddButton(
-        _GroupBoxRowPos(8) " vMiniGame.LoopCraftAgainBtn", "循环再次制作/继续重制")
+        _GroupBoxRowPos(3) " vMiniGame.LoopCraftAgainBtn", "循环再次制作/继续重制")
     callback := TryAndCatch.Bind(MiniGame_LoopCraftAgainBtn_Click)
     btn.OnEvent("Click", callback)
     _AddBtnToHotkeyList(btn, callback)

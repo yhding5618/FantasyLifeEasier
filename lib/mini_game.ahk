@@ -317,61 +317,66 @@ _MiniGameGoNextStation(&station) {
     return nextAction  ; 返回操作类型
 }
 
-_MiniGameActionTap() {
-    MySend("Space")
-}
 
-_MiniGameDoAction(action) {
-    mashCount := myGui["MiniGame.MashCount"].Value
-    mashInterval := myGui["MiniGame.MashInterval"].Value
-    holdDelay := myGui["MiniGame.HoldDelay"].Value
-    spinCount := myGui["MiniGame.SpinCount"].Value
-    spinInterval := myGui["MiniGame.spinInterval"].Value
+_MiniGameDoAction(action, &station) {
     switch (action) {
         case 1:  ; 单击
             UpdateStatusBar("单击")
             _MiniGameActionTap()
         case 2:  ; 连按
             UpdateStatusBar("连按")
-            _MiniGameActionMash(mashCount, mashInterval)
+            _MiniGameActionMash(&station)
         case 3:  ; 长按
             UpdateStatusBar("长按")
-            _MiniGameActionHold(holdDelay)
+            _MiniGameActionHold(&station)
         case 4:  ; 转动
             UpdateStatusBar("转动")
-            _MiniGameActionSpin(spinCount, spinInterval)
+            _MiniGameActionSpin(&station)
         default:
             UpdateStatusBar("未知操作")
     }
 }
 
-_MiniGameActionMash(count, interval) {
-    loop count {
-        MySend("Space")
-        Sleep(interval)
+_MiniGameActionTap() {
+    MySend("Space")
+}
+
+_MiniGameActionMash(&station) {
+    while (SearchColorMatch(
+        _MiniGameMousePosX[station] + _MiniGameMouseTextOffsetX, _MiniGameMousePosY[1] + _MiniGameMouseTextOffsetY,
+        _MiniGameActionMashColor)
+    ) {
+        loop 3 {
+            MySend("Space")
+            Sleep(50)
+        }
     }
 }
 
-_MiniGameActionHold(delay) {
+_MiniGameActionHold(&station) {
     MyPress("Space")
-    Sleep(delay)
+    while (SearchColorMatch(
+        _MiniGameMousePosX[station] + _MiniGameMouseTextOffsetX, _MiniGameMousePosY[1] + _MiniGameMouseTextOffsetY,
+        _MiniGameActionHoldColor)
+    ) {
+        Sleep(100)
+    }
     MyRelease("Space")
 }
 
-_MiniGameActionSpin(count, interval, length := 150, sideNum := 12, speed :=
-    100,
-    delay := 1) {
-    Pi := 3.141592653589793
-    MouseMove(960, 100, speed)  ; 鼠标复位
-    loop count {
-        loop sideNum {
-            side := A_Index
-            radian := (side - 1) / sideNum * 2 * Pi
-            x := Round(Cos(radian) * length)
-            y := Round(Sin(radian) * length)
-            MouseMove(x, y, speed, "R")  ; 相对移动
-            Sleep(delay)
+_MiniGameActionSpin(&station) {
+    posReset := [700, 300]
+    posMove := [160, 90]
+    speed := 100
+
+    while (SearchColorMatch(
+        _MiniGameMousePosX[station] + _MiniGameMouseTextOffsetX, _MiniGameMousePosY[1] + _MiniGameMouseTextOffsetY,
+        _MiniGameActionSpinColor)
+    ) {
+        MouseMove(posReset[1], posReset[2], speed)
+        loop 5 {
+            MouseMove(posMove[1], posMove[2], speed, "R")
+            Sleep(20)
         }
-        Sleep(interval)
     }
 }

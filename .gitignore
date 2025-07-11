@@ -1,0 +1,8 @@
+*
+!.gitignore
+!.github
+!LICENSE
+!README.md
+
+!/main.ahk
+!/lib
