@@ -4,19 +4,52 @@ DebugMiniGame := true
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
-    benchPos := 0
+    retryCount := 0
+    retryLimit := 3
+
+    ; 有限次重试搜寻工作台位置
+    while (retryCount <= retryLimit) { ; 包括第一次搜寻
+        benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
+        if (benchPos != 0) {
+            break
+        }
+        if (retryCount == retryLimit) {
+            throw Error("找不到合法工作台")
+        }
+        retryCount++
+        UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
+        Sleep(500)
+    }
+    
     done := _MiniGameDoNextAction(&benchPos)
     if (!done) {
-        throw ValueError("无法完成单次操作")
+        throw Error("无法完成操作")
     }
 }
 
 MiniGame_ContinuousActionBtn_Click() {
+    retryCount := 0
+    retryLimit := 3
     benchPos := 0
     while (uiType := _MiniGameWaitForUI() != 2) {
+        ; 有限次重试搜寻工作台位置
+        while (retryCount < retryLimit) {
+            if (benchPos != 0) {
+                retryCount := 0
+                break
+            }
+            benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
+            if (retryCount >= retryLimit) {
+                throw TargetError("找不到合法工作台")
+            }
+            retryCount++
+            UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
+            Sleep(500)
+        }
+        
         done := _MiniGameDoNextAction(&benchPos)
         if (!done) {
-            benchPos := 0  ; 重置工作台位置
+            throw Error("无法完成操作")
         }
     }
     _MiniGameWaitForComplete()
@@ -78,26 +111,22 @@ MiniGame_LoopCraftAgainBtn_Click() {
 }
 
 /**
- * @description 执行下一步操作
- * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
+ * @description 已知当前位置，执行下一步操作
+ * @param {VarRef} benchPos 当前工作台位置（1:左, 2:中, 3:右）
  * @returns {Boolean} `true`: 操作成功, `false`: 无有效操作或无法识别操作类型
  */
 _MiniGameDoNextAction(&benchPos) {
-    ; 找到下一个工作台位置
     MyToolTip("benchPos: " benchPos, 860, 810, 1, DebugMiniGame)
-    if benchPos == 0 {  ; 当前工作台位置未知
-        nextBenchPos := _MiniGameInitBenchPos(&benchPos)
-    } else {
-        nextBenchPos := _MiniGameGetNextBenchPos(&benchPos)
-    }
+    nextBenchPos := _MiniGameGetNextBenchPos(&benchPos)
     MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
-    if (benchPos == 0 || nextBenchPos == 0) {
+
+    if (nextBenchPos == 0) {
         UpdateStatusBar("未找到有效的工作台操作")
-        return false  ; 没有有效操作，可能在动作切换的间隙
+        return false  ; 无有效操作
     }
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
-    ; 识别上部操作具体类型
+    ; 识别操作类型
     action := _MiniGameGetActionType(benchPos, 1)
     MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
@@ -346,12 +375,11 @@ _MiniGameMoveToBenchPos(&benchPos, targetPos) {
 }
 
 /**
- * @description 初始化当前工作台位置并找到下一个工作台位置（当前位置为未知）
- * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
- * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
+ * @description 无条件搜索工作台位置
+ * @returns 工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
-_MiniGameInitBenchPos(&benchPos) {
-    ; 确定操作位置
+_MiniGameGetBenchPos() {
+    ; 确定操作所在位置
     loop 3 {
         ix := A_Index
         loop 2 {
@@ -365,43 +393,40 @@ _MiniGameInitBenchPos(&benchPos) {
             break
         }
     }
-    if !foundAction {
-        return 0  ; 没有找到任何工作台操作
+    if (!foundAction) {  ; 没有找到任何操作
+        return 0
     }
     if (iy == 1) {  ; 操作在上部
-        benchPos := ix  ; ix即为当前工作台位置
-        return ix  ; 提前返回
+        return ix  ; ix 即为当前工作台位置
     }
     switch (ix) {
-        case 1:  ; 操作在左
+        case 1:  ; 操作在左下
             _MiniGameMove(1, 1)  ; 左移一次
-        case 2:  ; 操作在中
+        case 2:  ; 操作在中下
             _MiniGameMove(1, 1)  ; 左移一次
-        case 3:  ; 操作在右
+        case 3:  ; 操作在右下
             _MiniGameMove(2, 1)  ; 右移一次
     }
     ; 移动后检测操作是否移到上部
     foundAction := _MiniGameIsHaveAction(ix, 1)
-    if foundAction {
-        benchPos := ix  ; ix即为当前工作台位置
-        return ix  ; 提前返回
+    if (foundAction) {
+        return ix  ; ix即为当前工作台位置
     }
-    ; 如果操作仍在下部，则需要再次移动
+    ; 如果操作仍在下部，则在剩余位置
     switch (ix) {
-        case 1:  ; 操作在左
-            _MiniGameMove(1, 1)  ; 再左移一次
-        case 2:  ; 操作在中
-            _MiniGameMove(2, 1)  ; 右移一次（反向）
-        case 3:  ; 操作在右
-            _MiniGameMove(2, 1)  ; 再右移一次
+        case 1:  ; 初始在左下，左移后仍不正确
+            return 2
+        case 2:  ; 初始在中间，左移后仍不正确
+            return 1
+        case 3:  ; 初始在右边，右移后仍不正确
+            return 2
     }
-    benchPos := ix
-    return ix
+    return 0 ; 非正常情况
 }
 
 /**
  * @description 当位置为已知时，找到下一个工作台位置
- * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
+ * @param {VarRef} benchPos 当前工作台位置（1:左, 2:中, 3:右）
  * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
 _MiniGameGetNextBenchPos(&benchPos) {
