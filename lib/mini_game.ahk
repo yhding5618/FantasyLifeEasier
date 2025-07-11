@@ -102,7 +102,7 @@ _MiniGameDoNextAction(&benchPos) {
         return false  ; 无法识别操作类型
     }
     ; 完成操作
-    _MiniGameDoAction(action, benchpos)
+    _MiniGameDoAction(action, benchPos)
     return true
 }
 
@@ -326,24 +326,24 @@ _MiniGameMove(direction, count) {
 
 /**
  * @description 移动到下一个工作台位置
- * @param {VarRef} benchpos 当前工作台位置（1:左, 2:中, 3:右）
+ * @param {VarRef} benchPos 当前工作台位置（1:左, 2:中, 3:右）
  * @param {Integer} nextBenchPos 下一个工作台位置（1:左, 2:中, 3:右）
  */
-_MiniGameMoveToBenchPos(&benchpos, nextBenchPos) {
-    if (benchpos == nextBenchPos) {
+_MiniGameMoveToBenchPos(&benchPos, nextBenchPos) {
+    if (benchPos == nextBenchPos) {
         return  ; 不需要移动
     }
-    move := nextBenchPos - benchpos
+    move := nextBenchPos - benchPos
     _MiniGameMove(1 + (move < 0), Abs(move))  ; 左移或右移
-    benchpos := nextBenchPos  ; 更新当前工作台位置
+    benchPos := nextBenchPos  ; 更新当前工作台位置
 }
 
 /**
  * @description 初始化当前工作台位置并找到下一个工作台位置（当前位置为未知）
- * @param {VarRef} benchpos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
+ * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
  * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
-_MiniGameInitBenchPos(&benchpos) {
+_MiniGameInitBenchPos(&benchPos) {
     loop 3 {
         ix := A_Index
         loop 2 {
@@ -361,7 +361,7 @@ _MiniGameInitBenchPos(&benchpos) {
         return 0  ; 没有找到任何工作台操作
     }
     if (iy == 1) {  ; 操作在上部
-        benchpos := ix  ; ix即为当前工作台位置
+        benchPos := ix  ; ix即为当前工作台位置
         return ix  ; 提前返回
     }
     switch (ix) {
@@ -375,7 +375,7 @@ _MiniGameInitBenchPos(&benchpos) {
     ; 移动后检测操作是否移到上部
     foundAction := _MiniGameBenchPosHasAction(ix, 1)
     if foundAction {
-        benchpos := ix  ; ix即为当前工作台位置
+        benchPos := ix  ; ix即为当前工作台位置
         return ix  ; 提前返回
     }
     ; 如果操作仍在下部，则需要再次移动
@@ -387,19 +387,19 @@ _MiniGameInitBenchPos(&benchpos) {
         case 3:  ; 操作在右
             _MiniGameMove(2, 1)  ; 再右移一次
     }
-    benchpos := ix
+    benchPos := ix
     return ix
 }
 
 /**
  * @description 找到下一个工作台位置（当前位置为已知）
- * @param {VarRef} benchpos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
+ * @param {VarRef} benchPos 当前工作台位置（0:未知, 1:左, 2:中, 3:右）
  * @returns {Integer} 下一个工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
-_MiniGameFindNextBenchPos(&benchpos) {
+_MiniGameFindNextBenchPos(&benchPos) {
     loop 3 {  ; 识别左中右工作台操作
         ix := A_Index
-        iy := (benchpos == ix) ? 1 : 2  ; 如果是当前工作台需要识别上部操作
+        iy := (benchPos == ix) ? 1 : 2  ; 如果是当前工作台需要识别上部操作
         foundAction := _MiniGameBenchPosHasAction(ix, iy)
         if foundAction {
             return ix
@@ -408,20 +408,20 @@ _MiniGameFindNextBenchPos(&benchpos) {
     return 0  ; 没有找到任何工作台操作
 }
 
-_MiniGameDoAction(action, benchpos) {
+_MiniGameDoAction(action, benchPos) {
     switch (action) {
         case 1:  ; 单击
             UpdateStatusBar("单击")
             _MiniGameActionTap()
         case 2:  ; 连按
             UpdateStatusBar("连按")
-            _MiniGameActionMash(benchpos)
+            _MiniGameActionMash(benchPos)
         case 3:  ; 长按
             UpdateStatusBar("长按")
-            _MiniGameActionHold(benchpos)
+            _MiniGameActionHold(benchPos)
         case 4:  ; 转动
             UpdateStatusBar("转动")
-            _MiniGameActionSpin(benchpos)
+            _MiniGameActionSpin(benchPos)
         default:
             UpdateStatusBar("未知操作")
     }
@@ -431,8 +431,8 @@ _MiniGameActionTap() {
     MySend("Space")
 }
 
-_MiniGameActionMash(benchpos) {
-    while (_MiniGameVerifyActionType(benchpos, 1, 2)) {
+_MiniGameActionMash(benchPos) {
+    while (_MiniGameVerifyActionType(benchPos, 1, 2)) {
         loop 3 {
             MySend("Space")
             Sleep(75)
@@ -440,20 +440,20 @@ _MiniGameActionMash(benchpos) {
     }
 }
 
-_MiniGameActionHold(benchpos) {
+_MiniGameActionHold(benchPos) {
     MyPress("Space")
-    while (_MiniGameVerifyActionType(benchpos, 1, 3)) {
+    while (_MiniGameVerifyActionType(benchPos, 1, 3)) {
         Sleep(100)
     }
     MyRelease("Space")
 }
 
-_MiniGameActionSpin(benchpos) {
+_MiniGameActionSpin(benchPos) {
     MouseGetPos(&posX, &posY)
     posReset := [700, 300]
     posMove := [160, 90]
     speed := 100
-    while (_MiniGameVerifyActionType(benchpos, 1, 4)) {
+    while (_MiniGameVerifyActionType(benchPos, 1, 4)) {
         MouseMove(posReset[1], posReset[2], speed)
         loop 5 {
             MouseMove(posMove[1], posMove[2], speed, "R")
