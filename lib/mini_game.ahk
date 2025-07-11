@@ -334,7 +334,7 @@ _MiniGameMoveToBenchPos(&benchPos, nextBenchPos) {
         return  ; 不需要移动
     }
     move := nextBenchPos - benchPos
-    _MiniGameMove(1 + (move < 0), Abs(move))  ; 左移或右移
+    _MiniGameMove(1 + (move > 0), Abs(move))  ; 左移或右移
     benchPos := nextBenchPos  ; 更新当前工作台位置
 }
 
