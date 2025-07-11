@@ -213,14 +213,16 @@ _MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
  */
 _MiniGameWaitForUI() {
     count := 0
-    timeoutCount := 300
+    timeoutCount := 15
     while (count < timeoutCount) {
-        uiType := _MiniGameGetUIType()
-        if (uiType != 0) {  ; 非0为有效UI类型
-            return uiType
+        loop 20 {
+            uiType := _MiniGameGetUIType()
+            if (uiType != 0) {  ; 非0为有效UI类型
+                return uiType
+            }
+            UpdateStatusBar("等待制作界面..." count "/" timeoutCount)
+            Sleep(50)
         }
-        UpdateStatusBar("等待制作界面..." count "/" timeoutCount)
-        Sleep(50)
         count++
     }
     throw TimeoutError("等待制作界面超时")
