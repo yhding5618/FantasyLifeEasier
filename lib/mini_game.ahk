@@ -84,19 +84,22 @@ MiniGame_LoopCraftAgainBtn_Click() {
  */
 _MiniGameDoNextAction(&benchPos) {
     ; 找到下一个工作台位置
+    MyToolTip("benchPos: " benchPos, 860, 810, 1, DebugMiniGame)
     if benchPos == 0 {  ; 当前工作台位置未知
         nextBenchPos := _MiniGameInitBenchPos(&benchPos)
     } else {
         nextBenchPos := _MiniGameFindNextBenchPos(&benchPos)
     }
+    MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
     if (benchPos == 0 || nextBenchPos == 0) {
         UpdateStatusBar("未找到有效的工作台操作")
-        return false  ; 没有有效操作
+        return false  ; 没有有效操作，可能在动作切换的间隙
     }
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
     ; 识别上部操作具体类型
     action := _MiniGameRecognizeActionType(benchPos, 1)
+    MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
         UpdateStatusBar("无法识别当前工作台" benchPos "的操作类型")
         return false  ; 无法识别操作类型
