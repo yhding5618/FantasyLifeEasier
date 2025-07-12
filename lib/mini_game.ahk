@@ -4,19 +4,22 @@ DebugMiniGame := true
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
+    OutputDebug("`nInfo: 开始单步制作")
     retryLimit := 3
 
     ; 等待 UI
+    UpdateStatusBar("等待制作界面...")
     _MiniGameWaitForUI()
 
     ; 有限次重试搜寻工作台位置
     retryCount := 0
+    UpdateStatusBar("制作中...")
     while (retryCount <= retryLimit) { ; 包括第一次搜寻
         benchPos := _MiniGameGetBenchPos()
         if (benchPos != 0) {
             break
         }
-        OutputDebug("找不到工作台 " retryCount "/" retryLimit)
+        OutputDebug("Warning: 找不到工作台 " retryCount "/" retryLimit)
         retryCount++
         Sleep(100)
     }
@@ -32,22 +35,26 @@ MiniGame_SingleActionBtn_Click() {
         if (done) {
             break
         }
-        OutputDebug("无法完成操作 " retryCount "/" retryLimit)
+        OutputDebug("Warning: 无法完成操作 " retryCount "/" retryLimit)
         retryCount++
         Sleep(100)
     }
     if (!done) {
+        OutputDebug("Error: 无法完成操作")
         throw Error("无法完成操作")
     }
-    UpdateStatusBar("完成单步操作")
+    OutputDebug("Info: 完成单次操作")
+    UpdateStatusBar("完成单次操作")
 }
 
 MiniGame_ContinuousActionBtn_Click() {
+    OutputDebug("`nInfo:开始连续制作")
     retryLimit := 3
     benchPos := 0
 
-    OutputDebug("开始连续制作")
+    UpdateStatusBar("等待制作界面...")
     while (uiType := _MiniGameWaitForUI() != 2) {
+        UpdateStatusBar("制作中...")
         ; 有限次重试搜寻工作台位置
         retryCount := 0
         while (retryCount <= retryLimit) {  ; 包括第一次搜寻
@@ -60,6 +67,7 @@ MiniGame_ContinuousActionBtn_Click() {
             Sleep(100)
         }
         if (benchPos == 0) {
+            OutputDebug("Error: 找不到工作台")
             throw TargetError("找不到工作台")
         }
 
@@ -76,10 +84,14 @@ MiniGame_ContinuousActionBtn_Click() {
             Sleep(100)
         }
         if (!done) {
+            OutputDebug("Error: 无法完成操作")
             throw Error("无法完成操作")
         }
     }
+    UpdateStatusBar("等待制作完成...")
     _MiniGameWaitForComplete()
+    OutputDebug("Info: 制作完成")
+    UpdateStatusBar("制作完成")
     ; _MiniGameIdentifyNewSkills()
 }
 
@@ -143,21 +155,25 @@ MiniGame_LoopCraftAgainBtn_Click() {
  * @returns {Boolean} `true`: 操作成功, `false`: 无有效操作或无法识别操作类型
  */
 _MiniGameDoNextAction(&benchPos) {
+    OutputDebug("Info: 执行一步操作")
+
     MyToolTip("benchPos: " benchPos, 860, 810, 1, DebugMiniGame)
+    ; 获得下一个工作台操作位置
     nextBenchPos := _MiniGameGetNextBenchPos(&benchPos)
     MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
-
     if (nextBenchPos == 0) {
-        UpdateStatusBar("未找到有效的工作台操作")
+        OutputDebug("Warning: 未找到有效工作台操作")
         return false  ; 无有效操作
     }
+
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
+
     ; 识别操作类型
     action := _MiniGameGetActionType(benchPos, 1)
     MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
-        UpdateStatusBar("无法识别当前工作台" benchPos "的操作类型")
+        OutputDebug("Warning: 无法识别 工作台" benchPos " 的操作类型")
         return false  ; 无法识别操作类型
     }
     ; 完成操作
@@ -183,19 +199,19 @@ _MiniGameWaitForComplete() {
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner2Pixel*)
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner3Pixel*)
         if (notComplete) {
-            UpdateStatusBar("等待制作完成..." count "/" timeoutCount)
+            OutputDebug("Info: 等待制作完成 " count "/" timeoutCount)
             Sleep(1000)
             count++
         } else {
-            UpdateStatusBar("制作完成")
             break
         }
     }
     if (count >= timeoutCount) {
+        OutputDebug("Error: 等待制作完成超时")
         throw TimeoutError("等待制作完成超时")
     }
     WaitUntilConversationSpace()
-    UpdateStatusBar("检测到“道具制作完成”界面")
+    OutputDebug("Info: 检测到“道具制作完成”界面")
 }
 
 _MiniGameNewSkillsOCR := [
@@ -247,11 +263,12 @@ _MiniGameWaitForUI() {
             if (uiType != 0) {  ; 非0为有效UI类型
                 return uiType
             }
-            UpdateStatusBar("等待制作界面..." count "/" timeoutCount)
             Sleep(50)
         }
+        OutputDebug("Info: 等待制作界面 " count "/" timeoutCount)
         count++
     }
+    OutputDebug("Error: 等待制作界面超时")
     throw TimeoutError("等待制作界面超时")
 }
 
@@ -278,14 +295,15 @@ _MiniGameGetUIType() {
         icon010 := !iconEmpty[1] && iconEmpty[2] && !iconEmpty[3]
         icon111 := iconEmpty[1] && iconEmpty[2] && iconEmpty[3]
         if (icon101 || icon010) {
-            UpdateStatusBar("检测到制作界面")
+            OutputDebug("Info: 检测到制作界面")
             return 1
         }
         if (icon111) {
-            UpdateStatusBar("图标栏全空")
+            OutputDebug("Info: 检测到空制作界面")
             return 2
         }
     }
+    OutputDebug("Info: 未检测到制作界面")
     return 0  ; 未检测到制作界面
 }
 
@@ -363,6 +381,7 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
     x := _MiniGameMousePosX[targetPos] + _MiniGameMouseTextOffsetX
     y := _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     switch (action) {
+        case 1:  ; 单机
         case 2:  ; 连按
             textColor := _MiniGameActionMashColor
         case 3:  ; 长按
@@ -370,7 +389,8 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
         case 4:  ; 转动
             textColor := _MiniGameActionSpinColor
         default:  ; 单击或未知操作
-            throw ValueError("无法验证操作类型")
+            OutputDebug("Error: 无法验证操作类型")
+            throw Error("无法验证操作类型")
     }
     actionMatch := SearchColorMatch(x, y, textColor)
     return actionMatch
@@ -473,19 +493,19 @@ _MiniGameGetNextBenchPos(&benchPos) {
 _MiniGameDoAction(action, benchPos) {
     switch (action) {
         case 1:  ; 单击
-            UpdateStatusBar("单击")
+            OutputDebug("Info: 执行单击")
             _MiniGameActionTap()
         case 2:  ; 连按
-            UpdateStatusBar("连按")
+            OutputDebug("Info: 执行连按")
             _MiniGameActionMash(benchPos)
         case 3:  ; 长按
-            UpdateStatusBar("长按")
+            OutputDebug("Info: 执行长按")
             _MiniGameActionHold(benchPos)
         case 4:  ; 转动
-            UpdateStatusBar("转动")
+            OutputDebug("Info: 执行转动")
             _MiniGameActionSpin(benchPos)
         default:
-            UpdateStatusBar("未知操作")
+            OutputDebug("Error: 未知操作")
     }
 }
 
