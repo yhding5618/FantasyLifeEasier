@@ -4,50 +4,77 @@ DebugMiniGame := true
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
-    retryCount := 0
     retryLimit := 3
 
+    ; 等待 UI
+    _MiniGameWaitForUI()
+
     ; 有限次重试搜寻工作台位置
+    retryCount := 0
     while (retryCount <= retryLimit) { ; 包括第一次搜寻
-        benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
+        benchPos := _MiniGameGetBenchPos()
         if (benchPos != 0) {
             break
         }
-        if (retryCount == retryLimit) {
-            throw Error("找不到合法工作台")
-        }
+        OutputDebug("找不到工作台 " retryCount "/" retryLimit)
         retryCount++
-        UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
-        Sleep(500)
+        Sleep(100)
     }
-    
-    done := _MiniGameDoNextAction(&benchPos)
+    if (benchPos == 0) {
+        throw Error("找不到工作台")
+    }
+
+    ; 有限次重试制作
+    retryCount := 0
+    done := false
+    while (retryCount <= retryLimit) {  ; 包括第一次制作
+        done := _MiniGameDoNextAction(&benchPos)
+        if (done) {
+            break
+        }
+        OutputDebug("无法完成操作 " retryCount "/" retryLimit)
+        retryCount++
+        Sleep(100)
+    }
     if (!done) {
         throw Error("无法完成操作")
     }
+    UpdateStatusBar("完成单步操作")
 }
 
 MiniGame_ContinuousActionBtn_Click() {
-    retryCount := 0
     retryLimit := 3
     benchPos := 0
+
+    OutputDebug("开始连续制作")
     while (uiType := _MiniGameWaitForUI() != 2) {
         ; 有限次重试搜寻工作台位置
-        while (retryCount < retryLimit) {
+        retryCount := 0
+        while (retryCount <= retryLimit) {  ; 包括第一次搜寻
+            benchPos := _MiniGameGetBenchPos()
             if (benchPos != 0) {
-                retryCount := 0
                 break
             }
-            benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
-            if (retryCount >= retryLimit) {
-                throw TargetError("找不到合法工作台")
-            }
+            OutputDebug("找不到工作台 " retryCount "/" retryLimit)
             retryCount++
-            UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
-            Sleep(500)
+            Sleep(100)
         }
-        
-        done := _MiniGameDoNextAction(&benchPos)
+        if (benchPos == 0) {
+            throw TargetError("找不到工作台")
+        }
+
+        ; 有限次重试制作
+        retryCount := 0
+        done := false
+        while (retryCount <= retryLimit) {
+            done := _MiniGameDoNextAction(&benchPos)
+            if (done) {
+                break
+            }
+            OutputDebug("无法完成操作 " retryCount "/" retryLimit)
+            retryCount++
+            Sleep(100)
+        }
         if (!done) {
             throw Error("无法完成操作")
         }
