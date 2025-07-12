@@ -27,6 +27,8 @@ Online_LoopRecruitAgingBtn_Click() {
         _OnlineWaitForBaseCampUI()  ; 等待加载营地界面
         _OnlineHeadOutAsHost()  ; 出发
         _OnlineFinishAgingAndBoss()
+        _OnlineWaitForBaseCampUI()
+        _OnlineWaitForNoMember()
         _OnlineEndAsHost()  ; 解散房间
         count++
     }
@@ -75,6 +77,31 @@ _OnlineWaitForBaseCampUI() {
         _OnlineHeadOutButtonPos[1], _OnlineHeadOutButtonPos[2],
         "联机出发[U]", , , 1000, 10)
     Sleep(500)  ; 等待界面稳定
+}
+
+_OnlineWaitForNoMember() {
+    count := 0
+    maxCount := 90
+    joinStatus := [false, false, false, false]
+    UpdateStatusBar("等待所有成员离开房间")
+    Sleep(3000)  ; 等待UI稳定
+    while (count < maxCount) {
+        changed := false
+        _OnlineCheckMemberJoinStatus(&joinStatus, &changed)
+        if (Mod(count, 10) == 0) {
+            _OnlineSendGameMessage("等待所有成员离开后重开，"
+                (maxCount - count) "秒后强制解散")
+        }
+        UpdateStatusBar("等待所有成员"
+            changed joinStatus[1] joinStatus[2] joinStatus[3] joinStatus[4]
+            "离开房间..." count "/" maxCount)
+        if joinStatus[1] && !joinStatus[2] && !joinStatus[3] && !joinStatus[4] {
+            UpdateStatusBar("所有成员已离开房间")
+            return
+        }
+        count++
+        Sleep(1000)
+    }
 }
 
 /**
@@ -270,13 +297,12 @@ _OnlineFinishAgingAndBoss() {
     loop 20 {
         MySend("Space", , 250)
     }
-    Sleep(1000)
-    _OnlineWaitForBaseCampUI()
 }
 
 _OnlineTreasureGroveMoveToFloor(pos) {
+    MouseClick(, _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2])
     MouseMove(pos[1], pos[2])
-    loop (4 * 3) {
+    loop (4 * 5) {  ; 转5圈，每圈4个方向
         if Mod(A_Index, 4) == 1 {
             MouseMove(80, -80, 100, "R")
         } else if Mod(A_Index, 4) == 2 {
@@ -286,7 +312,7 @@ _OnlineTreasureGroveMoveToFloor(pos) {
         } else if Mod(A_Index, 4) == 0 {
             MouseMove(80, 80, 100, "R")
         }
-        Sleep(1)
+        Sleep(20)
     }
     Sleep(500)
     MySend("Space")
@@ -309,17 +335,20 @@ _OnlineWaitUntilAllAging() {
     _OnlineSendQQMessage(qqMessage)
     joinStatus := [false, false, false, false]
     readyStatus := [false, false, false, false]
+    idleCount := 0
+    maxIdleCount := 3
     allReadyCount := 0
     while (true) {
         try {
+            ; 等待不是蓝天背景
             WaitUntilColorNotMatch(
                 _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
                 _OnlineJoiningSkyPixel[3], "成员加入房间", , , 1000, 60)
         } catch Error as e {
-            _OnlineSendQQMessage("成员加入房间超时，建议离开房间")
+            _OnlineSendQQMessage("脚本等待蓝天超时，建议成员退出")
             continue
         }
-        changed := false  ; 重置状态变化标志
+        changed := false  ; 每次都需要重置状态变化标志
         joinCount := _OnlineCheckMemberJoinStatus(&joinStatus, &changed)
         readyCount := _OnlineCheckMemberPositionStatus(&readyStatus, &changed)
         text := changed ? "状态变化" : "状态未变"
@@ -328,15 +357,20 @@ _OnlineWaitUntilAllAging() {
             text .= "，" index "P: " joinStatus[index] readyStatus[index]
         }
         UpdateStatusBar(text)
-        if (joinCount > 0 && readyCount == joinCount) {
+        if !joinStatus[1] {
+            _OnlineSendGameMessage("未检测到房主，尝试修复")
+            MySend("Escape", , 1000)
+            continue
+        }
+        if (joinCount > 1 && readyCount == joinCount) {
             if changed {
                 allReadyCount := 0  ; 状态变化后重置计数器
-                maxCount := 1 * (3 - readyCount)  ; 每少1人多等6个循环
+                maxAllReadyCount := 6 * (4 - readyCount)  ; 每少1人多等6个循环
             }
             text := readyCount "/" joinCount "人已就位"
-            if allReadyCount < maxCount {
+            if allReadyCount < maxAllReadyCount {
                 _OnlineSendGameMessage(text "，"
-                    (maxCount - allReadyCount) * 10 "秒后出发")
+                    (maxAllReadyCount - allReadyCount) * 10 "秒后出发")
             } else {
                 _OnlineSendGameMessage(text "，" "现在出发")
                 break
@@ -346,6 +380,11 @@ _OnlineWaitUntilAllAging() {
             if changed {
                 _OnlineSendGameMessage("更新状态："
                     joinCount "人加入，" readyCount "人就位")
+            } else {
+                if (idleCount == 0) {
+                    _OnlineSendGameMessage("就位条件：小地图上的“?P”框在传送阵房间内（每10秒检测一次)")
+                }
+                idleCount := (idleCount == maxIdleCount) ? 0 : idleCount + 1
             }
         }
         Sleep(10 * 1000)
@@ -397,28 +436,29 @@ _OnlinePlayerColor := [
  */
 _OnlineCheckMemberJoinStatus(&status, &changed) {
     count := 0
-    loop 3 {  ; 检测左下角3个位置
-        indexPos := A_Index + 1
-        posX := _OnlinePlayerPosX
-        posY := _OnlinePlayerPosY[indexPos]
-        posColor := UtilsGetColor(posX, posY)
-        loop 3 {  ; 检测2P-4P的3个颜色
-            indexPlayer := A_Index + 1
-            color := _OnlinePlayerColor[indexPlayer]
-            match := SearchColorMatch(posX, posY, color, 2, 5)
+    matchedPos := [false, false, false, false]  ; 记录每个位置是否已经匹配
+    loop 4 {  ; 检测1P-4P的4个颜色
+        indexPlayer := A_Index
+        loop 4 {  ; 检测全部4个位置
+            indexPos := A_Index
+            if (matchedPos[indexPos]) {
+                continue  ; 如果该位置已经匹配，则跳过
+            }
+            posX := _OnlinePlayerPosX
+            posY := _OnlinePlayerPosY[indexPos]
+            playerColor := _OnlinePlayerColor[indexPlayer]
+            match := SearchColorMatch(posX, posY, playerColor, 2, 5)
             if (match) {
-                count++
+                MyToolTip(indexPlayer "P: " status[indexPlayer] match,
+                    posX + 3, posY + 3, 1 + indexPos, DebugOnline)
+                matchedPos[indexPos] := true
+                count++  ; 1P位置不计数
                 break
+            } else {
+                MyToolTip("空", posX + 3, posY + 3, 1 + indexPos, DebugOnline)
             }
         }
-        if match {
-            MyToolTip(indexPlayer "P", posX + 3, posY + 3,
-                indexPos, DebugOnline)
-        } else {
-            MyToolTip(posColor, posX + 3, posY + 3,
-                indexPos, DebugOnline)
-        }
-        changed := changed || (status[indexPlayer] ^ match)
+        changed := changed || (status[indexPlayer] != match)
         status[indexPlayer] := match
     }
     return count
@@ -436,8 +476,8 @@ _OnlineMiniMapWarpCircleRange := 44  ; 小地图传送阵房间半径
  */
 _OnlineCheckMemberPositionStatus(&status, &changed) {
     count := 0
-    loop 3 {  ; 检测小地图
-        indexPlayer := A_Index + 1
+    loop 4 {  ; 小地图上检测1P-4P的4个颜色
+        indexPlayer := A_Index
         match := SearchColorMatch(
             _OnlineMiniMapCenterPos[1], _OnlineMiniMapCenterPos[2],
             _OnlinePlayerColor[indexPlayer],
@@ -447,6 +487,11 @@ _OnlineCheckMemberPositionStatus(&status, &changed) {
         if (match) {
             count++
         }
+        x := _OnlineMiniMapCenterPos[1] + _OnlineMiniMapWarpCircleRange
+        y := _OnlineMiniMapCenterPos[2] + _OnlineMiniMapWarpCircleRange +
+            (indexPlayer - 1) * 20
+        MyToolTip(match ? indexPlayer "P" : "",
+            x, y, 6 + indexPlayer, DebugOnline)
     }
     return count
 }
