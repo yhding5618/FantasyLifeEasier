@@ -4,34 +4,57 @@ DebugMiniGame := true
 _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
+    OutputDebug("`nInfo: 开始单步制作")
     retryCount := 0
     retryLimit := 3
 
+    ; 等待 UI
+    UpdateStatusBar("等待制作界面...")
+    while (_MiniGameWaitForUI() != 2) {
+        Sleep(100)
+    }
     ; 有限次重试搜寻工作台位置
+    UpdateStatusBar("制作中...")
     while (retryCount <= retryLimit) { ; 包括第一次搜寻
         benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
         if (benchPos != 0) {
             break
         }
         if (retryCount == retryLimit) {
-            throw Error("找不到合法工作台")
+            OutputDebug("Error: 找不到工作台")
+            throw Error("找不到工作台")
         }
         retryCount++
-        UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
-        Sleep(500)
+        OutputDebug("Warning: 找不到工作台" retryCount "/" retryLimit)
+        Sleep(200)
     }
-    
-    done := _MiniGameDoNextAction(&benchPos)
-    if (!done) {
+    while (retryCount < retryLimit) {
+        done := _MiniGameDoNextAction(&benchPos)
+        if (done) {
+            break
+        }
+        if (retryCount < retryLimit) {
+            retryCount++
+            OutputDebug("Warning: 无法完成 " retryCount "/" retryLimit)
+            Sleep(200)
+            continue
+        }
+        OutputDebug("Error: 无法完成操作")
         throw Error("无法完成操作")
     }
+    OutputDebug("Info: 完成单次操作")
+    UpdateStatusBar("完成单次操作")
 }
 
 MiniGame_ContinuousActionBtn_Click() {
+    OutputDebug("`nInfo:开始连续制作")
     retryCount := 0
     retryLimit := 3
     benchPos := 0
+
+    UpdateStatusBar("等待制作界面...")
     while (uiType := _MiniGameWaitForUI() != 2) {
+        UpdateStatusBar("制作中...")
         ; 有限次重试搜寻工作台位置
         while (retryCount < retryLimit) {
             if (benchPos != 0) {
@@ -40,19 +63,31 @@ MiniGame_ContinuousActionBtn_Click() {
             }
             benchPos := _MiniGameGetBenchPos() ; 搜寻工作台位置
             if (retryCount >= retryLimit) {
-                throw TargetError("找不到合法工作台")
+                OutputDebug("Error: 找不到工作台")
+                throw Error("找不到工作台")
             }
             retryCount++
-            UpdateStatusBar("找不到工作台，重试第 " retryCount "/" retryLimit " 次")
-            Sleep(500)
+            OutputDebug("Warning: 找不到工作台" retryCount "/" retryLimit)
+            Sleep(200)
         }
         
         done := _MiniGameDoNextAction(&benchPos)
         if (!done) {
+            if (retryCount < retryLimit) {
+                retryCount++
+                OutputDebug("Warning: 找不到操作 " retryCount "/" retryLimit)
+                Sleep(200)
+                continue
+            }
+            OutputDebug("Error: 无法完成操作")
             throw Error("无法完成操作")
+        } else {
+            retryCount := 0
         }
     }
     _MiniGameWaitForComplete()
+    OutputDebug("Info: 制作完成")
+    UpdateStatusBar("制作完成")
     ; _MiniGameIdentifyNewSkills()
 }
 
@@ -61,7 +96,8 @@ MiniGame_CheckSkillBtn_Click() {
     _MiniGameIdentifyNewSkills()
 }
 
-_MiniGameRemakeSpacePos := [924, 1015]  ; 重新制作后的“技能重置”界面下方空格位置
+; 重新制作后的“技能重置”界面下方空格位置
+_MiniGameRemakeSpacePos := [924, 1015]
 
 MiniGame_LoopCraftAgainBtn_Click() {
     count := 0
@@ -116,21 +152,27 @@ MiniGame_LoopCraftAgainBtn_Click() {
  * @returns {Boolean} `true`: 操作成功, `false`: 无有效操作或无法识别操作类型
  */
 _MiniGameDoNextAction(&benchPos) {
+    OutputDebug("Info: 执行一步操作")
+
     MyToolTip("benchPos: " benchPos, 860, 810, 1, DebugMiniGame)
+
     nextBenchPos := _MiniGameGetNextBenchPos(&benchPos)
+
     MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
 
     if (nextBenchPos == 0) {
-        UpdateStatusBar("未找到有效的工作台操作")
+        OutputDebug("Warning: 未找到有效工作台操作")
         return false  ; 无有效操作
     }
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
+    Sleep(50)
+
     ; 识别操作类型
     action := _MiniGameGetActionType(benchPos, 1)
     MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
-        UpdateStatusBar("无法识别当前工作台" benchPos "的操作类型")
+        OutputDebug("Warning: 无法识别工作台" benchPos "的操作类型")
         return false  ; 无法识别操作类型
     }
     ; 完成操作
@@ -138,9 +180,11 @@ _MiniGameDoNextAction(&benchPos) {
     return true
 }
 
-; 制作完成横幅像素
+; 制作完成横幅1像素
 _MiniGameCompleteBanner1Pixel := [960, 160, "0xE88536"]
+; 制作完成横幅2像素
 _MiniGameCompleteBanner2Pixel := [960, 170, "0xFFE7BC"]
+; 制作完成横幅3像素
 _MiniGameCompleteBanner3Pixel := [960, 180, "0xA94F0D"]
 
 /**
@@ -156,19 +200,20 @@ _MiniGameWaitForComplete() {
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner2Pixel*)
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner3Pixel*)
         if (notComplete) {
-            UpdateStatusBar("等待制作完成..." count "/" timeoutCount)
+            UpdateStatusBar("等待制作完成...")
+            OutputDebug("Info: 等待制作完成 " count "/" timeoutCount)
             Sleep(1000)
             count++
         } else {
-            UpdateStatusBar("制作完成")
             break
         }
     }
     if (count >= timeoutCount) {
+        OutputDebug("Error: 等待制作完成超时")
         throw TimeoutError("等待制作完成超时")
     }
     WaitUntilConversationSpace()
-    UpdateStatusBar("检测到“道具制作完成”界面")
+    OutputDebug("Info: 检测到“道具制作完成”界面")
 }
 
 _MiniGameNewSkillsOCR := [
@@ -186,25 +231,44 @@ _MiniGameIdentifyNewSkills() {
     }
 }
 
-_MiniGameTimerBackgroundPos := [1000, 54]  ; 顶部倒计时框背景位置
-_MiniGameTimerBackgroundColor := "0x6B3B0D"  ; 顶部倒计时框背景颜色
-_MiniGameTimerBackgroundPixel := [1000, 54, "0x6B3B0D"]  ; 顶部倒计时框背景像素
-_MiniGameIconPosX := [890, 960, 1030]  ; 顶部制作图标位置X坐标（左，中，右）
-_MiniGameIconPosY := 78  ; 顶部制作图标位置Y坐标
-_MiniGameIconBackgroundColor := "0x8C4609"  ; 顶部制作图标背景颜色
-_MiniGameMousePosX := [562, 962, 1362]  ; 鼠标中心位置X坐标（左，中，右）
-_MiniGameMousePosY := [324, 504]  ; 鼠标中心位置Y坐标（上，下）
-_MiniGameMouseLeftOffsetX := -20  ; 鼠标左键相对中心位置X偏移
-_MiniGameMouseMiddleOffsetY := 20  ; 鼠标中键相对中心位置Y偏移
-_MiniGameMouseUpOffsetY := -30  ; 鼠标中键上方的白色位置Y偏移
-_MiniGameMouseTextOffsetX := 18  ; 鼠标上方文字相对中心位置X偏移
-_MiniGameMouseTextOffsetY := -92  ; 鼠标上方文字相对中心位置Y偏移
-_MiniGameActionMouseLeftColor := "0xFFC8C4"  ; 鼠标左键粉色
-_MiniGameActionMouseMiddleColor := "0x311D09"  ; 鼠标中键黑色
-_MiniGameActionMouseUpColor := "0xFFF8E4"  ; 鼠标中键上方的白色
-_MiniGameActionMashColor := "0xFFB190"  ; “连按”红色
-_MiniGameActionHoldColor := "0x96F485"  ; “长按”绿色
-_MiniGameActionSpinColor := "0xFFF97C"  ; “转动”黄色
+; 顶部倒计时框背景位置
+_MiniGameTimerBackgroundPos := [1000, 54]
+; 顶部倒计时框背景颜色
+_MiniGameTimerBackgroundColor := "0x6B3B0D"
+; 顶部倒计时框背景像素
+_MiniGameTimerBackgroundPixel := [1000, 54, "0x6B3B0D"]
+; 顶部制作图标位置X坐标（左，中，右）
+_MiniGameIconPosX := [890, 960, 1030]
+; 顶部制作图标位置Y坐标
+_MiniGameIconPosY := 78
+; 顶部制作图标背景颜色
+_MiniGameIconBackgroundColor := "0x8C4609"
+; 鼠标中心位置X坐标（左，中，右）
+_MiniGameMousePosX := [562, 962, 1362]
+; 鼠标中心位置Y坐标（上，下）
+_MiniGameMousePosY := [324, 504]
+; 鼠标左键相对中心位置X偏移
+_MiniGameMouseLeftOffsetX := -20
+; 鼠标中键相对中心位置Y偏移
+_MiniGameMouseMiddleOffsetY := 20
+; 鼠标中键上方的白色位置Y偏移
+_MiniGameMouseUpOffsetY := -30
+; 鼠标上方文字相对中心位置X偏移
+_MiniGameMouseTextOffsetX := 18
+; 鼠标上方文字相对中心位置Y偏移
+_MiniGameMouseTextOffsetY := -92
+; 鼠标左键粉色
+_MiniGameActionMouseLeftColor := "0xFFC8C4"
+; 鼠标中键黑色
+_MiniGameActionMouseMiddleColor := "0x311D09"
+; 鼠标中键上方的白色
+_MiniGameActionMouseUpColor := "0xFFF8E4"
+; “连按”红色
+_MiniGameActionMashColor := "0xFFB190"
+; “长按”绿色
+_MiniGameActionHoldColor := "0x96F485"
+; “转动”黄色
+_MiniGameActionSpinColor := "0xFFF97C"
 
 /**
  * @description 等待制作界面出现
@@ -220,11 +284,12 @@ _MiniGameWaitForUI() {
             if (uiType != 0) {  ; 非0为有效UI类型
                 return uiType
             }
-            UpdateStatusBar("等待制作界面..." count "/" timeoutCount)
             Sleep(50)
         }
+        OutputDebug("Info: 等待制作界面 " count "/" timeoutCount)
         count++
     }
+    OutputDebug("Error: 等待制作界面超时")
     throw TimeoutError("等待制作界面超时")
 }
 
@@ -251,14 +316,15 @@ _MiniGameGetUIType() {
         icon010 := !iconEmpty[1] && iconEmpty[2] && !iconEmpty[3]
         icon111 := iconEmpty[1] && iconEmpty[2] && iconEmpty[3]
         if (icon101 || icon010) {
-            UpdateStatusBar("检测到制作界面")
+            OutputDebug("Info: 检测到制作界面")
             return 1
         }
         if (icon111) {
-            UpdateStatusBar("图标栏全空")
+            OutputDebug("Info: 检测到空制作界面")
             return 2
         }
     }
+    OutputDebug("Info: 未检测到制作界面")
     return 0  ; 未检测到制作界面
 }
 
@@ -336,6 +402,7 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
     x := _MiniGameMousePosX[targetPos] + _MiniGameMouseTextOffsetX
     y := _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     switch (action) {
+        case 1:  ; 单机
         case 2:  ; 连按
             textColor := _MiniGameActionMashColor
         case 3:  ; 长按
@@ -343,7 +410,8 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
         case 4:  ; 转动
             textColor := _MiniGameActionSpinColor
         default:  ; 单击或未知操作
-            throw ValueError("无法验证操作类型")
+            OutputDebug("Error: 无法验证操作类型")
+            throw Error("无法验证操作类型")
     }
     actionMatch := SearchColorMatch(x, y, textColor)
     return actionMatch
@@ -446,20 +514,17 @@ _MiniGameGetNextBenchPos(&benchPos) {
 _MiniGameDoAction(action, benchPos) {
     switch (action) {
         case 1:  ; 单击
-            UpdateStatusBar("单击")
             _MiniGameActionTap()
         case 2:  ; 连按
-            UpdateStatusBar("连按")
             _MiniGameActionMash(benchPos)
         case 3:  ; 长按
-            UpdateStatusBar("长按")
             _MiniGameActionHold(benchPos)
         case 4:  ; 转动
-            UpdateStatusBar("转动")
             _MiniGameActionSpin(benchPos)
         default:
-            UpdateStatusBar("未知操作")
+            OutputDebug("Error: 未知操作")
     }
+    OutputDebug("Info: 操作执行完成")
 }
 
 _MiniGameActionTap() {
