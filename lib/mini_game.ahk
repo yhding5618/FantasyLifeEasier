@@ -12,14 +12,15 @@ MiniGame_SingleActionBtn_Click() {
     _MiniGameWaitForUI()
 
     ; 有限次重试搜寻工作台位置
-    retryCount := 0
     UpdateStatusBar("制作中...")
-    while (retryCount <= retryLimit) { ; 包括第一次搜寻
-        benchPos := _MiniGameGetBenchPos()
+    retryCount := 1
+    benchPos := _MiniGameGetInitBenchPos()
+    while (retryCount <= retryLimit) {
         if (benchPos != 0) {
             break
         }
-        OutputDebug("Warning: 找不到工作台 " retryCount "/" retryLimit)
+        benchPos := _MiniGameGetInitBenchPos()
+        OutputDebug("Warning: 找不到工作台，重试 " retryCount "/" retryLimit)
         retryCount++
         Sleep(100)
     }
@@ -29,14 +30,14 @@ MiniGame_SingleActionBtn_Click() {
     }
 
     ; 有限次重试制作
-    retryCount := 0
-    done := false
-    while (retryCount <= retryLimit) {  ; 包括第一次制作
-        done := _MiniGameDoNextAction(&benchPos)
+    retryCount := 1
+    done := _MiniGameDoNextAction(&benchPos)
+    while (retryCount <= retryLimit) {
         if (done) {
             break
         }
-        OutputDebug("Warning: 无法完成操作 " retryCount "/" retryLimit)
+        done := _MiniGameDoNextAction(&benchPos)
+        OutputDebug("Warning: 无法完成操作，重试 " retryCount "/" retryLimit)
         retryCount++
         Sleep(100)
     }
@@ -56,14 +57,18 @@ MiniGame_ContinuousActionBtn_Click() {
     UpdateStatusBar("等待制作界面...")
     while (uiType := _MiniGameWaitForUI() != 2) {
         UpdateStatusBar("制作中...")
+
         ; 有限次重试搜寻工作台位置
-        retryCount := 0
-        while (retryCount <= retryLimit) {  ; 包括第一次搜寻
-            benchPos := _MiniGameGetBenchPos()
+        retryCount := 1
+        if (benchPos == 0) {
+            benchPos := _MiniGameGetInitBenchPos()
+        }
+        while (retryCount <= retryLimit) {
             if (benchPos != 0) {
                 break
             }
-            OutputDebug("Warning: 找不到工作台 " retryCount "/" retryLimit)
+            benchPos := _MiniGameGetInitBenchPos()
+            OutputDebug("Warning: 找不到工作台，重试 " retryCount "/" retryLimit)
             retryCount++
             Sleep(100)
         }
@@ -73,14 +78,14 @@ MiniGame_ContinuousActionBtn_Click() {
         }
 
         ; 有限次重试制作
-        retryCount := 0
-        done := false
+        retryCount := 1
+        done := _MiniGameDoNextAction(&benchPos)
         while (retryCount <= retryLimit) {
-            done := _MiniGameDoNextAction(&benchPos)
             if (done) {
                 break
             }
-            OutputDebug("Warning: 无法完成操作 " retryCount "/" retryLimit)
+            done := _MiniGameDoNextAction(&benchPos)
+            OutputDebug("Warning: 无法完成操作，重试 " retryCount "/" retryLimit)
             retryCount++
             Sleep(100)
         }
@@ -466,10 +471,10 @@ _MiniGameMoveToBenchPos(&benchPos, targetPos) {
 }
 
 /**
- * @description 无条件搜索工作台位置
+ * @description 无条件破坏性获得工作台位置（初始化）
  * @returns 工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
-_MiniGameGetBenchPos() {
+_MiniGameGetInitBenchPos() {
     OutputDebug("Debug: 无条件搜寻工作台位置")
     ; 确定操作所在位置
     loop 3 {
