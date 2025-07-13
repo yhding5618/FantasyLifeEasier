@@ -359,13 +359,7 @@ _MiniGameIsHaveAction(targetPos, targetHeight) {
     foundMouseUp := SearchColorMatch(
         x, y + _MiniGameMouseUpOffsetY,
         _MiniGameActionMouseUpColor)  ; 鼠标中键上方的白色位置
-    ; 单击：有鼠标左键，有上方白色位置
-    foundMouseLU := foundMouseLeft && foundMouseUp
-    ; 连按/长按：有鼠标左键，无上方白色位置
-    foundMouseL := foundMouseLeft && !foundMouseUp
-    ; 转动：无鼠标左键，有上方白色位置
-    foundMouseU := !foundMouseLeft && foundMouseUp
-    if (foundMouseLU || foundMouseL || foundMouseU) {
+    if (foundMouseLeft || foundMouseUp) {
         OutputDebug("Debug: 有操作")
         return true  ; 有鼠标左键或上方白色位置
     }
