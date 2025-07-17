@@ -261,10 +261,11 @@ WaitUntilColorMatch(x, y, color, title,
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (match) {
-            OutputDebug("Info.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
+            OutputDebug("Debug.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
             return
         }
         OutputDebug("Info.util.WaitUntilColorMatch: 等待" title "..." count "/" timeoutCount)
+        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }

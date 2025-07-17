@@ -16,6 +16,7 @@ _TeleportationGateInProgressPos := [50, 50]  ; 传送中白色背景
 _TeleportationGateInProgressColor := "0xFFFFFF"  ; 传送中白色背景颜色
 
 TeleportationGateOneWay() {
+    OutputDebug("Info.telepotation_gate.GateOneWay: 开始单向传送")
     _MoveToMenuTeleportationGate()
     MySend("Space", , 750)
     MySend("Space")
@@ -30,6 +31,7 @@ TeleportationGateOneWay() {
         _TeleportationGateInProgressColor,
         "白屏加载", , 0, 200, 100)
     WaitUntilSavingIcon()
+    OutputDebug("Info.telepotation_gate.GateOneWay: 传送完成")
     UpdateStatusBar("传送完成")
 }
 
@@ -37,6 +39,7 @@ _TeleportationGateIconCheckedColor := "0xD4B1EB"  ; 传送图标已选择颜色
 _TeleportationGateIconDisabledColor := "0x935986"  ; 传送图标不可选颜色
 
 _MoveToMenuTeleportationGate() {
+    OutputDebug("Info.telepotation_gate.MoveToMenuTeleportationGate: 移动到传送图标")
     page := myGui["TeleportationGate.IconPage"].Value
     row := myGui["TeleportationGate.IconRow"].Value
     col := myGui["TeleportationGate.IconCol"].Value
@@ -44,7 +47,7 @@ _MoveToMenuTeleportationGate() {
     x := ret[1]
     y := ret[2]
     if SearchColorMatch(x, y, _TeleportationGateIconCheckedColor) {
-        UpdateStatusBar("传送图标已选择")
+        OutputDebug("Debug.telepotation_gate.MoveToMenuTeleportationGate: 传送图标就位")
         return
     }
     if SearchColorMatch(x, y, _TeleportationGateIconDisabledColor) {
