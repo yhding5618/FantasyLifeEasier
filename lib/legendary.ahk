@@ -26,15 +26,15 @@ Legendary_LoopRefreshBtn_Click() {
         throw ValueError("当前不在地图界面")
     }
     loopCount := myGui["Legendary.MaxLoopTimes"].Value
+    infiniteLoop := (loopCount == 0)  ; 0表示无限循环
     currentLoop := 0
-    maxLoops := (loopCount = 0) ? 999 : loopCount  ; 0表示无限循环，大整数模拟
 
-    while (currentLoop < maxLoops) {
+    while (currentLoop < loopCount || infiniteLoop) {
         currentLoop++
         result := 0
 
         ; 更新状态栏
-        if (loopCount = 0) {
+        if (infiniteLoop) {
             UpdateStatusBar("无限刷新中: 第 " currentLoop " 次")
         }
         else {
