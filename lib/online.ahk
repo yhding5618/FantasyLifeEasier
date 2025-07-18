@@ -327,6 +327,7 @@ _OnlineFinishAgingAndBoss() {
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindBoss()
     _OnlineTreasureGroveMoveToFloor(pos)
+    _OnlineWaitUntilBossDefeated()
     _OnlineWaitUntilAdventureComplete()
     UpdateStatusBar("连续空格键跳过结算界面")
     loop 20 {
@@ -358,9 +359,13 @@ _OnlineTreasureGroveMoveToFloor(pos) {
     MySend("Space")
 }
 
+/**
+ * @description: 等待所有成员完成熟成（又臭又长，建议不看）
+ * @throws {TimeoutError} 如果等待超时
+ */
 _OnlineWaitUntilAllAging() {
     PlaySuccessSound()
-    qqMessage := "千熟全自动发车（试运营）"
+    qqMessage := "千熟全自动发车"
     if (myGui["Online.Keyword"].Text == myGui["Online.Keyword"].Text) {
         qqMessage .= "，词密：" myGui["Online.Keyword"].Text
     } else {
@@ -393,8 +398,9 @@ _OnlineWaitUntilAllAging() {
         }
         UpdateStatusBar(text)
         if !joinStatus[1] {
-            _OnlineSendGameMessage("未检测到房主，尝试修复")
+            UpdateStatusBar("未检测到房主，尝试修复")
             MySend("Escape", , 1000)
+            MySend("Space", , 1000)
             continue
         }
         if (joinCount > 1 && readyCount == joinCount) {
@@ -407,6 +413,7 @@ _OnlineWaitUntilAllAging() {
                 _OnlineSendGameMessage(text "，"
                     (maxAllReadyCount - allReadyCount) * 10 "秒后出发")
             } else {
+                _OnlineSendQQMessage("已发车")
                 _OnlineSendGameMessage(text "，" "现在出发")
                 break
             }
@@ -426,9 +433,47 @@ _OnlineWaitUntilAllAging() {
     }
 }
 
-_OnlineWaitUntilAdventureComplete() {
+_OnlineItemIconPixel := [121, 95, "0xFFECBC"]  ; 物品图标像素
+_OnlineItemInfoPixel := [1113, 467, "0xFFF8E5"]  ; 物品信息像素
+_OnlineTabKeyPixel := [908, 954, UtilsKeyBackgroundColor]  ; Tab键像素
+
+_OnlineWaitUntilBossDefeated() {
+    WaitUntilColorMatch(_OnlinePlayerPosX, _OnlinePlayerPosY[1],
+        _OnlinePlayerColor[1], "Boss房加载", , , 1000, 60)
     count := 0
     timeoutCount := 300
+    while (count < timeoutCount) {
+        count++
+        if Mod(count, 30) == 0 {
+            MySend("x", , 800)
+            MySend("1", , 800)
+            MySend("x", , 800)
+            MySend("2", , 800)
+        }
+        if Mod(count, 5) == 0 {
+            MySend("x", , 800)
+            MySend("3", , 800)
+            MySend("x", , 800)
+            MySend("4", , 800)
+        }
+        try {
+            WaitUntilColorNotMatch(_OnlinePlayerPosX, _OnlinePlayerPosY[1],
+                _OnlinePlayerColor[1], "第" count "次等待Boss房结束")
+            if SearchColorMatch(_OnlineJoiningSkyPixel*) {
+                continue  ; 如果仍然是蓝天背景，则继续等待
+            }
+        } catch Error as e {
+            continue  ; 如果Boss房未结束，则继续等待
+        } else {
+            UpdateStatusBar("Boss房结束")
+            break
+        }
+    }
+}
+
+_OnlineWaitUntilAdventureComplete() {
+    count := 0
+    timeoutCount := 60
     while (count < timeoutCount) {
         allTextMatch := true
         for index, x in _OnlineFinishExploreTextPosX {
