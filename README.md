@@ -1,6 +1,6 @@
 # Fantasy Life Easier (FLE)
 
-> 脚本已更新至v1.3版本，具体更新内容请查看[v1.3更新日志](https://github.com/yhding5618/FantasyLifeEasier/releases/tag/v1.3)，如果需要下载历史版本可以查看[Releases](https://github.com/yhding5618/FantasyLifeEasier/releases)。
+> 脚本已更新至v1.4版本，具体更新内容请查看[v1.4更新日志](https://github.com/yhding5618/FantasyLifeEasier/releases/tag/v1.4)，如果需要下载历史版本可以查看[Releases](https://github.com/yhding5618/FantasyLifeEasier/releases)。
 >
 >新增了[常见问题](#常见问题)部分，如果你在使用脚本时遇到问题，可以先查看此部分，可能会有解决方案，如果没有，可以提交[Issue](https://github.com/yhding5618/FantasyLifeEasier/issues)，并按照模板提供详细信息，方便排查问题。
 >

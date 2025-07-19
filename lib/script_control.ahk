@@ -1,6 +1,6 @@
 #Requires AutoHotkey v2.0
 
-ScriptControlVersion := "v1.3"
+ScriptControlVersion := "v1.4"
 ScriptControlLatestReleaseURL :=
     "https://github.com/yhding5618/FantasyLifeEasier/releases/latest"
 

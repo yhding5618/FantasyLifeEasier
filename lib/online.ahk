@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-DebugOnline := true
+DebugOnline := false
 _JoinDebugID := 1
 
 Online_RecruitBtn_Click() {
@@ -234,7 +234,7 @@ _OnlineJoin() {
     MySend("Enter", , 500)
     MySend("Tab")
     Sleep(500)  ; 等待界面稳定
-    
+
     OutputDebug("Info.Online.Join: 搜索房间")
     counter := 0
     while (true) {
