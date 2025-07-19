@@ -57,17 +57,28 @@ _OnlineCheckInput() {
     }
 }
 
-SelectedTextColor := "0xF8F0DC"  ; 选中对话文本颜色
-_OnlineCounterInternetPixel := [703, 933, SelectedTextColor]  ; 感叹号确认“即将开始互联网连接”像素
-_OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]  ; 标题“多人联机”像素
-_OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]  ; 按钮“招募！”像素
-_OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]  ; 标题“设置目的地”像素
-_OnlineCounterPos := [1012, 413]  ; 科隆对话[F]位置
-_OnlineRecruitTripLogoPos := [960, 600]  ; 啼普加载中图标位置
-_OnlineRecruitTripLogoColor := "0x8A703E"  ; 啼普加载中图标颜色
-_OnlineJoinDestinationLogoPos := [67, 85]  ; 小蓝人位置
-_OnlineJoinDestinationLogoColor := "0x4289FF"  ; 小蓝人颜色
-_OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]  ; 蓝天背景像素
+; 选中对话文本颜色
+SelectedTextColor := "0xF8F0DC"
+; 感叹号确认“即将开始互联网连接”像素
+_OnlineCounterInternetPixel := [703, 933, SelectedTextColor]
+; 标题“多人联机”像素
+_OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]
+; 按钮“招募！”像素
+_OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]
+; 标题“设置目的地”像素
+_OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]
+; 科隆对话[F]位置
+_OnlineCounterPos := [1012, 413]
+; 啼普加载中图标位置
+_OnlineRecruitTripLogoPos := [960, 600]
+; 啼普加载中图标颜色
+_OnlineRecruitTripLogoColor := "0x8A703E"
+; 小蓝人位置
+_OnlineJoinDestinationLogoPos := [67, 85]
+; 小蓝人颜色
+_OnlineJoinDestinationLogoColor := "0x4289FF"
+; 蓝天背景像素
+_OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]
 
 ; 联机出发[U]位置
 _OnlineHeadOutButtonPos := [339, 217]
@@ -80,6 +91,7 @@ _OnlineWaitForBaseCampUI() {
 }
 
 _OnlineWaitForNoMember() {
+    OutputDebug("Info.online.WaitForNoMember: 等待所有成员离开房间")
     count := 0
     maxCount := 90
     joinStatus := [false, false, false, false]
@@ -92,10 +104,14 @@ _OnlineWaitForNoMember() {
             _OnlineSendGameMessage("等待所有成员离开后重开，"
                 (maxCount - count) "秒后强制解散")
         }
+        OutputDebug("Info.online.WaitForNoMember: 等待成员"
+            changed joinStatus[1] joinStatus[2] joinStatus[3] joinStatus[4]
+            "离开房间" count "/" maxCount)
         UpdateStatusBar("等待所有成员"
             changed joinStatus[1] joinStatus[2] joinStatus[3] joinStatus[4]
             "离开房间..." count "/" maxCount)
         if joinStatus[1] && !joinStatus[2] && !joinStatus[3] && !joinStatus[4] {
+            OutputDebug("Info.online.WaitForNoMember: 所有成员已离开房间")
             UpdateStatusBar("所有成员已离开房间")
             return
         }
@@ -113,7 +129,7 @@ _TalkToColm() {
         _OnlineCounterPos[1], _OnlineCounterPos[2],
         "科隆对话[F]", , , 1000, 10)
     MyRelease("w")
-    UpdateStatusBar("开始对话")
+    OutputDebug("Info.online.TalkToColm: 开始对话")
     MySend("f")
     UtilsWaitUntilOptionListSelected(1, 1, 2, "科隆对话选项")
     Sleep(500)
@@ -129,6 +145,7 @@ _TalkToColm() {
 }
 
 _OnlineRecruit() {
+    OutputDebug("Info.Online.Recruit: 选择招募")
     UpdateStatusBar("选择招募")
     Sleep(500)
     MySend("Space")
@@ -149,6 +166,7 @@ _OnlineRecruit() {
     loop (6) {
         MySend("s", , 300)
     }
+    OutputDebug("Info.Online.Recruit: 输入关键词")
     UpdateStatusBar("输入关键词")
     MySend("Space", , 500)
     SendText(myGui["Online.Keyword"].Value)
@@ -161,9 +179,11 @@ _OnlineRecruit() {
     MySend("s", , 500)
     password := myGui["Online.Password"].Value
     if (password == "") {
+        OutputDebug("Info.Online.Recruit: 跳过密码")
         UpdateStatusBar("跳过密码")
     }
     else {
+        OutputDebug("Info.Online.Recruit: 输入密码")
         UpdateStatusBar("输入密码")
         MySend("Space", , 500)
         SendText(password)
@@ -174,13 +194,14 @@ _OnlineRecruit() {
             _OnlineRecruitButtonPixel[3], "招募按钮")
         Sleep(800)
     }
+    OutputDebug("Info.Online.Recruit: 开始招募")
     UpdateStatusBar("开始招募")
     MySend("s", , 500)
     MySend("s", , 500)
     MySend("Space", 500)
     UpdateStatusBar("确认招募")
     MySend("Space", , 500)
-    UpdateStatusBar("再次确认")
+    OutputDebug("Debug.Online.Recruit: 再次确认")
     MySend("Space", , 500)
     WaitUntilColorMatch(
         _OnlineRecruitTripLogoPos[1], _OnlineRecruitTripLogoPos[2],
@@ -191,15 +212,19 @@ _OnlineRecruit() {
 }
 
 _OnlineJoin() {
+    OutputDebug("Info.Online.Join: 开始加入房间")
     UpdateStatusBar("选择加入")
     Sleep(200)
     MySend("d", , 200)
     MySend("Space", , 1000)
     MySend("s", , 200)
     MySend("Space", , 1000)
+
+    OutputDebug("Info.Online.Join: 输入关键词")
     UpdateStatusBar("输入关键词")
     keyword := myGui["Online.Keyword"].Value
     if (keyword == "") {
+        OutputDebug("Warning.Online.Join: 关键词为空")
         UpdateStatusBar("关键词不能为空")
         return false
     }
@@ -209,23 +234,29 @@ _OnlineJoin() {
     MySend("Enter", , 500)
     MySend("Tab")
     Sleep(500)  ; 等待界面稳定
+    
+    OutputDebug("Info.Online.Join: 搜索房间")
     counter := 0
     while (true) {
         if SearchColorMatch(
             _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2],
             _OnlineJoinDestinationLogoColor, 2
         ) {
+            OutputDebug("Info.Online.Join: 搜索成功")
             UpdateStatusBar("已找到目标房间")
             break
         }
         if SearchColorMatch(
             UtilsWindowOK5Pos[1], UtilsWindowOK5Pos[2], UtilsWindowButtonColor
         ) {
+            OutputDebug("Error.Online.Join: 搜索错误")
             throw ValueError("房间搜索错误，请检查关键词或密码")
         }
         counter++
+        OutputDebug("Info.Online.Join: 搜索房间" counter)
         UpdateStatusBar("正在搜索..." counter)
         if (counter > 50) {
+            OutputDebug("Warning.Online.Join: 搜索超时")
             UpdateStatusBar("搜索超时")
             return false
         }
@@ -233,6 +264,8 @@ _OnlineJoin() {
     }
     UpdateStatusBar("已暂停，光标移到目标房间后按F3继续")
     Pause()
+
+    OutputDebug("Info.Online.Join: 加入房间")
     MySend("Space", , 500)
     MySend("Space", , 1000)
     password := myGui["Online.Password"].Value
@@ -248,6 +281,8 @@ _OnlineJoin() {
     WaitUntilColorMatch(
         _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
         _OnlineJoiningSkyPixel[3], "加入", , , 1000, 60)
+
+    OutputDebug("Info.Online.Join: 加入房间成功")
 }
 
 _OnlineHeadOutAsHost() {
@@ -506,12 +541,12 @@ _OnlineSendQQMessage(text) {
 }
 
 _OnlineSendGameMessage(text) {
-    ; UpdateStatusBar("打开输入栏")
+    OutputDebug("Debug.online.SendGameMessage: 打开输入栏")
     MySend("Enter", 200, 500)  ; 等待输入栏稳定
-    ; UpdateStatusBar("输入消息")
+    OutputDebug("Debug.online.SendGameMessage: 输入消息")
     MyPaste(text)
     Sleep(500)
-    ; UpdateStatusBar("发送消息")
+    OutputDebug("Debug.online.SendGameMessage: 发送消息")
     MySend("Enter", 200, 500)  ; 等待消息发送完成
 }
 

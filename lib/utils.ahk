@@ -100,6 +100,7 @@ TryAndCatch(function, args*) {
         PlaySuccessSound()
         ShowSuccessMsgBox("操作成功: " btnText)
     } catch Error as e {
+        OutputDebug("Error.utils: " e.message)
         UpdateStatusBar(e.Message)
         PlayFailureSound()
         ShowFailureMsgBox("操作失败: " btnText, e)
@@ -260,9 +261,10 @@ WaitUntilColorMatch(x, y, color, title,
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (match) {
-            UpdateStatusBar("检测到" title "结束[" color "]")
+            OutputDebug("Debug.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
             return
         }
+        OutputDebug("Info.util.WaitUntilColorMatch: 等待" title "..." count "/" timeoutCount)
         UpdateStatusBar("等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
@@ -295,11 +297,11 @@ WaitUntil2ColorMatch(pos1, color1, pos2, color2, title,
             pos2[1], pos2[2], color2, pixelRange, colorVariation)
         if (match1 ^ match2) {
             match := match1 ? 1 : 2
-            UpdateStatusBar("检测到" title "结束[" match "]"
+            OutputDebug("Info.utils.WaitUntil2ColorMatch: 检测到" title "结束[" match "]"
             )
             return match
         }
-        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntil2ColorMatch: 等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -325,10 +327,10 @@ WaitUntilColorNotMatch(x, y, color, title,
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (!match) {
-            UpdateStatusBar("检测到" title "结束[" color "]")
+            OutputDebug("Info.utils.WaitUntilColorNotMatch: 检测到" title "结束[" color "]")
             return
         }
-        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntilColorNotMatch: 等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -422,13 +424,13 @@ _MenuIconOffsetY := 234  ; 菜单图标Y偏移量
 _MenuCenterPixel := [952, 556, "0xFEED41"]  ; 菜单中心背景像素
 
 OpenMenu() {
-    UpdateStatusBar("打开菜单")
+    OutputDebug("Info.utils: 打开菜单")
     MySend("Escape")
     WaitUntilColorMatch(
         _MenuCenterPixel[1], _MenuCenterPixel[2],
         _MenuCenterPixel[3], "菜单图标加载", 5, 5, 50, 20)
     Sleep(500)  ; 等待菜单稳定
-    UpdateStatusBar("已打开菜单")
+    OutputDebug("Info.utils: 已打开菜单")
 }
 
 /**
@@ -442,7 +444,7 @@ OpenMenuAndMoveToIcon(page, row, col) {
     totalRows := 3  ; 每页行数
     totalCols := 4  ; 每页列数
     OpenMenu()
-    UpdateStatusBar("移动到" page "页，" row "行，" col "列")
+    OutputDebug("Info.utils: 移动到" page "页，" row "行，" col "列")
     loop (page - 1) {
         MySend("e", , 100)  ; 翻页
     }
@@ -650,10 +652,10 @@ WaitUntilButton(
             x, y, UtilsKeyBackgroundColor,
             pixelRange, colorVariation)
         if (found) {
-            UpdateStatusBar("检测到" title "按钮加载完成")
+            OutputDebug("Info.utils.WaitUntilButton: 检测到" title "按钮加载完成")
             return
         }
-        UpdateStatusBar("等待" title "按钮加载完成..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntilButton: 等待" title "按钮加载完成..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -710,6 +712,7 @@ SaveConfig() {
             IniWrite(currentValue, "main.ini.new", section, key)
         }
     } catch Error as e {
+        OutputDebug("Error.utils.SaveConfig: " e " 在保存配置时失败: " e.Message)
         ShowFailureMsgBox("保存配置失败: " e.Message, e)
         return
     }
