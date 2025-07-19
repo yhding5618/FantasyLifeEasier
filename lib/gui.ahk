@@ -452,7 +452,7 @@ _CreateSectionScriptVersion(firstSection := false) {
     myGui.AddText(
         _GroupBoxRowPos(1) " h22 0x200", "当前版本：" ScriptControlVersion)
     btn := myGui.AddButton("yp hp", "查看最新版本")
-    btn.OnEvent("Click", Run.Bind(ScriptControlLatestReleaseURL))
+    btn.OnEvent("Click", (*) => Run(ScriptControlLatestReleaseURL))
 }
 
 _AddBtnToHotkeyList(btn, function) {
