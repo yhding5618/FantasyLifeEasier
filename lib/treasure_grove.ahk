@@ -19,12 +19,6 @@ TreasureGrove_CheckRoomBtn_Click() {
     _TreasureGroveCheckAllRooms()
 }
 
-; 3个选项时发光位置
-_TreasureGroveGlow1Pos := UtilsOptionListTopIn3GlowPos
-; 5个选项时发光位置
-_TreasureGroveGlow2Pos := UtilsOptionListTopIn5GlowPos
-; 发光颜色
-_TreasureGroveGlowColor := UtilsOptionListGlowColor
 ; 迷宫树“路线图”logo像素
 _TreasureGroveLogoPixel := [119, 58, "0xF7E1B2"]
 ; 迷宫树地图共10行（不包括起点层）
@@ -103,22 +97,19 @@ _TreasureGroveBossTypeName := Map(
 )
 
 _TreasureGroveReplant() {
-    UpdateStatusBar("种植")
+    OutputDebug("Info.treasure_grove.Replant: 开始重新种植")
+    UpdateStatusBar("重新种植中...")
     count := 0
     timeoutCount := 50
     while (count < timeoutCount) {
-        optionAtFirst := SearchColorMatch(  ; 3选1st
-            _TreasureGroveGlow1Pos[1], _TreasureGroveGlow1Pos[2],
-            _TreasureGroveGlowColor
-        )
-        optionAtThird := SearchColorMatch(  ; 5选3rd
-            _TreasureGroveGlow2Pos[1], _TreasureGroveGlow2Pos[2],
-            _TreasureGroveGlowColor
-        )
+        ; 当前未种植，“重新种植”选项在第一行
+        optionAtFirst := UtilsOptionListSelected(1, 1, 3)
+        ; 当前已种植，“重新种植”选项在第三行
+        optionAtThird := UtilsOptionListSelected(1, 1, 5)
         if (optionAtFirst ^ optionAtThird) {
             break
         }
-        UpdateStatusBar("等待“重新种植”选项..." count "/" timeoutCount)
+        OutputDebug("Debug.treasure_grove.Replant: 等待“重新种植”选项..." count "/" timeoutCount)
         Sleep(100)
         count++
     }
@@ -127,13 +118,13 @@ _TreasureGroveReplant() {
     }
     Sleep(500)  ; 等待界面稳定
     if (optionAtThird) {
-        UpdateStatusBar("向下两次")
+        OutputDebug("Debug.treasure_grove.Replant: 向下两次")
         MySend("s", , 100)
         MySend("s", , 100)
     }
     ; Pause()
     MySend("Space", , 1000)
-    UpdateStatusBar("选择年代")
+    OutputDebug("Debug.treasure_grove.Replant: 选择年代")
     key := myGui["TreasureGrove.YearMoveDir"].Value == 1 ? "w" : "s"
     count := myGui["TreasureGrove.YearMoveCount"].Value
     loop count {
@@ -156,7 +147,8 @@ _TreasureGroveReplant() {
  * @description 检查地图上所有房间
  */
 _TreasureGroveCheckAllRooms() {
-    UpdateStatusBar("检查所有房间")
+    OutputDebug("Info.treasure_grove.CheckAllRoom: 开始检查所有房间")
+    UpdateStatusBar("检查所有房间...")
     targetSpecialRoom := myGui["TreasureGrove.TargetSpecialRoom"].Text
     ; targetBossName := myGui["TreasureGrove.TargetBossName"].Text
     targetBossName := ""
@@ -165,7 +157,7 @@ _TreasureGroveCheckAllRooms() {
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
         _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
-    UpdateStatusBar("正在检查房间")
+    OutputDebug("Info.treasure_grove.CheckAllRoom: 正在检查房间")
     loop 10 {  ; 遍历10行，包括第10行（Boss房间）
         row := A_Index
         loop 6 {  ; 遍历6个房间
@@ -204,6 +196,7 @@ _TreasureGroveCheckAllRooms() {
     } else {
         text .= "，无Boss"
     }
+    OutputDebug("Info.treasure_grove.CheckAllRoom: " text)
     UpdateStatusBar(text)
 }
 
@@ -276,6 +269,7 @@ _TreasureGroveCheckSingleRoom(row, col) {
 }
 
 _TreasureGroveIdentifyBoss(x, y, bossType) {
+    OutputDebug("Info.treasure_grove.IdentifyBoss: 检测BOSS类型")
     ; 缓慢移动鼠标激活boss信息
     MouseGetPos(&xm, &ym)
     MouseMove(x, y)
@@ -300,6 +294,7 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
         ; throw ValueError("OCR识别Boss名字失败：" e.Message)
         bossName := "未知Boss"
     }
+    OutputDebug("Info.treasure_grove.IdentifyBoss: 检测到" bossType "Boss：" bossName)
     UpdateStatusBar("检测到" bossType "Boss：" bossName)
     return bossName
 }
@@ -309,6 +304,7 @@ _TreasureGroveIdentifyBoss(x, y, bossType) {
  * @return {Array} [x, y] 祭坛位置坐标
  */
 TreasureGroveFindAgingAltar() {
+    OutputDebug("Info.treasure_grove.FindAgingAltar: 寻找熟成祭坛")
     WaitUntilColorMatch(
         _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2],
         _TreasureGroveLogoPixel[3], "迷宫树路线图logo")
@@ -323,6 +319,7 @@ TreasureGroveFindAgingAltar() {
                 continue
             }
             if (roomType == "熟成祭坛") {
+                OutputDebug("Info.treasure_grove.FindAgingAltar: 找到熟成祭坛")
                 UpdateStatusBar("找到熟成祭坛")
                 x := _TreasureGroveRoom11Pos[1] +
                     _TreasureGroveRoomSize * (col * 2 - 1 - Mod(row, 2))
@@ -332,6 +329,7 @@ TreasureGroveFindAgingAltar() {
             }
         }
     }
+    OutputDebug("Error.treasure_grove.FindAgingAltar: 未找到熟成祭坛")
     throw ValueError("未找到熟成祭坛")
 }
 

@@ -26,15 +26,15 @@ Legendary_LoopRefreshBtn_Click() {
         throw ValueError("当前不在地图界面")
     }
     loopCount := myGui["Legendary.MaxLoopTimes"].Value
+    infiniteLoop := (loopCount == 0)  ; 0表示无限循环
     currentLoop := 0
-    maxLoops := (loopCount = 0) ? 999 : loopCount  ; 0表示无限循环，大整数模拟
 
-    while (currentLoop < maxLoops) {
+    while (currentLoop < loopCount || infiniteLoop) {
         currentLoop++
         result := 0
 
         ; 更新状态栏
-        if (loopCount = 0) {
+        if (infiniteLoop) {
             UpdateStatusBar("无限刷新中: 第 " currentLoop " 次")
         }
         else {
@@ -116,14 +116,24 @@ LegendaryCheckMap() {
     }
 }
 
-_LegendaryText1Pos := [1327, 337]  ; "区域"位置
-_LegendaryTextColor := "0xF8F0DC"  ; "区域"颜色
-_LegendaryLevelPos := [151, 295]  ; 等级标识位置
-_LegendaryLevelLockedColor := "0x978056"  ; 等级标识未解锁颜色
-_LegendaryLevelSelectedColor := "0x086400"  ; 等级标识已选中颜色
-_LegendaryLevelValidColor := "0x3C2918"  ; 等级标识有效颜色
+; "区域"位置
+_LegendaryText1Pos := [1327, 337]
+; "区域"颜色
+_LegendaryTextColor := "0xF8F0DC"
+; 等级标识位置
+_LegendaryLevelPos := [151, 295]
+; 等级标识未解锁颜色
+_LegendaryLevelLockedColor := "0x978056"
+; 等级标识已选中颜色
+_LegendaryLevelSelectedColor := "0x086400"
+; 等级标识有效颜色
+_LegendaryLevelValidColor := "0x3C2918"
 
+/**
+ * @description 使用更换等级法刷新一次地图
+ */
 LegendaryRefreshMap() {
+    OutputDebug("Info.legendary.RefreshMap: 开始刷新地图")
     MySend("f", , 500)
     MySend("Space", , 500)
     found := SearchColorMatch(
@@ -135,24 +145,26 @@ LegendaryRefreshMap() {
         if SearchColorMatch(_LegendaryLevelPos[1], _LegendaryLevelPos[2],
             _LegendaryLevelValidColor
         ) {
-            UpdateStatusBar("该等级可选择")
+            OutputDebug("Debug.legendary.RefreshMap: " count "/" maxCount " 可选择")
             break
         } else if SearchColorMatch(
             _LegendaryLevelPos[1], _LegendaryLevelPos[2],
             _LegendaryLevelLockedColor
         ) {
-            UpdateStatusBar("该等级未解锁")
+            OutputDebug("Debug.legendary.RefreshMap: " count "/" maxCount " 未解锁")
         } else if SearchColorMatch(
             _LegendaryLevelPos[1], _LegendaryLevelPos[2],
             _LegendaryLevelSelectedColor
         ) {
-            UpdateStatusBar("该等级已选中")
+            OutputDebug("Debug.legendary.RefreshMap: " count "/" maxCount " 已选中")
         } else {
+            OutputDebug("Error.legendary.RefreshMap: 等级检测异常")
             throw ValueError("等级检测异常")
         }
         MySend("e", , 100)  ; 切换等级
         count++
         if (count == maxCount) {
+            OutputDebug("Error.legendary.RefreshMap: 未找到可选择的等级")
             throw ValueError("未找到可选择的等级")
         }
     }
@@ -160,5 +172,5 @@ LegendaryRefreshMap() {
     MySend("Space", , 1000)  ; 确认切换
     MySend("Escape", , 500)  ; 退出对话
     MySend("m", , 800)  ; 打开地图并等待地图加载
-    UpdateStatusBar("地图刷新完成")
+    OutputDebug("Info.legendary.RefreshMap: 地图刷新完成")
 }

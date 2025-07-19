@@ -1,5 +1,5 @@
 #Requires AutoHotkey v2.0
-DebugOnline := false
+DebugOnline := true
 _JoinDebugID := 1
 
 Online_RecruitBtn_Click() {
@@ -16,7 +16,8 @@ Online_EndBtn_Click() {
     _OnlineEndAsHost()
 }
 
-Online_EndLoadRecruitBtn_Click() {
+Online_LoopRecruitAgingBtn_Click() {
+    myGui["Online.Destination"].Value := 4
     count := 1
     while (true) {
         MyToolTip("第" count "车", 0, 0, 1, DebugOnline)
@@ -26,6 +27,8 @@ Online_EndLoadRecruitBtn_Click() {
         _OnlineWaitForBaseCampUI()  ; 等待加载营地界面
         _OnlineHeadOutAsHost()  ; 出发
         _OnlineFinishAgingAndBoss()
+        _OnlineWaitForBaseCampUI()
+        _OnlineWaitForNoMember()
         _OnlineEndAsHost()  ; 解散房间
         count++
     }
@@ -54,19 +57,28 @@ _OnlineCheckInput() {
     }
 }
 
-SelectedTextColor := "0xF8F0DC"  ; 选中对话文本颜色
-_OnlineCounterInternetPixel := [703, 933, SelectedTextColor]  ; 感叹号确认“即将开始互联网连接”像素
-_OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]  ; 标题“多人联机”像素
-_OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]  ; 按钮“招募！”像素
-_OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]  ; 标题“设置目的地”像素
-_OnlineCounterPos := [1012, 413]  ; 科隆对话[F]位置
-_OnlineRecruitTripLogoPos := [960, 600]  ; 啼普加载中图标位置
-_OnlineRecruitTripLogoColor := "0x8A703E"  ; 啼普加载中图标颜色
-_OnlineJoinDestinationLogoPos := [67, 85]  ; 小蓝人位置
-_OnlineJoinDestinationLogoColor := "0x4289FF"  ; 小蓝人颜色
-_OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]  ; 蓝天背景像素
-_OnlineJoiningSkyPos := [1000, 140]  ; 蓝天背景位置
-_OnlineJoinDoneColor := "0x1595D7"  ; 蓝天背景颜色
+; 选中对话文本颜色
+SelectedTextColor := "0xF8F0DC"
+; 感叹号确认“即将开始互联网连接”像素
+_OnlineCounterInternetPixel := [703, 933, SelectedTextColor]
+; 标题“多人联机”像素
+_OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]
+; 按钮“招募！”像素
+_OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]
+; 标题“设置目的地”像素
+_OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]
+; 科隆对话[F]位置
+_OnlineCounterPos := [1012, 413]
+; 啼普加载中图标位置
+_OnlineRecruitTripLogoPos := [960, 600]
+; 啼普加载中图标颜色
+_OnlineRecruitTripLogoColor := "0x8A703E"
+; 小蓝人位置
+_OnlineJoinDestinationLogoPos := [67, 85]
+; 小蓝人颜色
+_OnlineJoinDestinationLogoColor := "0x4289FF"
+; 蓝天背景像素
+_OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]
 
 ; 联机出发[U]位置
 _OnlineHeadOutButtonPos := [339, 217]
@@ -78,6 +90,36 @@ _OnlineWaitForBaseCampUI() {
     Sleep(500)  ; 等待界面稳定
 }
 
+_OnlineWaitForNoMember() {
+    OutputDebug("Info.online.WaitForNoMember: 等待所有成员离开房间")
+    count := 0
+    maxCount := 90
+    joinStatus := [false, false, false, false]
+    UpdateStatusBar("等待所有成员离开房间")
+    Sleep(3000)  ; 等待UI稳定
+    while (count < maxCount) {
+        changed := false
+        _OnlineCheckMemberJoinStatus(&joinStatus, &changed)
+        if (Mod(count, 10) == 0) {
+            _OnlineSendGameMessage("等待所有成员离开后重开，"
+                (maxCount - count) "秒后强制解散")
+        }
+        OutputDebug("Info.online.WaitForNoMember: 等待成员"
+            changed joinStatus[1] joinStatus[2] joinStatus[3] joinStatus[4]
+            "离开房间" count "/" maxCount)
+        UpdateStatusBar("等待所有成员"
+            changed joinStatus[1] joinStatus[2] joinStatus[3] joinStatus[4]
+            "离开房间..." count "/" maxCount)
+        if joinStatus[1] && !joinStatus[2] && !joinStatus[3] && !joinStatus[4] {
+            OutputDebug("Info.online.WaitForNoMember: 所有成员已离开房间")
+            UpdateStatusBar("所有成员已离开房间")
+            return
+        }
+        count++
+        Sleep(1000)
+    }
+}
+
 /**
  * @description: 前进到联机柜台并与科隆对话
  */
@@ -87,15 +129,9 @@ _TalkToColm() {
         _OnlineCounterPos[1], _OnlineCounterPos[2],
         "科隆对话[F]", , , 1000, 10)
     MyRelease("w")
-    UpdateStatusBar("开始对话")
+    OutputDebug("Info.online.TalkToColm: 开始对话")
     MySend("f")
-    match := WaitUntil2ColorMatch(
-        UtilsOptionListTopIn2GlowPos, UtilsOptionListGlowColor,
-        UtilsOptionListTopIn3GlowPos, UtilsOptionListGlowColor,
-        "科隆对话选项")
-    if (match == 2) {  ; 三选项时向下一次
-        MySend("s", , 200)
-    }
+    UtilsWaitUntilOptionListSelected(1, 1, 2, "科隆对话选项")
     Sleep(500)
     MySend("Space")
     WaitUntilColorMatch(
@@ -109,6 +145,7 @@ _TalkToColm() {
 }
 
 _OnlineRecruit() {
+    OutputDebug("Info.Online.Recruit: 选择招募")
     UpdateStatusBar("选择招募")
     Sleep(500)
     MySend("Space")
@@ -129,6 +166,7 @@ _OnlineRecruit() {
     loop (6) {
         MySend("s", , 300)
     }
+    OutputDebug("Info.Online.Recruit: 输入关键词")
     UpdateStatusBar("输入关键词")
     MySend("Space", , 500)
     SendText(myGui["Online.Keyword"].Value)
@@ -141,9 +179,11 @@ _OnlineRecruit() {
     MySend("s", , 500)
     password := myGui["Online.Password"].Value
     if (password == "") {
+        OutputDebug("Info.Online.Recruit: 跳过密码")
         UpdateStatusBar("跳过密码")
     }
     else {
+        OutputDebug("Info.Online.Recruit: 输入密码")
         UpdateStatusBar("输入密码")
         MySend("Space", , 500)
         SendText(password)
@@ -154,13 +194,14 @@ _OnlineRecruit() {
             _OnlineRecruitButtonPixel[3], "招募按钮")
         Sleep(800)
     }
+    OutputDebug("Info.Online.Recruit: 开始招募")
     UpdateStatusBar("开始招募")
     MySend("s", , 500)
     MySend("s", , 500)
     MySend("Space", 500)
     UpdateStatusBar("确认招募")
     MySend("Space", , 500)
-    UpdateStatusBar("再次确认")
+    OutputDebug("Debug.Online.Recruit: 再次确认")
     MySend("Space", , 500)
     WaitUntilColorMatch(
         _OnlineRecruitTripLogoPos[1], _OnlineRecruitTripLogoPos[2],
@@ -171,15 +212,19 @@ _OnlineRecruit() {
 }
 
 _OnlineJoin() {
+    OutputDebug("Info.Online.Join: 开始加入房间")
     UpdateStatusBar("选择加入")
     Sleep(200)
     MySend("d", , 200)
     MySend("Space", , 1000)
     MySend("s", , 200)
     MySend("Space", , 1000)
+
+    OutputDebug("Info.Online.Join: 输入关键词")
     UpdateStatusBar("输入关键词")
     keyword := myGui["Online.Keyword"].Value
     if (keyword == "") {
+        OutputDebug("Warning.Online.Join: 关键词为空")
         UpdateStatusBar("关键词不能为空")
         return false
     }
@@ -189,23 +234,29 @@ _OnlineJoin() {
     MySend("Enter", , 500)
     MySend("Tab")
     Sleep(500)  ; 等待界面稳定
+    
+    OutputDebug("Info.Online.Join: 搜索房间")
     counter := 0
     while (true) {
         if SearchColorMatch(
             _OnlineJoinDestinationLogoPos[1], _OnlineJoinDestinationLogoPos[2],
             _OnlineJoinDestinationLogoColor, 2
         ) {
+            OutputDebug("Info.Online.Join: 搜索成功")
             UpdateStatusBar("已找到目标房间")
             break
         }
         if SearchColorMatch(
             UtilsWindowOK5Pos[1], UtilsWindowOK5Pos[2], UtilsWindowButtonColor
         ) {
+            OutputDebug("Error.Online.Join: 搜索错误")
             throw ValueError("房间搜索错误，请检查关键词或密码")
         }
         counter++
+        OutputDebug("Info.Online.Join: 搜索房间" counter)
         UpdateStatusBar("正在搜索..." counter)
         if (counter > 50) {
+            OutputDebug("Warning.Online.Join: 搜索超时")
             UpdateStatusBar("搜索超时")
             return false
         }
@@ -213,6 +264,8 @@ _OnlineJoin() {
     }
     UpdateStatusBar("已暂停，光标移到目标房间后按F3继续")
     Pause()
+
+    OutputDebug("Info.Online.Join: 加入房间")
     MySend("Space", , 500)
     MySend("Space", , 1000)
     password := myGui["Online.Password"].Value
@@ -228,16 +281,16 @@ _OnlineJoin() {
     WaitUntilColorMatch(
         _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
         _OnlineJoiningSkyPixel[3], "加入", , , 1000, 60)
+
+    OutputDebug("Info.Online.Join: 加入房间成功")
 }
 
 _OnlineHeadOutAsHost() {
-    MySend("u")
+    Sleep(500)
+    MySend("u", , 300)
     WaitUntilConversationSpace()
     MySend("Space")
-    WaitUntilColorMatch(
-        UtilsShortOptionListTopIn2GlowPos[1],
-        UtilsShortOptionListTopIn2GlowPos[2],
-        UtilsOptionListGlowColor, "对话界面")
+    UtilsWaitUntilOptionListSelected(2, 1, 2, "对话界面")
     Sleep(300)  ; 等待对话界面稳定
     MySend("Space")  ; 选择“出发”选项
     WaitUntilColorMatch(
@@ -250,57 +303,52 @@ _OnlineHeadOutAsHost() {
 ; 迷宫内交互[F]位置（先是y=500，视角自动调整后变400）
 _OnlineGroveInteractButton1Pos := [1017, 500]
 _OnlineGroveInteractButton2Pos := [1017, 400]
+; “探索完成！”文本位置X
+_OnlineFinishExploreTextPosX := [708, 863, 1027, 1170, 1281]
+; “探索完成！”文本位置Y
+_OnlineFinishExploreTextPosY := 190
+; “探索完成！”文本颜色
+_OnlineFinishExploreTextColor := "0xFFD707"
 
 _OnlineFinishAgingAndBoss() {
     WaitUntilSavingIcon()  ; 等待保存图标出现（界面加载完成）
-    _OnlineMoveForwardUntilInteract("传送阵", 6)  ; 到传送阵
+    ; 初始房内前进到传送阵
+    _OnlineMoveForwardUntilInteract("传送阵", 6)
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindAgingAltar()
-    MouseMove(pos[1], pos[2])
-    loop (4 * 3) {
-        if Mod(A_Index, 4) == 1 {
-            MouseMove(80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 2 {
-            MouseMove(-80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 3 {
-            MouseMove(-80, -80, 100, "R")
-        } else if Mod(A_Index, 4) == 0 {
-            MouseMove(80, -80, 100, "R")
-        }
-        Sleep(1)
-    }
-    Sleep(500)
-    MySend("Space")
-    WaitUntilColorMatch(
-        UtilsWindowYes2Pos[1], UtilsWindowYes2Pos[2],
-        UtilsWindowButtonColor, "确认楼层“是”")
-    Sleep(500)
-    MySend("Space")
+    _OnlineTreasureGroveMoveToFloor(pos)
     WaitUntilSavingIcon()
-    ; _OnlineMoveForwardUntilInteract("熟成祭坛", 8)  ; 到熟成祭坛
-    ; MySend("a", 500)
-    ; MySend("w", 500)
-    ; MySend("d", 500)
-    ; MySend("w", 500)  ; 绕过熟成祭坛
+    ; 熟成房内前进到传送阵
     MySend("a", 250)
     MySend("w", 500)
-    _OnlineMoveForwardUntilInteract("传送阵", 15)  ; 到传送阵
-    UpdateStatusBar("已暂停，等待队友完成熟成后按F3继续")
-    MySend("F3")
+    _OnlineMoveForwardUntilInteract("传送阵", 15)
+    MySend("d", 100)
+    _OnlineWaitUntilAllAging()  ; 等待所有成员完成熟成
     MySend("f")  ; 交互传送阵
     pos := TreasureGroveFindBoss()
+    _OnlineTreasureGroveMoveToFloor(pos)
+    _OnlineWaitUntilBossDefeated()
+    _OnlineWaitUntilAdventureComplete()
+    UpdateStatusBar("连续空格键跳过结算界面")
+    loop 20 {
+        MySend("Space", , 250)
+    }
+}
+
+_OnlineTreasureGroveMoveToFloor(pos) {
+    MouseClick(, _TreasureGroveLogoPixel[1], _TreasureGroveLogoPixel[2])
     MouseMove(pos[1], pos[2])
-    loop (4 * 3) {
+    loop (4 * 5) {  ; 转5圈，每圈4个方向
         if Mod(A_Index, 4) == 1 {
-            MouseMove(80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 2 {
-            MouseMove(-80, 80, 100, "R")
-        } else if Mod(A_Index, 4) == 3 {
-            MouseMove(-80, -80, 100, "R")
-        } else if Mod(A_Index, 4) == 0 {
             MouseMove(80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 2 {
+            MouseMove(-80, -80, 100, "R")
+        } else if Mod(A_Index, 4) == 3 {
+            MouseMove(-80, 80, 100, "R")
+        } else if Mod(A_Index, 4) == 0 {
+            MouseMove(80, 80, 100, "R")
         }
-        Sleep(1)
+        Sleep(20)
     }
     Sleep(500)
     MySend("Space")
@@ -309,28 +357,242 @@ _OnlineFinishAgingAndBoss() {
         UtilsWindowButtonColor, "确认楼层“是”")
     Sleep(500)
     MySend("Space")
-    Sleep(5000)
+}
+
+/**
+ * @description: 等待所有成员完成熟成（又臭又长，建议不看）
+ * @throws {TimeoutError} 如果等待超时
+ */
+_OnlineWaitUntilAllAging() {
+    PlaySuccessSound()
+    qqMessage := "千熟全自动发车"
+    if (myGui["Online.Keyword"].Text == myGui["Online.Keyword"].Text) {
+        qqMessage .= "，词密：" myGui["Online.Keyword"].Text
+    } else {
+        qqMessage .= "，词：" myGui["Online.Keyword"].Text
+        qqMessage .= "，密：" myGui["Online.Keyword"].Text
+    }
+    _OnlineSendQQMessage(qqMessage)
+    joinStatus := [false, false, false, false]
+    readyStatus := [false, false, false, false]
+    idleCount := 0
+    maxIdleCount := 3
+    allReadyCount := 0
+    while (true) {
+        try {
+            ; 等待不是蓝天背景
+            WaitUntilColorNotMatch(
+                _OnlineJoiningSkyPixel[1], _OnlineJoiningSkyPixel[2],
+                _OnlineJoiningSkyPixel[3], "成员加入房间", , , 1000, 60)
+        } catch Error as e {
+            _OnlineSendQQMessage("脚本等待蓝天超时，建议成员退出")
+            continue
+        }
+        changed := false  ; 每次都需要重置状态变化标志
+        joinCount := _OnlineCheckMemberJoinStatus(&joinStatus, &changed)
+        readyCount := _OnlineCheckMemberPositionStatus(&readyStatus, &changed)
+        text := changed ? "状态变化" : "状态未变"
+        loop 3 {
+            index := A_Index + 1
+            text .= "，" index "P: " joinStatus[index] readyStatus[index]
+        }
+        UpdateStatusBar(text)
+        if !joinStatus[1] {
+            UpdateStatusBar("未检测到房主，尝试修复")
+            MySend("Escape", , 1000)
+            MySend("Space", , 1000)
+            continue
+        }
+        if (joinCount > 1 && readyCount == joinCount) {
+            if changed {
+                allReadyCount := 0  ; 状态变化后重置计数器
+                maxAllReadyCount := 6 * (4 - readyCount)  ; 每少1人多等6个循环
+            }
+            text := readyCount "/" joinCount "人已就位"
+            if allReadyCount < maxAllReadyCount {
+                _OnlineSendGameMessage(text "，"
+                    (maxAllReadyCount - allReadyCount) * 10 "秒后出发")
+            } else {
+                _OnlineSendQQMessage("已发车")
+                _OnlineSendGameMessage(text "，" "现在出发")
+                break
+            }
+            allReadyCount += 1
+        } else {
+            if changed {
+                _OnlineSendGameMessage("更新状态："
+                    joinCount "人加入，" readyCount "人就位")
+            } else {
+                if (idleCount == 0) {
+                    _OnlineSendGameMessage("就位条件：小地图上的“?P”框在传送阵房间内（每10秒检测一次)")
+                }
+                idleCount := (idleCount == maxIdleCount) ? 0 : idleCount + 1
+            }
+        }
+        Sleep(10 * 1000)
+    }
+}
+
+_OnlineItemIconPixel := [121, 95, "0xFFECBC"]  ; 物品图标像素
+_OnlineItemInfoPixel := [1113, 467, "0xFFF8E5"]  ; 物品信息像素
+_OnlineTabKeyPixel := [908, 954, UtilsKeyBackgroundColor]  ; Tab键像素
+
+_OnlineWaitUntilBossDefeated() {
+    WaitUntilColorMatch(_OnlinePlayerPosX, _OnlinePlayerPosY[1],
+        _OnlinePlayerColor[1], "Boss房加载", , , 1000, 60)
     count := 0
     timeoutCount := 300
     while (count < timeoutCount) {
-        try {
-            WaitUntilConversationSpace(100, 1000)  ;一次等10秒
-        } catch {
-            UpdateStatusBar("等待Boss战... " count "/" timeoutCount)
-            count++
-            continue
+        count++
+        if Mod(count, 30) == 0 {
+            MySend("x", , 800)
+            MySend("1", , 800)
+            MySend("x", , 800)
+            MySend("2", , 800)
         }
-        UpdateStatusBar("已完成Boss战")
-        break
+        if Mod(count, 5) == 0 {
+            MySend("x", , 800)
+            MySend("3", , 800)
+            MySend("x", , 800)
+            MySend("4", , 800)
+        }
+        try {
+            WaitUntilColorNotMatch(_OnlinePlayerPosX, _OnlinePlayerPosY[1],
+                _OnlinePlayerColor[1], "第" count "次等待Boss房结束")
+            if SearchColorMatch(_OnlineJoiningSkyPixel*) {
+                continue  ; 如果仍然是蓝天背景，则继续等待
+            }
+        } catch Error as e {
+            continue  ; 如果Boss房未结束，则继续等待
+        } else {
+            UpdateStatusBar("Boss房结束")
+            break
+        }
+    }
+}
+
+_OnlineWaitUntilAdventureComplete() {
+    count := 0
+    timeoutCount := 60
+    while (count < timeoutCount) {
+        allTextMatch := true
+        for index, x in _OnlineFinishExploreTextPosX {
+            textMatch := SearchColorMatch(x, _OnlineFinishExploreTextPosY,
+                _OnlineFinishExploreTextColor)
+            allTextMatch := allTextMatch && textMatch
+        }
+        if (allTextMatch) {
+            UpdateStatusBar("已完成冒险")
+            break
+        }
+        count++
+        Sleep(1000)
+        UpdateStatusBar("等待冒险完成..." count "/" timeoutCount)
     }
     if (count >= timeoutCount) {
-        throw TimeoutError("等待Boss战结束超时")
+        throw TimeoutError("等待冒险完成超时")
     }
-    MySend(1000)
-    MySend("Space", , 1000)
-    WaitUntilConversationSpace()
-    MySend("Space", , 1000)
-    _OnlineWaitForBaseCampUI()
+}
+
+_OnlinePlayerPosX := 72
+_OnlinePlayerPosY := [
+    56,  ; 房主（左上角）
+    764,  ; 成员（左下角第一个）
+    892,  ; 成员（左下角第二个）
+    1020  ; 成员（左下角第三个）
+]
+_OnlinePlayerColor := [
+    "0xFF6950",  ; 1P颜色
+    "0x40A0FF",  ; 2P颜色
+    "0xFFC600",  ; 3P颜色
+    "0xE97DF3",  ; 4P颜色
+]
+
+/**
+ * @description: 检查成员的状态
+ * @param {VarRef} status - 成员状态数组
+ * @param {VarRef} changed - 成员状态变更标志
+ * @returns {Integer} 检测到的成员数量
+ */
+_OnlineCheckMemberJoinStatus(&status, &changed) {
+    count := 0
+    matchedPos := [false, false, false, false]  ; 记录每个位置是否已经匹配
+    loop 4 {  ; 检测1P-4P的4个颜色
+        indexPlayer := A_Index
+        loop 4 {  ; 检测全部4个位置
+            indexPos := A_Index
+            if (matchedPos[indexPos]) {
+                continue  ; 如果该位置已经匹配，则跳过
+            }
+            posX := _OnlinePlayerPosX
+            posY := _OnlinePlayerPosY[indexPos]
+            playerColor := _OnlinePlayerColor[indexPlayer]
+            match := SearchColorMatch(posX, posY, playerColor, 2, 5)
+            if (match) {
+                MyToolTip(indexPlayer "P: " status[indexPlayer] match,
+                    posX + 3, posY + 3, 1 + indexPos, DebugOnline)
+                matchedPos[indexPos] := true
+                count++  ; 1P位置不计数
+                break
+            } else {
+                MyToolTip("空", posX + 3, posY + 3, 1 + indexPos, DebugOnline)
+            }
+        }
+        changed := changed || (status[indexPlayer] != match)
+        status[indexPlayer] := match
+    }
+    return count
+}
+
+_OnlineMiniMapCenterPos := [1700, 276]  ; 小地图中心位置
+_OnlineMiniMapRange := 116  ; 小地图半径
+_OnlineMiniMapWarpCircleRange := 44  ; 小地图传送阵房间半径
+
+/**
+ * @description: 检查成员是否在附近
+ * @param {VarRef} status - 成员状态数组
+ * @param {VarRef} changed - 成员状态变更标志
+ * @returns {Integer} 检测到的成员数量
+ */
+_OnlineCheckMemberPositionStatus(&status, &changed) {
+    count := 0
+    loop 4 {  ; 小地图上检测1P-4P的4个颜色
+        indexPlayer := A_Index
+        match := SearchColorMatch(
+            _OnlineMiniMapCenterPos[1], _OnlineMiniMapCenterPos[2],
+            _OnlinePlayerColor[indexPlayer],
+            _OnlineMiniMapWarpCircleRange, 5)
+        changed := changed || (status[indexPlayer] ^ match)
+        status[indexPlayer] := match
+        if (match) {
+            count++
+        }
+        x := _OnlineMiniMapCenterPos[1] + _OnlineMiniMapWarpCircleRange
+        y := _OnlineMiniMapCenterPos[2] + _OnlineMiniMapWarpCircleRange +
+            (indexPlayer - 1) * 20
+        MyToolTip(match ? indexPlayer "P" : "",
+            x, y, 6 + indexPlayer, DebugOnline)
+    }
+    return count
+}
+
+_OnlineSendQQMessage(text) {
+    if (myGui["Online.SendQQMessageChk"].Value) {
+        WinActivate("ahk_exe QQ.exe")
+        MyPaste(text)
+        MySend("Enter")
+        GameWindowActivate()
+    }
+}
+
+_OnlineSendGameMessage(text) {
+    OutputDebug("Debug.online.SendGameMessage: 打开输入栏")
+    MySend("Enter", 200, 500)  ; 等待输入栏稳定
+    OutputDebug("Debug.online.SendGameMessage: 输入消息")
+    MyPaste(text)
+    Sleep(500)
+    OutputDebug("Debug.online.SendGameMessage: 发送消息")
+    MySend("Enter", 200, 500)  ; 等待消息发送完成
 }
 
 _OnlineMoveForwardUntilInteract(title, count) {
@@ -342,9 +604,9 @@ _OnlineMoveForwardUntilInteract(title, count) {
     }
     try {
         WaitUntilButton(  ; 检测y=500的交互按钮
-            _OnlineGroveInteractButton1Pos[1], _OnlineGroveInteractButton1Pos[2
-            ],
-            "迷宫内" title "交互[F]", , , 100, 300)
+            _OnlineGroveInteractButton1Pos[1],
+            _OnlineGroveInteractButton1Pos[2],
+            "迷宫内" title "交互[F]", [10, 40], , 50, 600)
     } catch {
         MyRelease("w")
         throw ValueError("迷宫内" title "交互[F]按钮未找到")

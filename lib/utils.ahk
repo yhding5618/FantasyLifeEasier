@@ -63,6 +63,17 @@ MySend(singleKey, pressDelay := 30, postDelay := 0) {
     }
 }
 
+MyPaste(text) {
+    oldClipboard := A_Clipboard
+    A_Clipboard := text
+    Sleep(200)  ; 等待剪贴板更新
+    MyPress("Ctrl")
+    MySend("v")
+    MyRelease("Ctrl")
+    Sleep(200)  ; 等待粘贴完成
+    A_Clipboard := oldClipboard
+}
+
 /**
  * @description 运行函数并捕获异常，如果函数执行成功则播放成功音效，否则弹出错误信息并播放失败音效
  * @param {Func} function  
@@ -89,6 +100,7 @@ TryAndCatch(function, args*) {
         PlaySuccessSound()
         ShowSuccessMsgBox("操作成功: " btnText)
     } catch Error as e {
+        OutputDebug("Error.utils: " e.message)
         UpdateStatusBar(e.Message)
         PlayFailureSound()
         ShowFailureMsgBox("操作失败: " btnText, e)
@@ -249,9 +261,10 @@ WaitUntilColorMatch(x, y, color, title,
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (match) {
-            UpdateStatusBar("检测到" title "结束[" color "]")
+            OutputDebug("Debug.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
             return
         }
+        OutputDebug("Info.util.WaitUntilColorMatch: 等待" title "..." count "/" timeoutCount)
         UpdateStatusBar("等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
@@ -284,11 +297,11 @@ WaitUntil2ColorMatch(pos1, color1, pos2, color2, title,
             pos2[1], pos2[2], color2, pixelRange, colorVariation)
         if (match1 ^ match2) {
             match := match1 ? 1 : 2
-            UpdateStatusBar("检测到" title "结束[" match "]"
+            OutputDebug("Info.utils.WaitUntil2ColorMatch: 检测到" title "结束[" match "]"
             )
             return match
         }
-        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntil2ColorMatch: 等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -314,10 +327,10 @@ WaitUntilColorNotMatch(x, y, color, title,
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (!match) {
-            UpdateStatusBar("检测到" title "结束[" color "]")
+            OutputDebug("Info.utils.WaitUntilColorNotMatch: 检测到" title "结束[" color "]")
             return
         }
-        UpdateStatusBar("等待" title "..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntilColorNotMatch: 等待" title "..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -411,13 +424,13 @@ _MenuIconOffsetY := 234  ; 菜单图标Y偏移量
 _MenuCenterPixel := [952, 556, "0xFEED41"]  ; 菜单中心背景像素
 
 OpenMenu() {
-    UpdateStatusBar("打开菜单")
+    OutputDebug("Info.utils: 打开菜单")
     MySend("Escape")
     WaitUntilColorMatch(
         _MenuCenterPixel[1], _MenuCenterPixel[2],
         _MenuCenterPixel[3], "菜单图标加载", 5, 5, 50, 20)
     Sleep(500)  ; 等待菜单稳定
-    UpdateStatusBar("已打开菜单")
+    OutputDebug("Info.utils: 已打开菜单")
 }
 
 /**
@@ -431,7 +444,7 @@ OpenMenuAndMoveToIcon(page, row, col) {
     totalRows := 3  ; 每页行数
     totalCols := 4  ; 每页列数
     OpenMenu()
-    UpdateStatusBar("移动到" page "页，" row "行，" col "列")
+    OutputDebug("Info.utils: 移动到" page "页，" row "行，" col "列")
     loop (page - 1) {
         MySend("e", , 100)  ; 翻页
     }
@@ -497,24 +510,116 @@ UtilsWindowOK2Pos := [965, 885]
 UtilsWindowOK3Pos := [965, 750]
 ; 超低位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
 UtilsWindowOK4Pos := [965, 895]
-; 极低位“OK”按钮位置，用于：房间搜索错误
+; 极低位“OK”按钮位置，用于：房间搜索错误，消息发送错误
 UtilsWindowOK5Pos := [965, 940]
-; 按钮背景颜色
+; “OK”“是”“否”按钮选中时的背景绿色
 UtilsWindowButtonColor := "0x88FF74"
-; 右侧二短选项时首选项位置，用于：在线选择出发
-UtilsShortOptionListTopIn2GlowPos := [1351, 477]
-; 右侧二选项时首选项位置，用于：科隆对话
-UtilsOptionListTopIn2GlowPos := [1293, 436]
-; 右侧三选项时首选项位置，用于：迷宫树对话，科隆对话
-UtilsOptionListTopIn3GlowPos := [1293, 403]
-; 右侧五选项时首选项位置，用于：迷宫树对话
-UtilsOptionListTopIn5GlowPos := [1293, 283]
-; 右侧选项发光颜色，用于：大部分对话选项
-UtilsOptionListGlowColor := "0xAFF258"
-; 交互按键背景颜色
+UtilsOptionListWidePosX := 1293  ; 宽边距选项列表X坐标
+UtilsOptionListNarrowPosX := 1351  ; 窄边距选项列表X坐标
+UtilsOptionList2WidePosY := 436  ; 2宽选项列表Y坐标
+UtilsOptionList2NarrowPosY := 477  ; 2窄选项列表Y坐标
+UtilsOptionList3PosY := 403  ; 3宽选项列表Y坐标
+UtilsOptionList5PosY := 283  ; 5宽选项列表Y坐标
+; 单个选项高度
+UtilsOptionListItemHeight := 80
+; 右侧选项选中时的发光绿色，用于：大部分对话选项
+UtilsOptionListGlowColor := "0xA8F255"
+; 交互按键背景灰色
 UtilsKeyBackgroundColor := "0x93805B"
 ; 继续对话空格键像素
 UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
+
+/**
+ * @description 返回选项列表检查点
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {String} title 选项标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ */
+UtilsGetOptionListPosition(marginType, index, total) {
+    switch (marginType) {
+        case 1:
+            x := UtilsOptionListWidePosX
+        case 2:
+            x := UtilsOptionListNarrowPosX
+        default:
+            throw ValueError("不支持的选项列表边距类型: " marginType)
+    }
+    switch (total) {
+        case 2:
+            ys := (marginType == 1) ?
+                UtilsOptionList2WidePosY :
+                UtilsOptionList2NarrowPosY
+        case 3:
+            ys := UtilsOptionList3PosY
+        case 5:
+            ys := UtilsOptionList5PosY
+        default:
+            throw ValueError("不支持的选项总数: " total)
+    }
+    y := ys + (index - 1) * UtilsOptionListItemHeight
+    return [x, y]
+}
+
+/**
+ * @description 检查选项列表是否被选中
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ */
+UtilsOptionListSelected(listType, index, total,
+    pixelRange := 5, colorVariation := 20
+) {
+    pos := UtilsGetOptionListPosition(listType, index, total)
+    return SearchColorMatch(
+        pos[1], pos[2], UtilsOptionListGlowColor,
+        pixelRange, colorVariation
+    )
+}
+
+/**
+ * @description 等待选项列表被选中的绿色加载完成
+ * @param {Integer} marginType 选项列表边距类型<br>
+ *   1（宽）：科隆对话，迷宫树对话，是否再次制作<br>
+ *   2（窄）：在线选择出发
+ * @param {Integer} index 选项索引（从1开始）
+ * @param {Integer} total 选项总数<br>
+ *    2：科隆对话，在线选择出发<br>
+ *    3：迷宫树对话，科隆对话，是否再次制作<br>
+ *    5：迷宫树对话
+ * @param {String} title 选项标题
+ * @param {Integer} pixelRange 像素匹配范围（默认5）
+ * @param {Integer} colorVariation 颜色变化范围（默认20）
+ * @param {Integer} interval 检查间隔时间（毫秒，默认50）
+ * @param {Integer} timeoutCount 超时时间（检查次数，默认100）
+ */
+UtilsWaitUntilOptionListSelected(listType, index, total, title,
+    pixelRange := 5, colorVariation := 20,
+    interval := 100, timeoutCount := 50
+) {
+    if (index < 1 || index > total) {
+        throw ValueError("选项索引必须在1到" total "之间")
+    }
+    pos := UtilsGetOptionListPosition(listType, index, total)
+    WaitUntilColorMatch(
+        pos[1], pos[2], UtilsOptionListGlowColor, title,
+        pixelRange, colorVariation, interval, timeoutCount
+    )
+}
 
 /**
  * @description 等待对话界面交互空格键加载完成
@@ -547,10 +652,10 @@ WaitUntilButton(
             x, y, UtilsKeyBackgroundColor,
             pixelRange, colorVariation)
         if (found) {
-            UpdateStatusBar("检测到" title "按钮加载完成")
+            OutputDebug("Info.utils.WaitUntilButton: 检测到" title "按钮加载完成")
             return
         }
-        UpdateStatusBar("等待" title "按钮加载完成..." count "/" timeoutCount)
+        OutputDebug("Info.utils.WaitUntilButton: 等待" title "按钮加载完成..." count "/" timeoutCount)
         Sleep(interval)
         count++
     }
@@ -607,6 +712,7 @@ SaveConfig() {
             IniWrite(currentValue, "main.ini.new", section, key)
         }
     } catch Error as e {
+        OutputDebug("Error.utils.SaveConfig: " e " 在保存配置时失败: " e.Message)
         ShowFailureMsgBox("保存配置失败: " e.Message, e)
         return
     }

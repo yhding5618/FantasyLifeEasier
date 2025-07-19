@@ -13,9 +13,11 @@ WeaponAging_LoadAndAgeBtn_Click() {
     _WeaponAging()
 }
 
-_WeaponAgingDonePixel := [812, 128, "0xE88536"]  ; "熟成成功"背景像素
+; "熟成成功"背景像素
+_WeaponAgingDonePixel := [812, 128, "0xE88536"]
 
 _WeaponAging() {
+    OutputDebug("Info.weapon_aging.WeaponAging: 开始武器熟成")
     UpdateStatusBar("开始武器熟成")
     MySend("f", , 500)
     MySend("Space")
