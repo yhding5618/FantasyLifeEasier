@@ -5,7 +5,7 @@ _ActionDebugID := 10
 
 MiniGame_SingleActionBtn_Click() {
     OutputDebug("`nInfo.mini_game: 开始单步制作")
-    retryLimit := 3
+    retryLimit := 6
 
     ; 等待 UI
     UpdateStatusBar("等待制作界面...")
@@ -518,7 +518,7 @@ _MiniGameGetInitBenchPos() {
             return 2
     }
     OutputDebug("Warning.mini_gameGetInitBenchPos: 失败")
-    return 0 ; 非正常情况
+    return 0  ; 非正常情况
 }
 
 /**
