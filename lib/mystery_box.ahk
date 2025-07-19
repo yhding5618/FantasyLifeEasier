@@ -14,7 +14,7 @@ MysteryBox_LoadAndBuyBtn_Click() {
         MySend("Space", , 1200)  ; 确认自动出售结果
     }
     MySend("Escape", , 700)  ; 关闭商店界面
-    UtilsWaitUntilOptionListSelected(1, 1, 3, "对话界面")
+    Sleep(1200)  ; 对话选项可能有3/4个，不使用OptionList判断
     Sleep(300)  ; 等待对话界面稳定
     MySend("Escape", , 1000)  ; 关闭对话界面
     MySend("Space", , 800)  ; 加速对话
@@ -33,7 +33,7 @@ _MysteryBoxBuy() {
     buyCount := myGui["MysteryBox.BuyCount"].Value
 
     MySend("f")
-    UtilsWaitUntilOptionListSelected(1, 1, 3, "购买选项")
+    Sleep(1200)  ; 对话选项可能有3/4个，不使用OptionList判断
     Sleep(300)  ; 等待对话界面稳定
 
     OutputDebug("Debug.mystery_box.BoxBuy: 选择“购买”")
