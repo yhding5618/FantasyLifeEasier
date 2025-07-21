@@ -19,7 +19,7 @@ MiniGame_SingleActionBtn_Click() {
     retryCount := 1
     benchPos := _MiniGameGetInitBenchPos()
     while (benchPos == 0 && retryCount <= retryLimit) {
-        OutputDebug("Warning.mini_game.SingleActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
+        OutputDebug("Warn.mini_game.SingleActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
         benchPos := _MiniGameGetInitBenchPos()
         retryCount++
         Sleep(100)
@@ -32,7 +32,7 @@ MiniGame_SingleActionBtn_Click() {
     retryCount := 1
     done := _MiniGameDoNextAction(&benchPos)
     while (!done && retryCount <= retryLimit) {
-        OutputDebug("Warning.mini_game.SingleActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
+        OutputDebug("Warn.mini_game.SingleActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
         done := _MiniGameDoNextAction(&benchPos)
         retryCount++
         Sleep(100)
@@ -61,7 +61,7 @@ MiniGame_ContinuousActionBtn_Click() {
             benchPos := _MiniGameGetInitBenchPos()
         }
         while (benchPos == 0 && retryCount <= retryLimit) {
-            OutputDebug("Warning.mini_game.ContinuousActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
+            OutputDebug("Warn.mini_game.ContinuousActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
             benchPos := _MiniGameGetInitBenchPos()
             retryCount++
             Sleep(100)
@@ -75,7 +75,7 @@ MiniGame_ContinuousActionBtn_Click() {
         retryCount := 1
         done := _MiniGameDoNextAction(&benchPos)
         while (!done && retryCount <= retryLimit) {
-            OutputDebug("Warning.mini_game.ContinuousActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
+            OutputDebug("Warn.mini_game.ContinuousActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
             done := _MiniGameDoNextAction(&benchPos)
             retryCount++
             Sleep(100)
@@ -345,7 +345,7 @@ _MiniGameIsHaveAction(targetPos, targetHeight) {
         OutputDebug("Debug.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 1")
         return true  ; 有鼠标左键或上方白色位置
     }
-    OutputDebug("Warning.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 验证失败")
+    OutputDebug("Warn.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 验证失败")
     return false  ; 可能是鼠标中键误判
 }
 
@@ -379,7 +379,7 @@ _MiniGameGetActionType(targetPos, targetHeight) {
     MyToolTip(text, toolTipX, toolTipY, 10, DebugMiniGame)
     (actionType != 0) ? 
         OutputDebug("Info.mini_game.GetActionType: 识别操作为 " actionType) :
-        OutputDebug("Warning.mini_game.GetActionType: 识别操作失败")
+        OutputDebug("Warn.mini_game.GetActionType: 识别操作失败")
     return actionType
 }
 
@@ -459,7 +459,7 @@ _MiniGameGetInitBenchPos() {
         }
     }
     if (!foundAction) {  ; 没有找到任何操作
-        OutputDebug("Warning.mini_game.GetInitBenchPos: 无法确认位置")
+        OutputDebug("Warn.mini_game.GetInitBenchPos: 无法确认位置")
         return 0
     }
     if (iy == 1) {  ; 操作在上部
@@ -492,7 +492,7 @@ _MiniGameGetInitBenchPos() {
             OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " 2)
             return 2
     }
-    OutputDebug("Warning.mini_game.GetInitBenchPos: 无法确认位置")
+    OutputDebug("Warn.mini_game.GetInitBenchPos: 无法确认位置")
     return 0  ; 非正常情况
 }
 
@@ -511,7 +511,7 @@ _MiniGameGetNextBenchPos(benchPos) {
             return ix
         }
     }
-    OutputDebug("Warning.mini_game.GetNextBenchPos: 于 " benchPos " 无法识别下一位置")
+    OutputDebug("Warn.mini_game.GetNextBenchPos: 于 " benchPos " 无法识别下一位置")
     return 0  ; 没有找到任何工作台操作
 }
 

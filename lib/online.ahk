@@ -224,7 +224,7 @@ _OnlineJoin() {
     UpdateStatusBar("输入关键词")
     keyword := myGui["Online.Keyword"].Value
     if (keyword == "") {
-        OutputDebug("Warning.Online.Join: 关键词为空")
+        OutputDebug("Warn.Online.Join: 关键词为空")
         UpdateStatusBar("关键词不能为空")
         return false
     }
@@ -255,7 +255,7 @@ _OnlineJoin() {
         OutputDebug("Info.Online.Join: 搜索房间" counter)
         UpdateStatusBar("正在搜索..." counter)
         if (counter > 50) {
-            OutputDebug("Warning.Online.Join: 搜索超时")
+            OutputDebug("Warn.Online.Join: 搜索超时")
             UpdateStatusBar("搜索超时")
             return false
         }
