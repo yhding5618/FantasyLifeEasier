@@ -184,9 +184,9 @@ _MiniGameCompleteBanner3Pixel := [960, 180, "0xA94F0D"]
  */
 _MiniGameWaitForComplete() {
     OutputDebug("Info.mini_game.WaitForComplete: 等待制作完成")
-    count := 0
+    count := 1
     timeoutCount := 30
-    while (count < timeoutCount) {
+    while (count <= timeoutCount) {
         notComplete := true
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner1Pixel*)
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner2Pixel*)
@@ -265,9 +265,9 @@ _MiniGameActionSpinColor := "0xFFF97C"
  * @throws TimeoutError 如果等待超时
  */
 _MiniGameWaitForUI() {
-    count := 0
+    count := 1
     timeoutCount := 15
-    while (count < timeoutCount) {
+    while (count <= timeoutCount) {
         loop 20 {
             uiType := _MiniGameGetUIType()
             if (uiType != 0) {  ; 非0为有效UI类型
