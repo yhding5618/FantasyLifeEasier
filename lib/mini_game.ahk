@@ -12,6 +12,7 @@ MiniGame_SingleActionBtn_Click() {
     ; 等待 UI
     UpdateStatusBar("等待制作界面...")
     _MiniGameWaitForUI()
+    Sleep(75)
 
     ; 有限次重试搜寻工作台位置
     UpdateStatusBar("制作中...")
@@ -51,6 +52,7 @@ MiniGame_ContinuousActionBtn_Click() {
     UpdateStatusBar("等待制作界面...")
     while (uiType := _MiniGameWaitForUI() != 2) {
         UpdateStatusBar("制作中...")
+        Sleep(50)
 
         ; 有限次重试搜寻工作台位置
         UpdateStatusBar("制作中...")
@@ -67,6 +69,7 @@ MiniGame_ContinuousActionBtn_Click() {
         if (benchPos == 0) {
             throw TargetError("找不到工作台")
         }
+        Sleep(50)
 
         ; 有限次重试制作
         retryCount := 1
@@ -80,6 +83,7 @@ MiniGame_ContinuousActionBtn_Click() {
         if (!done) {
             throw Error("无法完成操作")
         }
+        Sleep(150)
     }
     UpdateStatusBar("等待制作完成...")
     _MiniGameWaitForComplete()
@@ -159,6 +163,7 @@ _MiniGameDoNextAction(&benchPos) {
 
     ; 移动到下一个工作台位置
     _MiniGameMoveToBenchPos(&benchPos, nextBenchPos)
+    Sleep(50)
 
     ; 识别操作类型
     action := _MiniGameGetActionType(benchPos, 1)
