@@ -56,7 +56,6 @@ SaveToCloud() {
         _SaveLoadCloudCheckPos[1], _SaveLoadCloudCheckPos[2],
         _SaveLoadCloudCheckedColor, 2
     ) {
-        OutputDebug("Error.save_load.SaveToCloud: 共享存档无法选择")
         throw ValueError("共享存档无法选择")
     }
 

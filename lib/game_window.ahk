@@ -54,7 +54,6 @@ GameWindowStatusUpdate() {
 
 GameWindowActivate() {
     if !WinExist(GameWindowTitle) {
-        OutputDebug("Error.game_window.GameWindowActivate: 找不到游戏窗口")
         throw TargetError("游戏窗口未找到")
     }
     OutputDebug("Debug.game_window.GameWindowActivate: 正在打开游戏窗口")
@@ -62,7 +61,6 @@ GameWindowActivate() {
     WinRestore(GameWindowTitle)
     hwnd := WinWaitActive(GameWindowTitle, , 5)
     if (hwnd = 0) {
-        OutputDebug("Error.game_window.GameWindowActivate: 未能打开游戏窗口，可能已最小化")
         throw TargetError("未能打开游戏窗口，可能已最小化")
     }
     OutputDebug("Info.game_window.GameWindowActivate: 游戏窗口已激活")

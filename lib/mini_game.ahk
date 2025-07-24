@@ -24,7 +24,6 @@ MiniGame_SingleActionBtn_Click() {
         Sleep(100)
     }
     if (benchPos == 0) {
-        OutputDebug("Error.mini_game: 找不到工作台")
         throw TargetError("找不到工作台")
     }
 
@@ -38,7 +37,6 @@ MiniGame_SingleActionBtn_Click() {
         Sleep(100)
     }
     if (!done) {
-        OutputDebug("Error.mini_game: 无法完成操作")
         throw Error("无法完成操作")
     }
     OutputDebug("Info.mini_game: 完成单次操作")
@@ -67,7 +65,6 @@ MiniGame_ContinuousActionBtn_Click() {
             Sleep(100)
         }
         if (benchPos == 0) {
-            OutputDebug("Error.mini_game: 找不到工作台")
             throw TargetError("找不到工作台")
         }
 
@@ -81,7 +78,6 @@ MiniGame_ContinuousActionBtn_Click() {
             Sleep(100)
         }
         if (!done) {
-            OutputDebug("Error.mini_game: 无法完成操作")
             throw Error("无法完成操作")
         }
     }
@@ -205,7 +201,6 @@ _MiniGameWaitForComplete() {
         }
     }
     if (count >= timeoutCount) {
-        OutputDebug("Error.mini_game.WaitForComplete: 等待制作完成超时")
         throw TimeoutError("等待制作完成超时")
     }
     WaitUntilConversationSpace()
@@ -392,7 +387,6 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
     y := _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     switch (action) {
         case 1:  ; 单击
-            OutputDebug("Error.mini_gameIsActionCorrect: 非法操作类型：单击")
             throw ValueError("非法操作类型：单击")
         case 2:  ; 连按
             textColor := _MiniGameActionMashColor
@@ -401,7 +395,6 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
         case 4:  ; 转动
             textColor := _MiniGameActionSpinColor
         default:  ; 单击或未知操作
-            OutputDebug("Error.mini_gameIsActionCorrect: 无法验证操作类型")
             throw Error("无法验证操作类型")
     }
     actionMatch := SearchColorMatch(x, y, textColor)
