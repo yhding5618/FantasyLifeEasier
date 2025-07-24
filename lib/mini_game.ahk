@@ -39,12 +39,12 @@ MiniGame_SingleActionBtn_Click() {
     if (!done) {
         throw Error("无法完成操作")
     }
-    OutputDebug("Info.mini_game: 完成单次操作")
+    OutputDebug("Info.mini_game.SingleActionBtn: 完成单次操作")
     UpdateStatusBar("完成单次操作")
 }
 
 MiniGame_ContinuousActionBtn_Click() {
-    OutputDebug("`nInfo.mini_game:开始连续制作")
+    OutputDebug("`nInfo.mini_game.ContinuousActionBtn: 开始连续制作")
     retryLimit := 6
     benchPos := 0
 
@@ -83,7 +83,7 @@ MiniGame_ContinuousActionBtn_Click() {
     }
     UpdateStatusBar("等待制作完成...")
     _MiniGameWaitForComplete()
-    OutputDebug("Info.mini_game: 制作完成")
+    OutputDebug("Info.mini_game.ContinuousActionBtn: 制作完成")
     UpdateStatusBar("制作完成")
     ; _MiniGameIdentifyNewSkills()
 }
@@ -152,7 +152,6 @@ _MiniGameDoNextAction(&benchPos) {
     MyToolTip("benchPos: " benchPos, 860, 810, 1, DebugMiniGame)
     ; 获得下一个工作台操作位置
     nextBenchPos := _MiniGameGetNextBenchPos(benchPos)
-    OutputDebug("Warning.mini_game.DoNextAction: 下一个工作台位置：" nextBenchPos)
     MyToolTip("nextBenchPos: " nextBenchPos, 860, 840, 2, DebugMiniGame)
     if (nextBenchPos == 0) {
         return false
@@ -163,7 +162,6 @@ _MiniGameDoNextAction(&benchPos) {
 
     ; 识别操作类型
     action := _MiniGameGetActionType(benchPos, 1)
-    OutputDebug("Info.mini_game.DoNextAction: 识别到操作类型：" action)
     MyToolTip("action: " action, 860, 870, 3, DebugMiniGame)
     if (action == 0) {
         return false  ; 无法识别操作类型
@@ -185,6 +183,7 @@ _MiniGameCompleteBanner3Pixel := [960, 180, "0xA94F0D"]
  * @throws TimeoutError 如果等待超时
  */
 _MiniGameWaitForComplete() {
+    OutputDebug("Info.mini_game.WaitForComplete: 等待制作完成")
     count := 0
     timeoutCount := 30
     while (count < timeoutCount) {
@@ -193,7 +192,7 @@ _MiniGameWaitForComplete() {
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner2Pixel*)
         notComplete &= !SearchColorMatch(_MiniGameCompleteBanner3Pixel*)
         if (notComplete) {
-            OutputDebug("Info.mini_game.WaitForComplete: 等待制作完成 " count "/" timeoutCount)
+            OutputDebug("Debug.mini_game.WaitForComplete: 等待制作完成 " count "/" timeoutCount)
             Sleep(1000)
             count++
         } else {
@@ -204,7 +203,6 @@ _MiniGameWaitForComplete() {
         throw TimeoutError("等待制作完成超时")
     }
     WaitUntilConversationSpace()
-    OutputDebug("Info.mini_game.WaitForComplete: 检测到“道具制作完成”界面")
 }
 
 _MiniGameNewSkillsOCR := [
@@ -278,6 +276,7 @@ _MiniGameWaitForUI() {
             }
             Sleep(50)
         }
+        OutputDebug("Debug.mini_game.WaitForUI: 等待制作界面 " count "/" timeoutCount)
         count++
     }
     throw TimeoutError("等待制作界面超时")
@@ -328,6 +327,7 @@ _MiniGameIsHaveAction(targetPos, targetHeight) {
         x, y + _MiniGameMouseMiddleOffsetY,
         _MiniGameActionMouseMiddleColor, [3, 20])  ; 鼠标可能有动画，纵向检测范围要大
     if (!foundMouseMiddle) {
+        OutputDebug("Debug.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 0")
         return false  ; 没有鼠标中键一定是无操作
     }
     foundMouseLeft := SearchColorMatch(
@@ -337,8 +337,10 @@ _MiniGameIsHaveAction(targetPos, targetHeight) {
         x, y + _MiniGameMouseUpOffsetY,
         _MiniGameActionMouseUpColor)  ; 鼠标中键上方的白色位置
     if (foundMouseLeft || foundMouseUp) {
+        OutputDebug("Debug.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 1")
         return true  ; 有鼠标左键或上方白色位置
     }
+    OutputDebug("Warning.mini_game.IsHaveAction: [" targetPos "," targetHeight "] 是否有操作 → 验证失败")
     return false  ; 可能是鼠标中键误判
 }
 
@@ -349,7 +351,6 @@ _MiniGameIsHaveAction(targetPos, targetHeight) {
  * @returns {Integer} 操作类型（0:未知, 1:单击, 2:连按, 3:长按, 4:转动）
  */
 _MiniGameGetActionType(targetPos, targetHeight) {
-
     foundMashColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 2)
     foundHoldColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 3)
     foundSpinColor := _MiniGameIsActionCorrect(targetPos, targetHeight, 4)
@@ -371,6 +372,9 @@ _MiniGameGetActionType(targetPos, targetHeight) {
         "操作" actionType :
         "未知" (foundMashColor foundHoldColor foundSpinColor)
     MyToolTip(text, toolTipX, toolTipY, 10, DebugMiniGame)
+    (actionType != 0) ? 
+        OutputDebug("Info.mini_game.GetActionType: 识别操作为 " actionType) :
+        OutputDebug("Warning.mini_game.GetActionType: 识别操作失败")
     return actionType
 }
 
@@ -382,7 +386,6 @@ _MiniGameGetActionType(targetPos, targetHeight) {
  * @returns {Boolean} 是否匹配操作类型
  */
 _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
-    ; OutputDebug("Debug.mini_gameIsActionCorrect: 验证 [" targetPos "," targetHeight "] 操作类型是否为" action)
     x := _MiniGameMousePosX[targetPos] + _MiniGameMouseTextOffsetX
     y := _MiniGameMousePosY[targetHeight] + _MiniGameMouseTextOffsetY
     switch (action) {
@@ -398,7 +401,7 @@ _MiniGameIsActionCorrect(targetPos, targetHeight, action) {
             throw Error("无法验证操作类型")
     }
     actionMatch := SearchColorMatch(x, y, textColor)
-    ; OutputDebug("Debug.mini_gameIsActionCorrect: " actionMatch)
+    OutputDebug("Debug.mini_game.IsActionCorrect: 验证 [" targetPos "," targetHeight "] 操作类型是否为" action " → " actionMatch)
     return actionMatch
 }
 
@@ -421,6 +424,7 @@ _MiniGameMove(direction, count) {
  * @param {Integer} targetPos 目标工作台位置（1:左, 2:中, 3:右）
  */
 _MiniGameMoveToBenchPos(&benchPos, targetPos) {
+    OutputDebug("Debug.mini_game.MoveToBenchPos: 从 " benchPos " 移动到 " targetPos)
     if (benchPos == targetPos) {  ; 不需要移动
         return
     }
@@ -434,6 +438,7 @@ _MiniGameMoveToBenchPos(&benchPos, targetPos) {
  * @returns 工作台位置（0:未知, 1:左, 2:中, 3:右）
  */
 _MiniGameGetInitBenchPos() {
+    OutputDebug("Info.mini_game.GetInitBenchPos: 无条件确认位置")
     ; 确定操作所在位置
     loop 3 {
         ix := A_Index
@@ -449,9 +454,11 @@ _MiniGameGetInitBenchPos() {
         }
     }
     if (!foundAction) {  ; 没有找到任何操作
+        OutputDebug("Warning.mini_game.GetInitBenchPos: 无法确认位置")
         return 0
     }
     if (iy == 1) {  ; 操作在上部
+        OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " ix)
         return ix  ; ix 即为当前工作台位置
     }
     switch (ix) {
@@ -465,17 +472,22 @@ _MiniGameGetInitBenchPos() {
     ; 移动后检测操作是否移到上部
     foundAction := _MiniGameIsHaveAction(ix, 1)
     if (foundAction) {
+        OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " ix)
         return ix  ; ix即为当前工作台位置
     }
     ; 如果操作仍在下部，则在剩余位置
     switch (ix) {
         case 1:  ; 初始在左下，左移后仍不正确
+            OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " 2)
             return 2
         case 2:  ; 初始在中间，左移后仍不正确
+            OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " 1)
             return 1
         case 3:  ; 初始在右边，右移后仍不正确
+            OutputDebug("Info.mini_game.GetInitBenchPos: 确认位置为 " 2)
             return 2
     }
+    OutputDebug("Warning.mini_game.GetInitBenchPos: 无法确认位置")
     return 0  ; 非正常情况
 }
 
@@ -490,9 +502,11 @@ _MiniGameGetNextBenchPos(benchPos) {
         iy := (benchPos == ix) ? 1 : 2  ; 如果是当前工作台需要识别上部操作
         foundAction := _MiniGameIsHaveAction(ix, iy)
         if foundAction {
+            OutputDebug("Info.mini_game.GetNextBenchPos: 于 " benchPos " 识别到下一位置为 " ix)
             return ix
         }
     }
+    OutputDebug("Warning.mini_game.GetNextBenchPos: 于 " benchPos " 无法识别下一位置")
     return 0  ; 没有找到任何工作台操作
 }
 
@@ -502,6 +516,7 @@ _MiniGameGetNextBenchPos(benchPos) {
  * @param {Integer} benchPos 当前工作台位置（1:左, 2:中, 3:右）
  */
 _MiniGameDoAction(action, benchPos) {
+    OutputDebug("Info.mini_game.DoAction: 执行操作 " action)
     switch (action) {
         case 1:  ; 单击
             _MiniGameActionTap()
