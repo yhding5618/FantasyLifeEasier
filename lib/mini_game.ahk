@@ -524,7 +524,7 @@ _MiniGameActionMash(benchPos) {
     while (_MiniGameIsActionCorrect(benchPos, 1, 2)) {
         loop 3 {
             MySend("Space")
-            Sleep(75)
+            Sleep(20)
         }
     }
 }
@@ -532,7 +532,7 @@ _MiniGameActionMash(benchPos) {
 _MiniGameActionHold(benchPos) {
     MyPress("Space")
     while (_MiniGameIsActionCorrect(benchPos, 1, 3)) {
-        Sleep(100)
+        Sleep(300)
     }
     MyRelease("Space")
 }
