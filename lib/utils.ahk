@@ -100,7 +100,7 @@ TryAndCatch(function, args*) {
         PlaySuccessSound()
         ShowSuccessMsgBox("操作成功: " btnText)
     } catch Error as e {
-        OutputDebug("Error.utils: " e.message)
+        OutputDebug("Error: " e.message)
         UpdateStatusBar(e.Message)
         PlayFailureSound()
         ShowFailureMsgBox("操作失败: " btnText, e)

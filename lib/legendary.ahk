@@ -158,13 +158,11 @@ LegendaryRefreshMap() {
         ) {
             OutputDebug("Debug.legendary.RefreshMap: " count "/" maxCount " 已选中")
         } else {
-            OutputDebug("Error.legendary.RefreshMap: 等级检测异常")
             throw ValueError("等级检测异常")
         }
         MySend("e", , 100)  ; 切换等级
         count++
         if (count == maxCount) {
-            OutputDebug("Error.legendary.RefreshMap: 未找到可选择的等级")
             throw ValueError("未找到可选择的等级")
         }
     }

@@ -39,7 +39,6 @@ _FarmingWhistlingUntilNone(prefix := "") {
         }
     }
     if (count >= maxCount) {
-        OutputDebug("Error.harvest.WhistlingUntilNone: 哨子仍未消失")
         throw ValueError(prefix "哨子仍未消失")
     }
 }

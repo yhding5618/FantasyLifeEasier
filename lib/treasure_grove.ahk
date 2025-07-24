@@ -329,7 +329,6 @@ TreasureGroveFindAgingAltar() {
             }
         }
     }
-    OutputDebug("Error.treasure_grove.FindAgingAltar: 未找到熟成祭坛")
     throw ValueError("未找到熟成祭坛")
 }
 

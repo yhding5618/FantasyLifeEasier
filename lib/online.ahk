@@ -224,7 +224,7 @@ _OnlineJoin() {
     UpdateStatusBar("输入关键词")
     keyword := myGui["Online.Keyword"].Value
     if (keyword == "") {
-        OutputDebug("Warning.Online.Join: 关键词为空")
+        OutputDebug("Warn.Online.Join: 关键词为空")
         UpdateStatusBar("关键词不能为空")
         return false
     }
@@ -249,14 +249,13 @@ _OnlineJoin() {
         if SearchColorMatch(
             UtilsWindowOK5Pos[1], UtilsWindowOK5Pos[2], UtilsWindowButtonColor
         ) {
-            OutputDebug("Error.Online.Join: 搜索错误")
             throw ValueError("房间搜索错误，请检查关键词或密码")
         }
         counter++
         OutputDebug("Info.Online.Join: 搜索房间" counter)
         UpdateStatusBar("正在搜索..." counter)
         if (counter > 50) {
-            OutputDebug("Warning.Online.Join: 搜索超时")
+            OutputDebug("Warn.Online.Join: 搜索超时")
             UpdateStatusBar("搜索超时")
             return false
         }
