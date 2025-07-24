@@ -16,12 +16,10 @@ MiniGame_SingleActionBtn_Click() {
     ; 有限次重试搜寻工作台位置
     UpdateStatusBar("制作中...")
     retryCount := 1
+    benchPos := _MiniGameGetInitBenchPos()
     while (benchPos == 0 && retryCount <= retryLimit) {
+        OutputDebug("Warning.mini_game.SingleActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
         benchPos := _MiniGameGetInitBenchPos()
-        OutputDebug("Info.mini_game: 第" retryCount "/" retryLimit " 次尝试获取工作台位置：" benchPos)
-        if (benchPos != 0) {
-            break
-        }
         retryCount++
         Sleep(100)
     }
@@ -32,12 +30,10 @@ MiniGame_SingleActionBtn_Click() {
 
     ; 有限次重试制作
     retryCount := 1
+    done := _MiniGameDoNextAction(&benchPos)
     while (!done && retryCount <= retryLimit) {
+        OutputDebug("Warning.mini_game.SingleActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
         done := _MiniGameDoNextAction(&benchPos)
-        OutputDebug("Info.mini_game: 第" retryCount "/" retryLimit " 次尝试完成操作：" done)
-        if (done) {
-            break
-        }
         retryCount++
         Sleep(100)
     }
@@ -63,10 +59,10 @@ MiniGame_ContinuousActionBtn_Click() {
         retryCount := 1
         while (benchPos == 0 && retryCount <= retryLimit) {
             benchPos := _MiniGameGetInitBenchPos()
-            OutputDebug("Info.mini_game: 第" retryCount "/" retryLimit " 次获取工作台位置：" benchPos)
-            if (benchPos != 0) {
-                break
-            }
+        }
+        while (benchPos == 0 && retryCount <= retryLimit) {
+            OutputDebug("Warning.mini_game.ContinuousActionBtn: 找不到工作台，重试 " retryCount "/" retryLimit)
+            benchPos := _MiniGameGetInitBenchPos()
             retryCount++
             Sleep(100)
         }
@@ -77,13 +73,10 @@ MiniGame_ContinuousActionBtn_Click() {
 
         ; 有限次重试制作
         retryCount := 1
-        done := false
+        done := _MiniGameDoNextAction(&benchPos)
         while (!done && retryCount <= retryLimit) {
+            OutputDebug("Warning.mini_game.ContinuousActionBtn: 无法完成操作，重试 " retryCount "/" retryLimit)
             done := _MiniGameDoNextAction(&benchPos)
-            OutputDebug("Info.mini_game: 第" retryCount "/" retryLimit " 次操作结果：" done)
-            if (done) {
-                break
-            }
             retryCount++
             Sleep(100)
         }
