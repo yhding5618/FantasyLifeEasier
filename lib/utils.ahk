@@ -891,36 +891,25 @@ class VarScaleHandler {
         try {
             pid := WinGetPID(GameWindowTitle)
         } catch {
-            OutputDebug("Debug.utils.ScalerVarRegister.UpdateFactor: 检测不到窗口")
+            OutputDebug("Debug.utils.VarScaleHandler.UpdateFactor: 检测不到窗口")
             return
         }
 
         WinGetClientPos(, , &w, &h, "ahk_pid " pid)
         if (w == 0) {  ; 最小化
-            OutputDebug("Debug.utils.ScalerVarRegister.UpdateFactor: 窗口最小化，不更新 factor")
+            OutputDebug("Debug.utils.VarScaleHandler.UpdateFactor: 窗口最小化，不更新 factor")
             return
         }
 
-        newFactor := varScaleFactor
-        if (w != this.lastWindowSize.w) {
-            OutputDebug("Info.utils.ScalerVarRegister.UpdateFactor: 分辨率 [" this.lastWindowSize.w ", " this.lastWindowSize.h "] → [" w ", " h "]")
-            this.lastWindowSize := { w: w, h: h }
-
-            switch w "x" h {
-                case "3840x2160": newFactor := 2
-                case "2560x1440": newFactor := 1.3333
-                case "1920x1080": newFactor := 1
-                case "1600x900": newFactor := 0.8333
-                case "1280x720": newFactor := 0.6667
-                case "1152x648": newFactor := 0.6
-                case "1024x576": newFactor := 0.5333
-                default:
-                    OutputDebug("Error.utils.ScalerVarRegister.UpdateFactor: 非法分辨率 " w "x" h)
-            }
+        if (w == this.lastWindowSize.w) {
+            return 
         }
+        OutputDebug("Info.utils.VarScaleHandler.UpdateFactor: 分辨率 [" this.lastWindowSize.w ", " this.lastWindowSize.h "] → [" w ", " h "]")
+        this.lastWindowSize := { w: w, h: h }
 
+        newFactor := Round(w / 1920, 4)
         if (newFactor != varScaleFactor) {
-            OutputDebug("Info.utils.ScalerVarRegister.UpdateFactor: varScaleFactor: " varScaleFactor " → " newFactor)
+            OutputDebug("Info.utils.VarScaleHandler.UpdateFactor: varScaleFactor: " varScaleFactor " → " newFactor)
             varScaleFactor := newFactor
         }
     }
@@ -936,7 +925,7 @@ class VarScaleHandler {
         local _, element, path, newValue, target, pathStr
 
         if !this.registeredVars.Has(varName) {
-            OutputDebug("Warn.utils.ScalerVarRegister._UpdateVar: 变量 " varName " 不存在")
+            OutputDebug("Warn.utils.VarScaleHandler._UpdateVar: 变量 " varName " 不存在")
             return
         }
 
@@ -966,7 +955,7 @@ class VarScaleHandler {
                 target[path[path.Length]] := newValue
             }
         }
-        OutputDebug("Debug.utils.ScalerVarRegister._UpdateVar: 更新变量 " varName " 成功")
+        OutputDebug("Debug.utils.VarScaleHandler._UpdateVar: 更新变量 " varName " 成功")
     }
 
     /**

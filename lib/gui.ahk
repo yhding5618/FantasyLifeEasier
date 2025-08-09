@@ -343,9 +343,9 @@ _CreateSectionLegendary(firstSection := false) {
     totalRows := 3
     myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "传奇任务")
     myGui.AddText(_GroupBoxRowPos(1) " h22 0x200", "检查任务：")
-    myGui.AddCheckbox("yp hp vLegendary.IncludeEnemyChk", "怪")
-    myGui.AddCheckbox("yp hp vLegendary.IncludeTreeChk", "树")
-    myGui.AddCheckbox("yp hp vLegendary.IncludeDiamondChk", "钻")
+    myGui.AddCheckbox("yp hp checked vLegendary.IncludeEnemyChk", "怪")
+    myGui.AddCheckbox("yp hp checked vLegendary.IncludeTreeChk", "树")
+    myGui.AddCheckbox("yp hp checked vLegendary.IncludeDiamondChk", "钻")
     myGui.AddCheckbox("yp hp vLegendary.IncludeFishChk", "鱼")
     myGui.AddCheckbox("yp hp vLegendary.IncludePotatoChk", "豆")
     btn := myGui.AddButton(
