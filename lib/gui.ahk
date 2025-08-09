@@ -360,7 +360,7 @@ _CreateSectionLegendary(firstSection := false) {
     myGui.AddCheckbox("yp hp vLegendary.AutoCheckChk", "刷新后自动检查")
     myGui.AddText(_GroupBoxRowPos(3) " h22 0x200", "循环次数:")
     myGui.AddEdit("xp+70 hp yp w50")
-    myGui.AddUpDown("vLegendary.MaxLoopTimes Range0-999 0x80", 1)
+    myGui.AddUpDown("vLegendary.MaxLoopTimes Range0-999 0x80", 0)
     btn := myGui.AddButton("xp+70 yp-1 hp vLegendary.LoopRefreshBtn", "循环刷新")
     callback := TryAndCatch.Bind(Legendary_LoopRefreshBtn_Click)
     btn.OnEvent("Click", callback)
