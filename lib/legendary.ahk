@@ -72,8 +72,22 @@ _LegendaryQuestList := [
     ["龙牙群岛", 4, 1233, 170, 0x089ACA],
     ["绿意台地", 5, 1733, 687, 0x3BE2AE],
     ["巨腹大平原南部", 5, 1861, 944, 0xF2A057],  ; 胡萝卜颜色
-    ["巨腹大平原西部", 5, 1544, 264, _LegendaryQuestBlueColor]  ; 传奇任务蓝色
+    ["巨腹大平原西部", 5, 1544, 264, _LegendaryQuestBlueColor]
 ]
+VarScaleHandler.Register("_LegendaryQuestList", [
+    [1, 3], [1, 4],
+    [2, 3], [2, 4],
+    [3, 3], [3, 4],
+    [4, 3], [4, 4],
+    [5, 3], [5, 4],
+    [6, 3], [6, 4],
+    [7, 3], [7, 4],
+    [8, 3], [8, 4],
+    [9, 3], [9, 4],
+    [10, 3], [10, 4],
+    [11, 3], [11, 4],
+    [12, 3], [12, 4],
+])
 
 /**
  * @description 识别地图上是否有传奇任务
@@ -118,10 +132,12 @@ LegendaryCheckMap() {
 
 ; "区域"位置
 _LegendaryText1Pos := [1327, 337]
+VarScaleHandler.Register("_LegendaryText1Pos", [[1], [2]])
 ; "区域"颜色
 _LegendaryTextColor := "0xF8F0DC"
 ; 等级标识位置
 _LegendaryLevelPos := [151, 295]
+VarScaleHandler.Register("_LegendaryLevelPos", [[1], [2]])
 ; 等级标识未解锁颜色
 _LegendaryLevelLockedColor := "0x978056"
 ; 等级标识已选中颜色

@@ -99,6 +99,7 @@ MiniGame_CheckSkillBtn_Click() {
 
 ; 重新制作后的“技能重置”界面下方空格位置
 _MiniGameRemakeSpacePos := [924, 1015]
+VarScaleHandler.Register("_MiniGameRemakeSpacePos", [[1], [2]])
 
 MiniGame_LoopCraftAgainBtn_Click() {
     count := 0
@@ -178,10 +179,13 @@ _MiniGameDoNextAction(&benchPos) {
 
 ; 制作完成横幅1像素
 _MiniGameCompleteBanner1Pixel := [960, 160, "0xE88536"]
+VarScaleHandler.Register("_MiniGameCompleteBanner1Pixel", [[1], [2]])
 ; 制作完成横幅2像素
 _MiniGameCompleteBanner2Pixel := [960, 170, "0xFFE7BC"]
+VarScaleHandler.Register("_MiniGameCompleteBanner2Pixel", [[1], [2]])
 ; 制作完成横幅3像素
 _MiniGameCompleteBanner3Pixel := [960, 180, "0xA94F0D"]
+VarScaleHandler.Register("_MiniGameCompleteBanner3Pixel", [[1], [2]])
 
 /**
  * @description 等待“制作完成！”界面出现
@@ -227,30 +231,53 @@ _MiniGameIdentifyNewSkills() {
 
 ; 顶部倒计时框背景位置
 _MiniGameTimerBackgroundPos := [1000, 54]
+VarScaleHandler.Register("_MiniGameTimerBackgroundPos", [[1], [2]])
+
 ; 顶部倒计时框背景颜色
 _MiniGameTimerBackgroundColor := "0x6B3B0D"
 ; 顶部倒计时框背景像素
 _MiniGameTimerBackgroundPixel := [1000, 54, "0x6B3B0D"]
+VarScaleHandler.Register("_MiniGameTimerBackgroundPixel", [[1], [2]])
+
 ; 顶部制作图标位置X坐标（左，中，右）
 _MiniGameIconPosX := [890, 960, 1030]
+VarScaleHandler.Register("_MiniGameIconPosX", [[1], [2], [3]])
+
 ; 顶部制作图标位置Y坐标
 _MiniGameIconPosY := 78
+VarScaleHandler.Register("_MiniGameIconPosY")
+
 ; 顶部制作图标背景颜色
 _MiniGameIconBackgroundColor := "0x8C4609"
+
 ; 鼠标中心位置X坐标（左，中，右）
 _MiniGameMousePosX := [562, 962, 1362]
+VarScaleHandler.Register("_MiniGameMousePosX", [[1], [2], [3]])
+
 ; 鼠标中心位置Y坐标（上，下）
 _MiniGameMousePosY := [324, 504]
+VarScaleHandler.Register("_MiniGameMousePosY", [[1], [2]])
+
 ; 鼠标左键相对中心位置X偏移
 _MiniGameMouseLeftOffsetX := -20
+VarScaleHandler.Register("_MiniGameMouseLeftOffsetX")
+
 ; 鼠标中键相对中心位置Y偏移
 _MiniGameMouseMiddleOffsetY := 20
+VarScaleHandler.Register("_MiniGameMouseMiddleOffsetY")
+
 ; 鼠标中键上方的白色位置Y偏移
 _MiniGameMouseUpOffsetY := -30
+VarScaleHandler.Register("_MiniGameMouseUpOffsetY")
+
 ; 鼠标上方文字相对中心位置X偏移
 _MiniGameMouseTextOffsetX := 18
+VarScaleHandler.Register("_MiniGameMouseTextOffsetX")
+
 ; 鼠标上方文字相对中心位置Y偏移
 _MiniGameMouseTextOffsetY := -92
+VarScaleHandler.Register("_MiniGameMouseTextOffsetY")
+
 ; 鼠标左键粉色
 _MiniGameActionMouseLeftColor := "0xFFC8C4"
 ; 鼠标中键黑色

@@ -44,8 +44,8 @@ GameWindowStatusUpdate() {
     text .= "大小：" w "x" h "`n"
     if (w = 0 || h = 0) {
         text .= "游戏窗口可能已最小化"
-    } else if w != 1920 || h != 1080 {
-        text .= "请使用1920x1080分辨率运行"
+    } else if h/w != 0.5625 {
+        text .= "请使用 16:9 分辨率运行"
     } else {
         text .= "检测到游戏窗口"
     }

@@ -24,6 +24,7 @@ _FarmingHarvest() {
 }
 
 _FarmingWhistleIconPixel := [845, 570, "0x7BA0A6"]  ; 哨子图标像素
+VarScaleHandler.Register("_FarmingWhistleIconPixel", [[1], [2]])
 
 _FarmingWhistlingUntilNone(prefix := "") {
     WaitUntilColorMatch(
