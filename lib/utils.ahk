@@ -100,7 +100,7 @@ TryAndCatch(function, args*) {
         PlaySuccessSound()
         ShowSuccessMsgBox("操作成功: " btnText)
     } catch Error as e {
-        OutputDebug("Error.utils: " e.message)
+        OutputDebug("Error: " e.message)
         UpdateStatusBar(e.Message)
         PlayFailureSound()
         ShowFailureMsgBox("操作失败: " btnText, e)
@@ -228,13 +228,18 @@ UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
  * @param {String} color 期望的像素颜色
  * @param {(Integer|Array)} pixelRange 像素匹配范围，Integer表示正方形范围，Array表示[X, Y]（默认5）
  * @param {Integer} colorVariation 颜色变化范围（默认10）
+ * @param {Float} factor pixelRange的放大倍率(默认跟随`varScaleFactor`）
  * @return {Integer} 如果当前像素颜色与期望颜色匹配则返回true，否则返回false
  */
-SearchColorMatch(x, y, color, pixelRange := 5, colorVariation := 10) {
+SearchColorMatch(x, y, color, pixelRange := 5, colorVariation := 10, factor := varScaleFactor) {
     if (Type(pixelRange) == "Integer") {
         pixelRange := [pixelRange, pixelRange]
     } else if (Type(pixelRange) != "Array" || pixelRange.Length != 2) {
         throw ValueError("pixelRange必须是整数或包含两个整数的数组")
+    }
+    if (factor != 1) {
+        pixelRange[1] := Round(pixelRange[1] * factor)
+        pixelRange[2] := Round(pixelRange[2] * factor)
     }
     return PixelSearch(&xf, &yf,
         x - pixelRange[1], y - pixelRange[2],
@@ -418,10 +423,18 @@ WaitUntilPixelSearch(
     return false
 }
 
-_MenuIconPos := [670, 326]  ; 菜单图标1行1列中心位置
-_MenuIconOffsetX := 192  ; 菜单图标X偏移量
-_MenuIconOffsetY := 234  ; 菜单图标Y偏移量
-_MenuCenterPixel := [952, 556, "0xFEED41"]  ; 菜单中心背景像素
+; 菜单图标1行1列中心位置
+_MenuIconPos := [670, 326]
+VarScaleHandler.Register("_MenuIconPos", [[1], [2]])
+; 菜单图标X偏移量
+_MenuIconOffsetX := 192
+VarScaleHandler.Register("_MenuIconOffsetX")
+; 菜单图标Y偏移量
+_MenuIconOffsetY := 234
+VarScaleHandler.Register("_MenuIconOffsetY")
+; 菜单中心背景像素
+_MenuCenterPixel := [952, 556, "0xFEED41"]
+VarScaleHandler.Register("_MenuCenterPixel", [[1], [2]])
 
 OpenMenu() {
     OutputDebug("Info.utils: 打开菜单")
@@ -471,9 +484,12 @@ OpenMenuAndMoveToIcon(page, row, col) {
     return [x, y]
 }
 
+; 保存中图标位置
+savingIconPos := [85, 370]
+VarScaleHandler.Register("savingIconPos", [[1], [2]])
+
 WaitUntilSavingIcon(interval := 100, timeoutCount := 500) {
     count := 0
-    savingIconPos := [85, 370]  ; 保存中图标位置
     savingIconColor := "0xFFDC7E"  ; 保存中图标颜色
     WaitUntilColorMatch(
         savingIconPos[1], savingIconPos[2],
@@ -482,52 +498,81 @@ WaitUntilSavingIcon(interval := 100, timeoutCount := 500) {
 
 ; 高位“是”按钮位置，用于：离开房间，确认重新种植
 UtilsWindowYes1Pos := [706, 885]
+VarScaleHandler.Register("UtilsWindowYes1Pos", [[1], [2]])
 ; 高位“否”按钮位置，用于：离开房间，确认重新种植
 UtilsWindowNo1Pos := [1218, 885]
+VarScaleHandler.Register("UtilsWindowNo1Pos", [[1], [2]])
 ; 中位“是”按钮位置，用于：注意返回标题，注意加载覆盖，
 ; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowYes2Pos := [706, 940]
+VarScaleHandler.Register("UtilsWindowYes2Pos", [[1], [2]])
 ; 中位“否”按钮位置，用于：注意返回标题，注意加载覆盖，
 ; 确认在线出发探险，确认在线退出房间，确认在线解散房间，确认前往迷宫楼层
 UtilsWindowNo2Pos := [1218, 940]
+VarScaleHandler.Register("UtilsWindowNo2Pos", [[1], [2]])
 ; 低位“是”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowYes3Pos := [706, 960]
+VarScaleHandler.Register("UtilsWindowYes3Pos", [[1], [2]])
 ; 低位“否”按钮位置，用于：确认保存覆盖，确认加载覆盖
 UtilsWindowNo3Pos := [1218, 960]
+VarScaleHandler.Register("UtilsWindowNo3Pos", [[1], [2]])
 ; 超高位“是”按钮位置，用于：女神草交易所交换确认
 UtilsWindowYes4Pos := [706, 865]
+VarScaleHandler.Register("UtilsWindowYes4Pos", [[1], [2]])
 ; 超高位“否”按钮位置，用于：女神草交易所交换确认
 UtilsWindowNo4Pos := [1218, 865]
+VarScaleHandler.Register("UtilsWindowNo4Pos", [[1], [2]])
 ; 中高位“是”按钮位置，用于：女神果交易所交换确认
 UtilsWindowYes5Pos := [706, 925]
+VarScaleHandler.Register("UtilsWindowYes5Pos", [[1], [2]])
 ; 中高位“否”按钮位置，用于：女神果交易所交换确认
 UtilsWindowNo5Pos := [1218, 925]
+VarScaleHandler.Register("UtilsWindowNo5Pos", [[1], [2]])
 ; 高位“OK”按钮位置，用于：加载覆盖完毕
 UtilsWindowOK1Pos := [965, 835]
+VarScaleHandler.Register("UtilsWindowOK1Pos", [[1], [2]])
 ; 低位“OK”按钮位置，用于：Epic账户绑定，保存覆盖完毕
 UtilsWindowOK2Pos := [965, 885]
+VarScaleHandler.Register("UtilsWindowOK2Pos", [[1], [2]])
 ; 超高位“OK”按钮位置，用于：商店选择购买数量
 UtilsWindowOK3Pos := [965, 750]
+VarScaleHandler.Register("UtilsWindowOK3Pos", [[1], [2]])
 ; 超低位“OK”按钮位置，用于：持有量达到上限的道具自动出售结果
 UtilsWindowOK4Pos := [965, 895]
+VarScaleHandler.Register("UtilsWindowOK4Pos", [[1], [2]])
 ; 极低位“OK”按钮位置，用于：房间搜索错误，消息发送错误
 UtilsWindowOK5Pos := [965, 940]
+VarScaleHandler.Register("UtilsWindowOK5Pos", [[1], [2]])
 ; “OK”“是”“否”按钮选中时的背景绿色
 UtilsWindowButtonColor := "0x88FF74"
-UtilsOptionListWidePosX := 1293  ; 宽边距选项列表X坐标
-UtilsOptionListNarrowPosX := 1351  ; 窄边距选项列表X坐标
-UtilsOptionList2WidePosY := 436  ; 2宽选项列表Y坐标
-UtilsOptionList2NarrowPosY := 477  ; 2窄选项列表Y坐标
-UtilsOptionList3PosY := 403  ; 3宽选项列表Y坐标
-UtilsOptionList5PosY := 283  ; 5宽选项列表Y坐标
+; 宽边距选项列表X坐标
+UtilsOptionListWidePosX := 1293
+VarScaleHandler.Register("UtilsOptionListWidePosX")
+; 窄边距选项列表X坐标
+UtilsOptionListNarrowPosX := 1351
+VarScaleHandler.Register("UtilsOptionListNarrowPosX")
+; 2宽选项列表Y坐标
+UtilsOptionList2WidePosY := 436
+VarScaleHandler.Register("UtilsOptionList2WidePosY")
+; 2窄选项列表Y坐标
+UtilsOptionList2NarrowPosY := 477
+VarScaleHandler.Register("UtilsOptionList2NarrowPosY")
+; 3宽选项列表Y坐标
+UtilsOptionList3PosY := 403
+VarScaleHandler.Register("UtilsOptionList3PosY")
+; 5宽选项列表Y坐标
+UtilsOptionList5PosY := 283
+VarScaleHandler.Register("UtilsOptionList5PosY")
 ; 单个选项高度
 UtilsOptionListItemHeight := 80
+VarScaleHandler.Register("UtilsOptionListItemHeight")
 ; 右侧选项选中时的发光绿色，用于：大部分对话选项
 UtilsOptionListGlowColor := "0xA8F255"
 ; 交互按键背景灰色
 UtilsKeyBackgroundColor := "0x93805B"
 ; 继续对话空格键像素
 UtilsConversationSpacePixel := [1688, 976, UtilsKeyBackgroundColor]
+VarScaleHandler.Register("UtilsConversationSpacePixel", [[1], [2]])
 
 /**
  * @description 返回选项列表检查点
@@ -662,7 +707,10 @@ WaitUntilButton(
     throw TimeoutError(title "按钮加载超时")
 }
 
-UtilsMapPixel := [1635, 74, "0x0373FF"]  ; 地图右上角标记logo
+; 地图右上角标记logo
+UtilsMapPixel := [1635, 74, "0x0373FF"]
+VarScaleHandler.Register("UtilsMapPixel", [[1], [2]])
+
 /**
  * @description 检测是否在地图界面
  * @return {Boolean} 如果在地图界面返回true，否则返回false
@@ -727,4 +775,227 @@ SaveAndExit() {
 SaveAndReload() {
     SaveConfig()
     Reload()
+}
+
+; “随分辨率缩放”倍率
+varScaleFactor := 1
+
+/**
+ * @description 管理全局变量的随分辨率缩放
+ * @method Register 将全局变量注册为"随分辨率缩放"
+ * @method Unregister 注销全局变量
+ * @method UpdateAllVars 刷新所有已注册的全局变量
+ * @method UpdateFactor 更新放大倍率
+ * @method CheckAndUpdate 更新放大倍率并更新全局变量
+ * @method GetLastResolution 返回上次识别的分辨率
+ */
+class VarScaleHandler {
+    ; 上次窗口尺寸
+    static lastWindowSize := { w: 0, h: 0 }
+    ; 已注册为“随分辨率缩放”的全局变量
+    static registeredVars := Map()
+
+    ; 阻止实例化
+    __New() {
+        throw Error("该类禁止实例化")
+    }
+
+    /**
+     * @description 注册变量为“随分辨率缩放”，被注册的对象运行时不得修改
+     * @param {String} varName 变量名字符串
+     * @param {Array} [pathList] 可选，注册数组时需注册项的路径表
+     * @example
+     *  ; 注册单个变量
+     *  var := 32
+     *  VarScaleHandler.Register("var")
+     *  
+     *  ; 注册一维数组（更新1、3、5项）
+     *  array := [64, "some text", 48, "other text", 64]
+     *  VarScaleHandler.Register("array", [[1], [3], [5]])
+     *  
+     *  ; 注册多维数组（使用路径表示）
+     *  multiArray := [
+     *      ["龙瞳山地", 1, 960, 152],
+     *      ["龙鼻山地", 1, 336, 749],
+     *      ["蜿蜒山峰", 1, 1146, 153],
+     *      [
+     *          ["落羽之森", 2, 1775, 589],
+     *          ["菇菇秘境", 2, 1630, 314],
+     *      ]
+     *  ]
+     *  VarScaleHandler.Register("multiArray",
+     *      [
+     *          [1, 3], [1, 4],  ; 子数组1的第3项 子数组1的第4项
+     *          [2, 3], [2, 4],
+     *          [3, 3], [3, 4],
+     *          [4, 1, 3], [4, 1, 4]
+     *      ]
+     *  )
+     */
+    static Register(varName, pathList := "") {
+        origValue := %varName%  ; 获取当前变量值作为原始值
+        ; 变量路径
+        paths := []
+        ; 原始值列表
+        elements := []
+
+        if (pathList == "") {  ; 单值变量
+            if (IsObject(origValue)) {
+                throw TypeError("尝试注册数组为单值变量")
+            }
+            elements.Push({ path: [], origValue: origValue })
+        }
+        else if (IsObject(pathList)) {  ; 数组
+            for _, path in pathList {
+                if (!IsObject(path)) {
+                    throw TypeError("非法路径")
+                }
+                currentValue := origValue
+                isValidPath := true
+
+                for _, index in path {
+                    if (!IsObject(currentValue) || !currentValue.Has(index)) {
+                        OutputDebug("Warn.utils.VarScaleHandler.Register: " varName " 的索引路径 " this._FormatPath(path) " 无效"
+                        )
+                        isValidPath := false
+                        break
+                    }
+                    currentValue := currentValue[index]
+                }
+                if (isValidPath) {
+                    elements.Push({ path: path, origValue: currentValue })
+                }
+            }
+        }
+        else {
+            throw TypeError("非法索引类型")
+        }
+
+        ; 存储注册信息
+        this.registeredVars[varName] := { elements: elements }
+    }
+
+    /**
+     * @description 取消注册已变更的变量
+     * @param {String} varName 变量名字符串
+     */
+    static Unregister(varName) {
+        this.registeredVars.Delete(varName)
+    }
+
+    /**
+     * @description 更新放大倍率
+     */
+    static UpdateFactor() {
+        global varScaleFactor
+        try {
+            pid := WinGetPID(GameWindowTitle)
+        } catch {
+            OutputDebug("Debug.utils.VarScaleHandler.UpdateFactor: 检测不到窗口")
+            return
+        }
+
+        WinGetClientPos(, , &w, &h, "ahk_pid " pid)
+        if (w == 0) {  ; 最小化
+            OutputDebug("Debug.utils.VarScaleHandler.UpdateFactor: 窗口最小化，不更新 factor")
+            return
+        }
+
+        if (w == this.lastWindowSize.w) {
+            return 
+        }
+        OutputDebug("Info.utils.VarScaleHandler.UpdateFactor: 分辨率 [" this.lastWindowSize.w ", " this.lastWindowSize.h "] → [" w ", " h "]")
+        this.lastWindowSize := { w: w, h: h }
+
+        newFactor := Round(w / 1920, 4)
+        if (newFactor != varScaleFactor) {
+            OutputDebug("Info.utils.VarScaleHandler.UpdateFactor: varScaleFactor: " varScaleFactor " → " newFactor)
+            varScaleFactor := newFactor
+        }
+    }
+
+    /**
+     * @private
+     * @description 更新单个变量
+     * @param {String} varName 变量名字符串
+     */
+    static _UpdateVar(varName) {
+        ; 访问单值变量需要全局域
+        global
+        local _, element, path, newValue, target, pathStr
+
+        if !this.registeredVars.Has(varName) {
+            OutputDebug("Warn.utils.VarScaleHandler._UpdateVar: 变量 " varName " 不存在")
+            return
+        }
+
+        for _, element in this.registeredVars[varName].elements {
+            path := element.path
+            newValue := Round(element.origValue * varScaleFactor)
+
+            if (path.Length == 0) {  ; 单值变量
+                if IsObject(%varName%) {
+                    throw UnsetError("尝试修改注册为变量的对象 " varName)
+                }
+                %varName% := newValue
+
+            } else {  ; 数组
+                target := %varName%
+                loop (path.Length - 1) {  ; 推进到目标所在的数组
+                    if !IsObject(target) || !target.Has(path[A_Index]) {
+                        pathStr := this._FormatPath(path)
+                        throw UnsetError("尝试修改非法路径: " pathStr " 的第 " A_Index " 项")
+                    }
+                    target := target[path[A_Index]]
+                }
+                if (!target.has(path[path.Length])) {
+                    pathStr := this._FormatPath(path)
+                    throw TargetError("目标索引不存在: " pathStr)
+                }
+                target[path[path.Length]] := newValue
+            }
+        }
+        OutputDebug("Debug.utils.VarScaleHandler._UpdateVar: 更新变量 " varName " 成功")
+    }
+
+    /**
+     * @description 更新所有变量
+     */
+    static UpdateAllVars() {
+        for varName in this.registeredVars {
+            this._UpdateVar(varName)
+        }
+    }
+
+    /**
+     * @description 更新放大倍率，若倍率变化则更新全部变量
+     */
+    static CheckAndUpdate() {
+        oldFactor := varScaleFactor
+        this.UpdateFactor()
+        if (varScaleFactor != oldFactor) {
+            this.UpdateAllVars()
+        }
+    }
+
+    /**
+     * @description 返回一个与 varScaleFactor 相符的分辨率
+     * @returns {String} 分辨率字符串
+     */
+    static GetLastResolution() {
+        return this.lastWindowSize.w "x" this.lastWindowSize.h
+    }
+
+    /**
+     * @private
+     * @description 格式化 path 以方便调试
+     * @param {Array} path 路径
+     * @returns {String} 如 "[1, 2, 3]" 的字符串路径
+     */
+    static _FormatPath(path) {
+        pathStr := ""
+        for _, idx in path
+            pathStr .= idx ","
+        return "[" RTrim(pathStr, ",") "]"
+    }
 }

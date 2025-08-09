@@ -12,22 +12,28 @@ SaveLoad_LoadBtn_Click() {
 
 ; 共享存档打勾位置
 _SaveLoadCloudCheckPos := [1234, 442]
+VarScaleHandler.Register("_SaveLoadCloudCheckPos", [[1], [2]])
 ; 共享存档已打勾颜色
 _SaveLoadCloudCheckedColor := "0x5CE93F"
 ; 共享存档未打勾颜色
 _SaveLoadCloudUncheckedColor := "0xB39770"
 ; Epic账户绑定OK文字位置
 _SaveLoadEpicAccountTextPos := [720, 500]
+VarScaleHandler.Register("_SaveLoadEpicAccountTextPos", [[1], [2]])
 ; 保存覆盖完毕OK文字位置
 _SaveLoadSaveDoneTextPos := [921, 524]
+VarScaleHandler.Register("_SaveLoadSaveDoneTextPos", [[1], [2]])
 ; 加载覆盖完毕OK文字位置
 _SaveLoadLoadDoneTextPos := [921, 381]
+VarScaleHandler.Register("_SaveLoadLoadDoneTextPos", [[1], [2]])
 ; 文字颜色
 _SaveLoadTextColor := "0x88613B"
 ; 标题界面幻想生活i图标
 _SaveLoadLogoPixel := [955, 332, "0xF9BD00"]
+VarScaleHandler.Register("_SaveLoadLogoPixel", [[1], [2]])
 ; 标题界面[X]共享存档确认
 _SaveLoadXBtnPixel := [1357, 964, "0x75674E"]
+VarScaleHandler.Register("_SaveLoadXBtnPixel", [[1], [2]])
 
 SaveToCloud() {
     OutputDebug("Info.save_load.SaveToCloud: 保存到共享存档")
@@ -56,7 +62,6 @@ SaveToCloud() {
         _SaveLoadCloudCheckPos[1], _SaveLoadCloudCheckPos[2],
         _SaveLoadCloudCheckedColor, 2
     ) {
-        OutputDebug("Error.save_load.SaveToCloud: 共享存档无法选择")
         throw ValueError("共享存档无法选择")
     }
 

@@ -38,3 +38,7 @@ UpdateByTimer1() {
     GameWindowStatusUpdate()
     ScriptControlStatusUpdate()
 }
+
+VarScaleHandler.CheckAndUpdate()
+; 10s 检查一次全局变量
+SetTimer(() => VarScaleHandler.CheckAndUpdate(), 10000)

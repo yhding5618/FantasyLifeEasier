@@ -25,6 +25,7 @@ MysteryBox_LoadAndBuyBtn_Click() {
 
 ; 商店界面金币像素
 _MysteryBoxShopCoinPixel := [1591, 65, "0xFBE003"]
+VarScaleHandler.Register("_MysteryBoxShopCoinPixel", [[1], [2]])
 
 _MysteryBoxBuy() {
     OutputDebug("Info.mystery_box.BoxBuy: 开始购买")
