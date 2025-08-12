@@ -13,6 +13,7 @@ TeleportationGate_ReturnTripBtn_Click() {
 }
 
 _TeleportationGateInProgressPos := [50, 50]  ; 传送中白色背景
+VarScaleHandler.Register("_TeleportationGateInProgressPos" , [[1], [2]])
 _TeleportationGateInProgressColor := "0xFFFFFF"  ; 传送中白色背景颜色
 
 TeleportationGateOneWay() {
