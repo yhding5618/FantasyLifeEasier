@@ -22,13 +22,10 @@
 ProcessSetPriority("High")
 CoordMode("Pixel", "Client")
 
-F3:: Pause(-1)
-F4:: SaveAndExit()
-F5:: SaveAndReload()
-
 MainTitle := "Fantasy Life Easier"
 myGui := Gui(, MainTitle)
 myGui.OnEvent("Close", (*) => SaveAndExit())
+ScriptWindowTitle := "ahk_id " myGui.Hwnd
 BuildMyGui()
 LoadConfig()
 ShowMyGui()

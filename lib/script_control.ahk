@@ -50,6 +50,23 @@ ScriptControl_FailureMsgBoxChk_Click(args*) {
     }
 }
 
+ScriptControl_HotkeyScope_Click(args*) {
+    HotIf((*) =>
+        myGui["ScriptControl.HotkeyScopeGlobal"].Value ||
+        WinActive(GameWindowTitle) || WinActive(ScriptWindowTitle))
+    ScriptControlRegisterAllPresetHotkeys()
+    ScriptControlRegisterAllCustomHotkeys()
+}
+
+/**
+ * @description: 注册预设快捷键
+ */
+ScriptControlRegisterAllPresetHotkeys() {
+    HotKey("F3", (*) => Pause(-1))
+    HotKey("F4", (*) => SaveAndExit())
+    HotKey("F5", (*) => SaveAndReload())
+}
+
 /**
  * @description: 按钮名称列表（自定义顺序）
  * @example HotkeyActionNameList[1] = "无"
@@ -70,7 +87,7 @@ HotkeyMaxNum := 5
  * @description: 初始化自定义快捷键
  * @note 需要在脚本启动时调用
  */
-ScriptControlRegisterAllHotkeys() {
+ScriptControlRegisterAllCustomHotkeys() {
     loop HotkeyMaxNum {
         prefix := "ScriptControl.CustomHotkey" A_Index
         actionName := myGui[prefix "ActionName"].Text

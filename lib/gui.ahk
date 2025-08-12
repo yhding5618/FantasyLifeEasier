@@ -18,7 +18,7 @@ BuildMyGui() {
 ShowMyGui() {
     ScriptControl_AlwaysOnTopChk_Click()
     GameWindow_PixelInfoUpdateChk_Click()
-    ScriptControlRegisterAllHotkeys()
+    ScriptControl_HotkeyScope_Click()
     tabIndex := ScriptControlGetTabIndex()
     myGui["MainTab"].Choose(tabIndex)
     myGuiPos := ScriptControlGetWindowPos()
@@ -79,6 +79,7 @@ _CreateTabSetting() {
     _AddAndUseTab("设置")
     _CreateSectionScriptWindow(true)
     _CreateSectionScriptNotification()
+    _CreateSectionScriptHotkeyScope()
     _CreateSectionScriptPresetHotkey()
     _CreateSectionScriptCustomHotkey()
     _CreateSectionScriptVersion()
@@ -415,6 +416,15 @@ _CreateSectionScriptNotification(firstSection := false) {
     chk.OnEvent("Click", ScriptControl_FailureSoundChk_Click)
     chk := myGui.AddRadio("yp hp vScriptControl.FailureMsgBoxChk", "弹窗")
     chk.OnEvent("Click", ScriptControl_FailureMsgBoxChk_Click)
+}
+
+_CreateSectionScriptHotkeyScope(firstSection := false) {
+    totalRows := 1
+    myGui.AddGroupBox(_GroupBoxSize(totalRows, firstSection), "快捷键生效范围")
+    chk := myGui.AddRadio(_GroupBoxRowPos(1) " h22 Checked vScriptControl.HotkeyScopeGameScriptFocus", "仅游戏或脚本内")
+    chk.OnEvent("Click", ScriptControl_HotkeyScope_Click)
+    chk := myGui.AddRadio("yp hp vScriptControl.HotkeyScopeGlobal", "全局")
+    chk.OnEvent("Click", ScriptControl_HotkeyScope_Click)
 }
 
 _CreateSectionScriptPresetHotkey(firstSection := false) {
