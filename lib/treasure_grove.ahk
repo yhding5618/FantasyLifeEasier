@@ -21,14 +21,17 @@ TreasureGrove_CheckRoomBtn_Click() {
 
 ; 迷宫树“路线图”logo像素
 _TreasureGroveLogoPixel := [119, 58, "0xF7E1B2"]
+VarScaleHandler.Register("_TreasureGroveLogoPixel", [[1], [2]])
 ; 迷宫树地图共10行（不包括起点层）
 ; 奇数行有6列，偶数行只有5列且向右偏移1个房间
 ; 迷宫树地图(1,1)房间的中心位置（从1开始计数）
 _TreasureGroveRoom11Pos := [424, 272]
+VarScaleHandler.Register("_TreasureGroveRoom11Pos", [[1], [2]])
 ; 迷宫树房间大小
 ; 房间纵向间隔为1个房间大小
 ; 房间横向间隔为2个房间大小
 _TreasureGroveRoomSize := 72
+VarScaleHandler.Register("_TreasureGroveRoomSize")
 ; 空房间颜色
 _TreasureGroveEmptyHSVMax := [42, 64, 47]
 _TreasureGroveEmptyHSVMin := [21, 48, 36]
@@ -88,6 +91,7 @@ _TreasureGroveBossColor := Map(
 )
 ; Boss名字OCR范围和颜色，[x, y, w, h]，只包括Boss名字
 _TreasureGroveBossNameOCR := [1300, 600, 500, 40, "0xF2EAD8"]
+VarScaleHandler.Register("_TreasureGroveBossNameOCR", [[1], [2], [3], [4]])
 _TreasureGroveBossTypeName := Map(
     "怪物", [""],  ; 怪物Boss
     "采矿", [""],  ; 采矿Boss
@@ -191,11 +195,7 @@ _TreasureGroveCheckAllRooms() {
     } else {
         text .= "，特殊房间不匹配"
     }
-    if (matchedBossName != "") {
-        text .= "，Boss为" matchedBossName
-    } else {
-        text .= "，无Boss"
-    }
+    text .= "，Boss为" matchedBossName
     OutputDebug("Info.treasure_grove.CheckAllRoom: " text)
     UpdateStatusBar(text)
 }
