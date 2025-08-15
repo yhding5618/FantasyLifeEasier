@@ -1,6 +1,8 @@
 *
 !.gitignore
 !.github
+!.vscode
+!.vscode/settings.json
 !LICENSE
 !README.md
 

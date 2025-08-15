@@ -1,0 +1,13 @@
+{
+    "editor.formatOnSave": true,
+    "AHK++.v2.formatter": {
+        "whitespaceBeforeInlineComment": "  ",
+        "objectStyle": "expand",
+        "maxPreserveNewlines": 2,
+        "wrapLineLength": 120
+    },
+    "AHK++.v2.warn": {
+        "localSameAsGlobal": true,
+        "callWithoutParentheses": "On"
+    }
+}
