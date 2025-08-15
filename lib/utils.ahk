@@ -222,6 +222,47 @@ UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
 }
 
 /**
+ * @description 在屏幕上画一个矩形
+ * @example
+ * ; 画一个默认颜色矩形，一秒后删除并画一个自定义颜色矩形
+ * rect1 := DrawRectangle(100, 100, 200, 150)
+ * Sleep(1000)
+ * WinClose(rect1)
+ * rect2 := DrawRectangle(300, 300, 100, 100, "0x6600ff00")
+ * @param {Integer} x 矩形左上角X坐标
+ * @param {Integer} y 矩形左上角Y坐标
+ * @param {Integer} width 矩形宽度
+ * @param {Integer} height 矩形高度
+ * @param {String} color 矩形颜色，必须为ARGB格式
+ * @returns {String} 返回绘制窗口的WinTitle
+ */
+DrawRectangle(x, y, width, height, color := "0xffff0000") {
+    if !pToken := Gdip_Startup() {
+        OutputDebug(A_ThisFunc ": Gdi+启动失败")
+    }
+    OutputDebug(A_ThisFunc ": Gdi+启动成功")
+    drawGui := Gui("-Caption +E0x80000 +AlwaysOnTop +ToolWindow +OwnDialogs")
+    drawGui.Show("NA")
+    gw_width := VarScaleHandler.lastWindowSize.w
+    gw_height := VarScaleHandler.lastWindowSize.h
+    hbm := CreateDIBSection(gw_width, gw_height)
+    hdc := CreateCompatibleDC()
+    obm := SelectObject(hdc, hbm)
+    G := Gdip_GraphicsFromHDC(hdc)
+    ; Gdip_SetSmoothingMode(G, 4)
+    pPen := Gdip_CreatePen(color, 1)
+    Gdip_DrawRectangle(G, pPen, x, y, width, height)
+    Gdip_DeletePen(pPen)
+    UpdateLayeredWindow(drawGui.Hwnd, hdc, 0, 0, gw_width, gw_height)
+    SelectObject(hdc, obm)
+    DeleteObject(hbm)
+    DeleteDC(hdc)
+    Gdip_DeleteGraphics(G)
+    Gdip_Shutdown(pToken)
+    return "ahk_id " drawGui.Hwnd
+}
+
+/**
  * @description 对比指定像素的颜色
  * @param {Integer} x 像素X坐标
  * @param {Integer} y 像素Y坐标
