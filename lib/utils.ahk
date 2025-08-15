@@ -46,6 +46,58 @@ MyToolTip(text, x, y, id, enabled := false) {
     }
 }
 
+/**
+ * @description 打印信息到Console（此函数不应直接调用）
+ * @param {String} level 级别
+ * @param {String} fileName 文件名
+ * @param {String} funcName 函数名
+ * @param {String} text 信息
+ */
+_MyConsolePrint(text, level, fileName, funcName) {
+    SplitPath(fileName, , , , &nameNoExt)
+    OutputDebug(Format("[{1}] {2}.{3}: {4}", level, nameNoExt, funcName, text))
+}
+
+/**
+ * @description 打印Debug信息
+ * @param {String} text 信息
+ * @param {String} fileName 文件名，默认从`A_LineFile`获得
+ * @param {String} funcName 函数名，默认从`A_ThisFunc`获得
+ */
+MyConsoleDebug(text, fileName:=A_LineFile, funcName:=A_ThisFunc) {
+    _MyConsolePrint(text, "Debug", fileName, funcName)
+}
+
+/**
+ * @description 打印Info信息
+ * @param {String} text 信息
+ * @param {String} fileName 文件名，默认从`A_LineFile`获得
+ * @param {String} funcName 函数名，默认从`A_ThisFunc`获得
+ */
+MyConsoleInfo(text, fileName:=A_LineFile, funcName:=A_ThisFunc) {
+    _MyConsolePrint(text, "Info", fileName, funcName)
+}
+
+/**
+ * @description 打印Warn信息
+ * @param {String} text 信息
+ * @param {String} fileName 文件名，默认从`A_LineFile`获得
+ * @param {String} funcName 函数名，默认从`A_ThisFunc`获得
+ */
+MyConsoleWarn(text, fileName:=A_LineFile, funcName:=A_ThisFunc) {
+    _MyConsolePrint(text, "Warn", fileName, funcName)
+}
+
+/**
+ * @description 打印Error信息
+ * @param {String} text 信息
+ * @param {String} fileName 文件名，默认从`A_LineFile`获得
+ * @param {String} funcName 函数名，默认从`A_ThisFunc`获得
+ */
+MyConsoleError(text, fileName:=A_LineFile, funcName:=A_ThisFunc) {
+    _MyConsolePrint(text, "Error", fileName, funcName)
+}
+
 MyPress(singleKey) {
     Send("{" singleKey " down}")
 }
@@ -1019,6 +1071,7 @@ class VarScaleHandler {
         if (varScaleFactor != oldFactor) {
             this.UpdateAllVars()
         }
+        MyConsoleDebug("新Console格式输出展示")
     }
 
     /**
