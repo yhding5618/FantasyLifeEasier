@@ -299,6 +299,8 @@ MyDrawRectangle(x, y, width, height, color := "0xffff0000", enabled := false) {
     OutputDebug(A_ThisFunc ": Gdi+启动成功")
     drawGui := Gui("-Caption +E0x80000 +AlwaysOnTop +ToolWindow +OwnDialogs")
     drawGui.Show("NA")
+    gw_x := VarScaleHandler.lastWindowPos.x
+    gw_y := VarScaleHandler.lastWindowPos.y
     gw_width := VarScaleHandler.lastWindowSize.w
     gw_height := VarScaleHandler.lastWindowSize.h
     hbm := CreateDIBSection(gw_width, gw_height)
@@ -309,7 +311,7 @@ MyDrawRectangle(x, y, width, height, color := "0xffff0000", enabled := false) {
     pPen := Gdip_CreatePen(color, 1)
     Gdip_DrawRectangle(G, pPen, x, y, width, height)
     Gdip_DeletePen(pPen)
-    UpdateLayeredWindow(drawGui.Hwnd, hdc, 0, 0, gw_width, gw_height)
+    UpdateLayeredWindow(drawGui.Hwnd, hdc, gw_x, gw_y, gw_width, gw_height)
     SelectObject(hdc, obm)
     DeleteObject(hbm)
     DeleteDC(hdc)
@@ -898,6 +900,8 @@ varScaleFactor := 1
  * @method GetLastResolution 返回上次识别的分辨率
  */
 class VarScaleHandler {
+    ; 上次窗口位置
+    static lastWindowPos := { x: 0, y: 0 }
     ; 上次窗口尺寸
     static lastWindowSize := { w: 0, h: 0 }
     ; 已注册为“随分辨率缩放”的全局变量
@@ -1003,12 +1007,15 @@ class VarScaleHandler {
             return
         }
 
-        WinGetClientPos(, , &w, &h, "ahk_pid " pid)
+        WinGetClientPos(&x, &y, &w, &h, "ahk_pid " pid)
         if (w == 0) {  ; 最小化
             OutputDebug("Debug.utils.VarScaleHandler.UpdateFactor: 窗口最小化，不更新 factor")
             return
         }
-
+        if (this.lastWindowPos.x != x || this.lastWindowPos.y != y) {
+            OutputDebug("Info.utils.VarScaleHandler.UpdateFactor: 位置 [" this.lastWindowPos.x ", " this.lastWindowPos.y "] → [" x ", " y "]")
+            this.lastWindowPos := { x: x, y: y }
+        }
         if (w == this.lastWindowSize.w) {
             return 
         }
