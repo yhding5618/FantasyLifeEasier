@@ -303,11 +303,13 @@ WaitUntilColorMatch(x, y, color, title,
     pixelRange := 5, colorVariation := 10,
     interval := 100, timeoutCount := 50
 ) {
+    rect := DrawRectangle(x - pixelRange, y - pixelRange, pixelRange * 2, pixelRange * 2)
     count := 0
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (match) {
             OutputDebug("Debug.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
+            WinClose(rect)  ; 成功匹配则删除矩形
             return
         }
         OutputDebug("Info.util.WaitUntilColorMatch: 等待" title "..." count "/" timeoutCount)
