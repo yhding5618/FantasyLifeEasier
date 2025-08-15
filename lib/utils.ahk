@@ -285,10 +285,14 @@ UtilsMatchColorHSV(color1, color2, hsvVar := 10, debug := false) {
  * @param {Integer} y 矩形左上角Y坐标
  * @param {Integer} width 矩形宽度
  * @param {Integer} height 矩形高度
- * @param {String} color 矩形颜色，必须为ARGB格式
- * @returns {String} 返回绘制窗口的WinTitle
+ * @param {String} color 矩形颜色，必须为ARGB格式（默认不透明红色）
+ * @param {Boolean} enabled 是否启用绘制（默认false）
+ * @returns {String} 返回绘制窗口的WinTitle，如果未启用绘制则返回空字符串
  */
-DrawRectangle(x, y, width, height, color := "0xffff0000") {
+MyDrawRectangle(x, y, width, height, color := "0xffff0000", enabled := false) {
+    if !enabled {
+        return ""
+    }
     if !pToken := Gdip_Startup() {
         OutputDebug(A_ThisFunc ": Gdi+启动失败")
     }
@@ -312,6 +316,12 @@ DrawRectangle(x, y, width, height, color := "0xffff0000") {
     Gdip_DeleteGraphics(G)
     Gdip_Shutdown(pToken)
     return "ahk_id " drawGui.Hwnd
+}
+
+MyDeleteRectangle(rect) {
+    if (rect) {
+        WinClose(rect)
+    }
 }
 
 /**
@@ -355,13 +365,16 @@ WaitUntilColorMatch(x, y, color, title,
     pixelRange := 5, colorVariation := 10,
     interval := 100, timeoutCount := 50
 ) {
-    rect := DrawRectangle(x - pixelRange, y - pixelRange, pixelRange * 2, pixelRange * 2)
+    rect := MyDrawRectangle(
+        x - pixelRange, y - pixelRange,
+        pixelRange * 2, pixelRange * 2,
+        , true)
     count := 0
     while (count < timeoutCount) {
         match := SearchColorMatch(x, y, color, pixelRange, colorVariation)
         if (match) {
             OutputDebug("Debug.util.WaitUntilColorMatch: 检测到" title "结束[" color "]")
-            WinClose(rect)  ; 成功匹配则删除矩形
+            MyDeleteRectangle(rect)  ; 成功匹配则删除矩形
             return
         }
         OutputDebug("Info.util.WaitUntilColorMatch: 等待" title "..." count "/" timeoutCount)
