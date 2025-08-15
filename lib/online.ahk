@@ -61,27 +61,35 @@ _OnlineCheckInput() {
 SelectedTextColor := "0xF8F0DC"
 ; 感叹号确认“即将开始互联网连接”像素
 _OnlineCounterInternetPixel := [703, 933, SelectedTextColor]
+VarScaleHandler.Register("_OnlineCounterInternetPixel", [[1], [2]])
 ; 标题“多人联机”像素
 _OnlineCounterMultiplayerPixel := [144, 75, SelectedTextColor]
+VarScaleHandler.Register("_OnlineCounterMultiplayerPixel", [[1], [2]])
 ; 按钮“招募！”像素
 _OnlineRecruitButtonPixel := [310, 937, "0xFFC444"]
+VarScaleHandler.Register("_OnlineRecruitButtonPixel", [[1], [2]])
 ; 标题“设置目的地”像素
 _OnlineRecruitDestinationPixel := [890, 238, SelectedTextColor]
+VarScaleHandler.Register("_OnlineRecruitDestinationPixel", [[1], [2]])
 ; 科隆对话[F]位置
 _OnlineCounterPos := [1012, 413]
+VarScaleHandler.Register("_OnlineCounterPos", [[1], [2]])
 ; 啼普加载中图标位置
 _OnlineRecruitTripLogoPos := [960, 600]
+VarScaleHandler.Register("_OnlineRecruitTripLogoPos", [[1], [2]])
 ; 啼普加载中图标颜色
 _OnlineRecruitTripLogoColor := "0x8A703E"
 ; 小蓝人位置
 _OnlineJoinDestinationLogoPos := [67, 85]
+VarScaleHandler.Register("_OnlineJoinDestinationLogoPos", [[1], [2]])
 ; 小蓝人颜色
 _OnlineJoinDestinationLogoColor := "0x4289FF"
 ; 蓝天背景像素
 _OnlineJoiningSkyPixel := [1000, 140, "0x1595D7"]
-
+VarScaleHandler.Register("_OnlineJoiningSkyPixel", [[1], [2]])
 ; 联机出发[U]位置
 _OnlineHeadOutButtonPos := [339, 217]
+VarScaleHandler.Register("_OnlineHeadOutButtonPos", [[1], [2]])
 
 _OnlineWaitForBaseCampUI() {
     WaitUntilButton(
@@ -142,6 +150,7 @@ _TalkToColm() {
     WaitUntilColorMatch(
         _OnlineCounterMultiplayerPixel[1], _OnlineCounterMultiplayerPixel[2],
         _OnlineCounterMultiplayerPixel[3], "多人联机", , , 1000, 60)
+    UpdateStatusBar("进入多人联机")
 }
 
 _OnlineRecruit() {
@@ -209,6 +218,7 @@ _OnlineRecruit() {
     WaitUntilColorNotMatch(
         _OnlineRecruitTripLogoPos[1], _OnlineRecruitTripLogoPos[2],
         _OnlineRecruitTripLogoColor, "创建完成", , , 500, 60)
+    UpdateStatusBar("创建完成")
 }
 
 _OnlineJoin() {
@@ -282,6 +292,7 @@ _OnlineJoin() {
         _OnlineJoiningSkyPixel[3], "加入", , , 1000, 60)
 
     OutputDebug("Info.Online.Join: 加入房间成功")
+    UpdateStatusBar("已加入")
 }
 
 _OnlineHeadOutAsHost() {
@@ -297,15 +308,20 @@ _OnlineHeadOutAsHost() {
         UtilsWindowButtonColor, "确认出发“是”")
     Sleep(300)
     MySend("Space")  ; 确认出发
+    UpdateStatusBar("已出发")
 }
 
 ; 迷宫内交互[F]位置（先是y=500，视角自动调整后变400）
 _OnlineGroveInteractButton1Pos := [1017, 500]
+VarScaleHandler.Register("_OnlineGroveInteractButton1Pos", [[1], [2]])
 _OnlineGroveInteractButton2Pos := [1017, 400]
+VarScaleHandler.Register("_OnlineGroveInteractButton2Pos", [[1], [2]])
 ; “探索完成！”文本位置X
 _OnlineFinishExploreTextPosX := [708, 863, 1027, 1170, 1281]
+VarScaleHandler.Register("_OnlineFinishExploreTextPosX", [[1], [2], [3], [4], [5]])
 ; “探索完成！”文本位置Y
 _OnlineFinishExploreTextPosY := 190
+VarScaleHandler.Register("_OnlineFinishExploreTextPosY")
 ; “探索完成！”文本颜色
 _OnlineFinishExploreTextColor := "0xFFD707"
 
@@ -433,8 +449,11 @@ _OnlineWaitUntilAllAging() {
 }
 
 _OnlineItemIconPixel := [121, 95, "0xFFECBC"]  ; 物品图标像素
+VarScaleHandler.Register("_OnlineItemIconPixel", [[1], [2]])
 _OnlineItemInfoPixel := [1113, 467, "0xFFF8E5"]  ; 物品信息像素
+VarScaleHandler.Register("_OnlineItemInfoPixel", [[1], [2]])
 _OnlineTabKeyPixel := [908, 954, UtilsKeyBackgroundColor]  ; Tab键像素
+VarScaleHandler.Register("_OnlineTabKeyPixel", [[1], [2]])
 
 _OnlineWaitUntilBossDefeated() {
     WaitUntilColorMatch(_OnlinePlayerPosX, _OnlinePlayerPosY[1],
@@ -494,12 +513,14 @@ _OnlineWaitUntilAdventureComplete() {
 }
 
 _OnlinePlayerPosX := 72
+VarScaleHandler.Register("_OnlinePlayerPosX")
 _OnlinePlayerPosY := [
     56,  ; 房主（左上角）
     764,  ; 成员（左下角第一个）
     892,  ; 成员（左下角第二个）
     1020  ; 成员（左下角第三个）
 ]
+VarScaleHandler.Register("_OnlinePlayerPosY", [[1], [2], [3], [4]])
 _OnlinePlayerColor := [
     "0xFF6950",  ; 1P颜色
     "0x40A0FF",  ; 2P颜色
@@ -544,8 +565,11 @@ _OnlineCheckMemberJoinStatus(&status, &changed) {
 }
 
 _OnlineMiniMapCenterPos := [1700, 276]  ; 小地图中心位置
+VarScaleHandler.Register("_OnlineMiniMapCenterPos", [[1], [2]])
 _OnlineMiniMapRange := 116  ; 小地图半径
+VarScaleHandler.Register("_OnlineMiniMapRange")
 _OnlineMiniMapWarpCircleRange := 44  ; 小地图传送阵房间半径
+VarScaleHandler.Register("_OnlineMiniMapWarpCircleRange")
 
 /**
  * @description: 检查成员是否在附近
